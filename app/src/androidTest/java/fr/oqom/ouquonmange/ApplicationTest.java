@@ -1,4 +1,4 @@
-package ouquonmange.fr.ouquonmange;
+package fr.oqom.ouquonmange;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

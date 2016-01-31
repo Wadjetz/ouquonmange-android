@@ -1,8 +1,10 @@
-package ouquonmange.fr.ouquonmange;
+package fr.oqom.ouquonmange;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +14,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private RecyclerView communitiesRecyclerView;
+    private RecyclerView.Adapter communitiesAdapter;
+    private RecyclerView.LayoutManager communitiesLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +49,18 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        communitiesRecyclerView = (RecyclerView) findViewById(R.id.communities_list);
+        communitiesRecyclerView.setHasFixedSize(true);
+
+        communitiesLayoutManager = new LinearLayoutManager(this);
+        communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
+
+        ArrayList<Community> communities = new ArrayList<>();
+        communities.add(new Community("1", "Team ESGI", "5A ALA"));
+        communities.add(new Community("2", "Work", "Lol"));
+        communitiesAdapter = new CommunitiesAdapter(communities);
+        communitiesRecyclerView.setAdapter(communitiesAdapter);
     }
 
     @Override
