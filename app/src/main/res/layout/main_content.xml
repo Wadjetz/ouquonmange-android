@@ -9,8 +9,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="ouquonmange.fr.ouquonmange.MainActivity"
-    tools:showIn="@layout/app_bar_main">
+    tools:context="fr.oqom.ouquonmange.MainActivity"
+    tools:showIn="@layout/main_app_bar">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/communities_list"
