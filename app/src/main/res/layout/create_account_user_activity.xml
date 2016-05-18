@@ -7,17 +7,32 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="fr.oqom.ouquonmange.LoginActivity"
+    tools:context="fr.oqom.ouquonmange.CreateAccountUserActivity"
     android:orientation="vertical"
     android:weightSum="1">
 
     <android.support.design.widget.TextInputLayout
-        android:id="@+id/login_layout_email"
+        android:id="@+id/signup_layout_username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/signup_input_username"
+        android:hint="@string/prompt_username"
+        android:inputType="textEmailAddress"
+        android:maxLines="1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/signup_layout_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/login_input_email"
+            android:id="@+id/signup_input_email"
             android:hint="@string/prompt_email"
             android:inputType="textEmailAddress"
             android:maxLines="1"
@@ -27,12 +42,12 @@
     </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
-        android:id="@+id/login_layout_password"
+        android:id="@+id/signup_layout_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/login_input_password"
+            android:id="@+id/signup_input_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/prompt_password"
@@ -41,20 +56,24 @@
 
     </android.support.design.widget.TextInputLayout>
 
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/signup_layout_confirm_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/signup_input_confirm_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/confirm_password"
+            android:inputType="textPassword" />
+
+
+    </android.support.design.widget.TextInputLayout>
     <Button
-        android:id="@+id/login_button"
-        android:text="@string/login_action"
+        android:id="@+id/signup_button"
+        android:text="@string/signup_action"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-
-    <TextView
-        android:layout_width="192dp"
-        android:layout_height="0dp"
-        android:text="Sign Up"
-        android:id="@+id/signUpTextView"
-        android:layout_gravity="center_horizontal"
-        android:layout_weight="0.11"
-        android:textAlignment="center"
-        android:textColor="#fe0303" />
 
 </LinearLayout>
