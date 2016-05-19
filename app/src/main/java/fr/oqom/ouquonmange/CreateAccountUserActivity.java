@@ -9,8 +9,13 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.regex.Pattern;
+
+import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
@@ -25,7 +30,8 @@ public class CreateAccountUserActivity extends BaseActivity {
     private Button signUpButton;
     private String regexPassword = Constants.REGEX_PASSWORD;
     private OuquonmangeApi api;
-
+    private AuthRepository authRepository;
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,9 +44,11 @@ public class CreateAccountUserActivity extends BaseActivity {
         passwordLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_password);
         passwordCofirmInputSignup = (EditText) findViewById(R.id.signup_input_confirm_password);
         passwordConfirmLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_confirm_password);
+
         signUpButton = (Button) findViewById(R.id.signup_button);
 
         api = new OuquonmangeApi(getApplicationContext());
+        authRepository = new AuthRepository(getApplicationContext());
 
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,7 +71,22 @@ public class CreateAccountUserActivity extends BaseActivity {
             api.createAccountUser(username,email ,password , new Callback<JSONObject>() {
                 @Override
                 public void apply(final JSONObject value) {
-                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                    try {
+                        String token = value.getString("token");
+                        authRepository.save(token, new Callback<Void>() {
+                            @Override
+                            public void apply(Void value) {
+                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            }
+                        }, new Callback<Throwable>() {
+                            @Override
+                            public void apply(Throwable error) {
+                                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
@@ -74,6 +97,7 @@ public class CreateAccountUserActivity extends BaseActivity {
 
         }
     }
+
 
     private boolean validateUserName() {
         String username = usernameInputSignup.getText().toString().trim().toLowerCase();
@@ -139,10 +163,6 @@ public class CreateAccountUserActivity extends BaseActivity {
 
     private boolean isValidPassword(String password) {
         return Pattern.compile(regexPassword).matcher(password).matches();
-    }
-
-    private boolean EmailIsNotExist(){
-        return true;
     }
 
 }
