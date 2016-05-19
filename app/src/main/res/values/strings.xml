@@ -35,5 +35,6 @@
     <string name="search_communities">Search Communities</string>
     <string name="signup_action">Sign up</string>
     <string name="signup">Create Account</string>
-
+    <string name="drower_open">Open</string>
+    <string name="drower_close">Close</string>
 </resources>

@@ -1,6 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginRight="56dp"
+    android:layout_marginEnd="56dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="fr.oqom.ouquonmange.navigation.NavigationDrawerFragment">
 
-</LinearLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:background="@drawable/side_nav_bar"
+            android:layout_width="match_parent"
+            android:contentDescription="@string/app_name"
+            android:layout_height="100dp" />
+
+        <ListView
+            android:id="@+id/navigation_item_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</FrameLayout>
