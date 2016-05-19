@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -24,6 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputLayout emailLayout, passwordLayout;
     private EditText emailInput, passwordInput;
     private Button loginButton;
+    private TextView signUpTextView;
 
     private OuquonmangeApi api;
     private AuthRepository authRepository;
@@ -38,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         passwordInput = (EditText) findViewById(R.id.login_input_password);
         passwordLayout = (TextInputLayout) findViewById(R.id.login_layout_password);
         loginButton = (Button) findViewById(R.id.login_button);
+        signUpTextView = (TextView) findViewById(R.id.signUpTextView);
 
         api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
@@ -48,6 +51,15 @@ public class LoginActivity extends AppCompatActivity {
                 submitForm();
             }
         });
+        signUpTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                displayCreateAccountView();
+            }
+
+
+        });
+
     }
 
     private void submitForm() {
@@ -56,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             Toast.makeText(getApplicationContext(), "Pending", Toast.LENGTH_SHORT).show();
 
-            api.login(emailInput.getText().toString().trim(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
+            api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
                 @Override
                 public void apply(final JSONObject value) {
                     try {
@@ -97,7 +109,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private boolean validateEmail() {
-        String email = emailInput.getText().toString().trim();
+        String email = emailInput.getText().toString().trim().toLowerCase();
         if (email.isEmpty() || !isValidEmail(email)) {
             emailLayout.setError(getString(R.string.error_invalid_email));
             requestFocus(emailInput);
@@ -105,7 +117,7 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             emailLayout.setErrorEnabled(false);
         }
-        return false;
+        return true;
     }
 
     private static boolean isValidEmail(String email) {
@@ -116,5 +128,10 @@ public class LoginActivity extends AppCompatActivity {
         if (view.requestFocus()) {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
+    }
+
+    private void displayCreateAccountView() {
+        Intent intent = new Intent(this,CreateAccountUserActivity.class);
+        startActivity(intent);
     }
 }

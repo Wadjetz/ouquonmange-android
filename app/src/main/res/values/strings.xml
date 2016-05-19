@@ -11,11 +11,17 @@
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="prompt_username">Username</string>
+
     <string name="login_action">Go</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_username">This username is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_different_password">Passwords are differents</string>
+    <string name="error_regex_password">Password too short</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
@@ -27,4 +33,7 @@
     <string name="save">Save</string>
     <string name="communities">Communities</string>
     <string name="search_communities">Search Communities</string>
+    <string name="signup_action">Sign up</string>
+    <string name="signup">Create Account</string>
+
 </resources>
