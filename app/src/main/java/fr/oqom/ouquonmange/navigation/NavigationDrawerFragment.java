@@ -41,17 +41,64 @@ public class NavigationDrawerFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return super.onCreateView(R.layout.fragment_navigation_drawer, container, savedInstanceState);
+        return inflater.inflate(R.layout.fragment_navigation_drawer, container, false);
     }
 
-    public void setUp(int fragmentId, DrawerLayout drawerLayout, final Toolbar toolbar) {
+    public void setUp(int fragmentId, final DrawerLayout drawerLayout, final Toolbar toolbar) {
         this.drawerLayout = drawerLayout;
         View view = getActivity().findViewById(fragmentId);
         actionBarDrawerToggle = new ActionBarDrawerToggle(
                 getActivity(),
                 drawerLayout,
-                toolbar
-                
-        );
+                toolbar,
+                R.string.drower_open,
+                R.string.drower_close
+        ) {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                if (slideOffset <  0.6) {
+                    toolbar.setAlpha( 1 - slideOffset / 2 );
+                }
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                if (!userLearnedDrawer) {
+                    userLearnedDrawer = true;
+                    AppPreferences.setUserLearned(
+                            getActivity(),
+                            AppPreferences.KEY_USER_LEARNED,
+                            AppPreferences.TRUE
+                    );
+                }
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                AppPreferences.setUserLearned(
+                        getActivity(),
+                        AppPreferences.KEY_USER_LEARNED,
+                        AppPreferences.TRUE
+                );
+            }
+        };
+
+        if (!userLearnedDrawer && !fromSavedInstanceState) {
+            drawerLayout.openDrawer(view);
+        }
+
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+
+        drawerLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                actionBarDrawerToggle.syncState();
+            }
+        });
     }
+
+    public void closeDrawer() {
+        drawerLayout.closeDrawers();
+    }
+
 }
