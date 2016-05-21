@@ -97,7 +97,9 @@ public class MainActivity extends BaseActivity {
         communitiesAdapter = new CommunitiesAdapter(communities, new Callback<Community>() {
             @Override
             public void apply(Community community) {
-                Toast.makeText(getApplicationContext(), community.name, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getApplicationContext(),CalendarActivity.class);
+                intent.putExtra("uuid_community",community.uuid);
+                startActivity(intent);
             }
         });
         communitiesRecyclerView = (RecyclerView) findViewById(R.id.communities_list);
