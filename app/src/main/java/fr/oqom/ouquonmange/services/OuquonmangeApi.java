@@ -127,5 +127,26 @@ public class OuquonmangeApi {
             }
         });
     }
+    public void getEventsByUUID(String uuid,final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams params = new RequestParams();
+        client.addHeader("Authorization", "Bearer " + getToken());
+        String url = baseUrl+"/api/event/"+uuid+"/1463422588962";
+        client.get(url, params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+    }
 
 }

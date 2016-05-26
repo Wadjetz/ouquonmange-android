@@ -39,9 +39,9 @@ public class EventOfCommunity {
             String uuid = jsonEvents.getString("uuid");
             String name = jsonEvents.getString("name");
             String description = jsonEvents.getString("description");
-            int date_start = jsonEvents.getInt("date_start");
-            int date_end = jsonEvents.getInt("date_end");
-            int id_community = jsonEvents.getInt("id_community");
+            int date_start = jsonEvents.getInt("dateStart");
+            int date_end = jsonEvents.getInt("dateEnd");
+            int id_community = jsonEvents.getInt("communityId");
             int created = jsonEvents.getInt("created");
         eventOfCommunityList.add(new EventOfCommunity(id,uuid,name,description,date_start,date_end,id_community,created));
         }
