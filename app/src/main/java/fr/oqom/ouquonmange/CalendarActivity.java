@@ -1,6 +1,7 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -65,6 +66,15 @@ public class CalendarActivity extends AppCompatActivity {
         }else{
             this.fetchEvents(uuid);
         }
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_events_fab);
+        assert fab != null;
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "Add Event TODO", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), CreateEventActivity.class));
+            }
+        });
 
     }
 

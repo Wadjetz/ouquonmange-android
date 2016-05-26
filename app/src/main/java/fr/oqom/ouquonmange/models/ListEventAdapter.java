@@ -58,13 +58,6 @@ public class ListEventAdapter extends RecyclerView.Adapter<ListEventAdapter.List
             eventCardView = (CardView) v.findViewById(R.id.event_cardView);
             eventNameTextView = (TextView) v.findViewById(R.id.event_name);
             eventDescriptionTextView = (TextView) v.findViewById(R.id.event_description);
-            displayEventbutton = (Button) v.findViewById(R.id.event_button);
-            displayEventbutton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    callback.apply(eventOfCommunity);
-                }
-            });
         }
     }
 }
