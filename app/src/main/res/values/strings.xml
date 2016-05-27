@@ -38,4 +38,7 @@
     <string name="signup">Create Account</string>
     <string name="drower_open">Open</string>
     <string name="drower_close">Close</string>
+    <string name="event_name">Name</string>
+    <string name="event_description">Description</string>
+    <string name="create_event">CREATE EVENT</string>
 </resources>
