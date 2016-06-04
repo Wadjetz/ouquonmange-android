@@ -34,8 +34,11 @@
             android:name=".CreateAccountUserActivity"
             android:label="@string/signup"
             android:parentActivityName=".LoginActivity" />
-        <activity android:name=".CalendarActivity"></activity>
-        <activity android:name=".CreateEventActivity"></activity>
+        <activity
+            android:theme="@style/AppTheme.NoActionBar"
+            android:name=".CalendarActivity"/>
+        <activity
+            android:name=".CreateEventActivity"/>
     </application>
 
 </manifest>

@@ -46,31 +46,6 @@ public class MainActivity extends BaseActivity {
     private OuquonmangeApi api;
     private AuthRepository authRepository;
 
-    private void fetchCommunities() {
-        api.getCommunities(new Callback<JSONArray>() {
-            @Override
-            public void apply(JSONArray value) {
-                try {
-                    communities.addAll(Community.fromJson(value));
-                    communitiesAdapter.notifyDataSetChanged();
-                    Toast.makeText(getApplicationContext(), communities.toString(), Toast.LENGTH_SHORT).show();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-                Log.i(LOG_TAG, value.toString());
-            }
-        }, new Callback2<Throwable, JSONObject>() {
-            @Override
-            public void apply(Throwable throwable, JSONObject jsonObject) {
-                if (jsonObject != null) {
-                    Log.e(LOG_TAG, jsonObject.toString());
-                }
-                Log.e(LOG_TAG, throwable.getMessage());
-            }
-        });
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -162,6 +137,31 @@ public class MainActivity extends BaseActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void fetchCommunities() {
+        api.getCommunities(new Callback<JSONArray>() {
+            @Override
+            public void apply(JSONArray value) {
+                try {
+                    communities.addAll(Community.fromJson(value));
+                    communitiesAdapter.notifyDataSetChanged();
+                    Toast.makeText(getApplicationContext(), communities.toString(), Toast.LENGTH_SHORT).show();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                Log.i(LOG_TAG, value.toString());
+            }
+        }, new Callback2<Throwable, JSONObject>() {
+            @Override
+            public void apply(Throwable throwable, JSONObject jsonObject) {
+                if (jsonObject != null) {
+                    Log.e(LOG_TAG, jsonObject.toString());
+                }
+                Log.e(LOG_TAG, throwable.getMessage());
+            }
+        });
     }
 }
 

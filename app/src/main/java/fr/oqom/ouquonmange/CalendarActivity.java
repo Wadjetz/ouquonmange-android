@@ -1,11 +1,14 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,14 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.oqom.ouquonmange.models.AuthRepository;
-import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.EventOfCommunity;
 import fr.oqom.ouquonmange.models.ListEventAdapter;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
-public class CalendarActivity extends AppCompatActivity {
+public class CalendarActivity extends BaseActivity {
     private static String LOG_TAG = "CalendarActivity";
     private OuquonmangeApi api;
     private AuthRepository authRepository;
@@ -35,6 +37,10 @@ public class CalendarActivity extends AppCompatActivity {
     private List<EventOfCommunity> eventOfCommunities = new ArrayList<>();
     private RecyclerView eventsRecyclerView;
     private LinearLayoutManager eventsLayoutManager;
+
+    private DrawerLayout drawer;
+    private NavigationView navigationView;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +51,22 @@ public class CalendarActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), uuid, Toast.LENGTH_LONG).show();
         api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
+
+
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        toolbar.setTitle(R.string.events);
+
+        setSupportActionBar(toolbar);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(this);
 
         //Creating listview
         eventsAdapter = new ListEventAdapter(eventOfCommunities, new Callback<EventOfCommunity>() {
