@@ -1,88 +1,80 @@
 package fr.oqom.ouquonmange;
 
-import java.util.Calendar;
-
-import DateTimePicker.DateTimePicker.DateWatcher;
-import DateTimePicker.DateTimePicker;
-
 import android.os.Bundle;
-import android.app.Activity;
-import android.app.Dialog;
-import android.util.Log;
+import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.Window;
-import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.services.OuquonmangeApi;
 
-/**
- * Created by hedhili on 26/05/2016.
- */
-public class CreateEventActivity extends Activity implements DateWatcher {
-    EditText edit_text;
+public class CreateEventActivity extends AppCompatActivity {
+
+    private int minLengthName = Constants.MIN_LENGTH_NAME_COMMUNITY;
+    private int maxLengthName = Constants.MAX_LENGTH_NAME_COMMUNITY;
+
+    private TextInputLayout titleLayout, layoutDateStart, layoutDateEnd;
+    private EditText titleInput, descriptionInput, dateStartInput, dateEndInput;
+    private Button saveEventAction;
+
+    private OuquonmangeApi api;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_datetimecustom);
-        edit_text = (EditText) findViewById(R.id.edittext1);
+        setContentView(R.layout.activity_create_event);
+        initLayoutWidgets();
+        api = new OuquonmangeApi(getApplicationContext());
     }
 
-    public void button_click(View view){
-        // Create the dialog
-        final Dialog mDateTimeDialog = new Dialog(this);
-        // Inflate the root layout
-        final RelativeLayout mDateTimeDialogView = (RelativeLayout) getLayoutInflater().inflate(R.layout.date_time_dialog, null);
-        // Grab widget instance
-        final DateTimePicker mDateTimePicker = (DateTimePicker) mDateTimeDialogView.findViewById(R.id.DateTimePicker);
-        mDateTimePicker.setDateChangedListener(this);
-
-        // Update demo TextViews when the "OK" button is clicked
-        ((Button) mDateTimeDialogView.findViewById(R.id.SetDateTime)).setOnClickListener(new OnClickListener() {
-
-            public void onClick(View v) {
-                mDateTimePicker.clearFocus();
-                // TODO Auto-generated method stub
-                String result_string = mDateTimePicker.getMonth() + "/" + String.valueOf(mDateTimePicker.getDay()) + "/" + String.valueOf(mDateTimePicker.getYear())
-                        + "  " + String.valueOf(mDateTimePicker.getHour()) + ":" + String.valueOf(mDateTimePicker.getMinute());
-//				if(mDateTimePicker.getHour() > 12) result_string = result_string + "PM";
-//				else result_string = result_string + "AM";
-                edit_text.setText(result_string);
-                mDateTimeDialog.dismiss();
-            }
-        });
-
-        // Cancel the dialog when the "Cancel" button is clicked
-        ((Button) mDateTimeDialogView.findViewById(R.id.CancelDialog)).setOnClickListener(new OnClickListener() {
-
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-                mDateTimeDialog.cancel();
-            }
-        });
-
-        // Reset Date and Time pickers when the "Reset" button is clicked
-
-        ((Button) mDateTimeDialogView.findViewById(R.id.ResetDateTime)).setOnClickListener(new OnClickListener() {
-
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-                mDateTimePicker.reset();
-            }
-        });
-
-        // Setup TimePicker
-        // No title on the dialog window
-        mDateTimeDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        // Set the dialog content view
-        mDateTimeDialog.setContentView(mDateTimeDialogView);
-        // Display the dialog
-        mDateTimeDialog.show();
+    private void submitEvent() {
+        Toast.makeText(getApplicationContext(), "TODO Event Created", Toast.LENGTH_SHORT).show();
     }
-    public void onDateChanged(Calendar c) { // goi khi co thay doi tu calendar
-        Log.e("",
-                "" + c.get(Calendar.MONTH) + " " + c.get(Calendar.DAY_OF_MONTH)
-                        + " " + c.get(Calendar.YEAR));
+
+    private void initLayoutWidgets() {
+        titleLayout = (TextInputLayout) findViewById(R.id.layout_event_title);
+        layoutDateStart = (TextInputLayout) findViewById(R.id.layout_event_date_start);
+        layoutDateEnd = (TextInputLayout) findViewById(R.id.layout_event_date_end);
+
+        titleInput = (EditText) findViewById(R.id.input_event_title);
+        descriptionInput = (EditText) findViewById(R.id.input_event_description);
+        dateStartInput = (EditText) findViewById(R.id.input_event_date_start);
+        dateEndInput = (EditText) findViewById(R.id.input_event_date_end);
+
+        saveEventAction = (Button) findViewById(R.id.action_create_event);
+
+        saveEventAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                submitEvent();
+            }
+        });
+    }
+
+    private boolean validateTitle(String title) {
+        if (title.isEmpty()) {
+            titleLayout.setError(getString(R.string.error_field_required));
+            requestFocus(titleInput);
+            return false;
+        }
+        else if (title.length() > maxLengthName || title.length() < minLengthName ){
+            titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity) + " ( between " + minLengthName + " and " + maxLengthName + " characters )");
+            requestFocus(titleInput);
+            return false;
+        } else {
+            titleLayout.setErrorEnabled(false);
+        }
+        return true;
+
+    }
+
+    private void requestFocus(View view) {
+        if (view.requestFocus()) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
     }
 }

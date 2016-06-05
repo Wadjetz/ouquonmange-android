@@ -22,17 +22,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.EventOfCommunity;
 import fr.oqom.ouquonmange.models.ListEventAdapter;
-import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
 public class CalendarActivity extends BaseActivity {
     private static String LOG_TAG = "CalendarActivity";
-    private OuquonmangeApi api;
-    private AuthRepository authRepository;
+
     private RecyclerView.Adapter eventsAdapter;
     private List<EventOfCommunity> eventOfCommunities = new ArrayList<>();
     private RecyclerView eventsRecyclerView;
@@ -49,9 +46,6 @@ public class CalendarActivity extends BaseActivity {
         Intent intent = getIntent();
         String uuid =  intent.getStringExtra("uuid_community");
         Toast.makeText(getApplicationContext(), uuid, Toast.LENGTH_LONG).show();
-        api = new OuquonmangeApi(getApplicationContext());
-        authRepository = new AuthRepository(getApplicationContext());
-
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -128,16 +122,7 @@ public class CalendarActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main_drawer,menu);
-        MenuItem menuSearchCommunity = menu.findItem(R.id.nav_search_communities);
-        MenuItem menuTools = menu.findItem(R.id.nav_manage);
-        MenuItem menuCommunities = menu.findItem(R.id.nav_communities);
-        MenuItem menuCommunicate = menu.findItem(R.id.nav_communicate);
-        menuSearchCommunity.setVisible(false);
-        menuTools.setVisible(false);
-        menuCommunities.setVisible(false);
-        menuCommunicate.setVisible(false);
-
+        getMenuInflater().inflate(R.menu.activity_events_menu, menu);
         return true;
     }
 
@@ -146,9 +131,9 @@ public class CalendarActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.nav_calendar:
+            case R.id.menu_calendar:
                 setDate();
-                //Toast.makeText(getApplicationContext(), "calendar", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "calendar", Toast.LENGTH_LONG).show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -157,7 +142,7 @@ public class CalendarActivity extends BaseActivity {
 
     private void setDate() {
         Toast.makeText(getApplicationContext(), "calendar", Toast.LENGTH_LONG).show();
-        PickerDialogs pickerDialogs = new PickerDialogs();
+        DatePickerDialogs pickerDialogs = new DatePickerDialogs();
         pickerDialogs.show(getFragmentManager(),"date_picker");
     }
 }

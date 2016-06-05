@@ -42,4 +42,7 @@
     <string name="event_description">Description</string>
     <string name="create_event">CREATE EVENT</string>
     <string name="events">Events</string>
+    <string name="parameters">Parameters</string>
+    <string name="start_date_time">Start Date Time</string>
+    <string name="end_date_time">End Date Time</string>
 </resources>

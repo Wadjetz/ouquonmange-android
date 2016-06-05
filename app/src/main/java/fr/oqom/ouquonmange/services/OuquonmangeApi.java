@@ -9,6 +9,8 @@ import com.loopj.android.http.RequestParams;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Date;
+
 import cz.msebera.android.httpclient.Header;
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
@@ -130,7 +132,7 @@ public class OuquonmangeApi {
     public void getEventsByUUID(String uuid,final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
         RequestParams params = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
-        String url = baseUrl+"/api/event/"+uuid+"/1463422588962";
+        String url = baseUrl+"/api/event/" + uuid + "/" + new Date().getTime();
         client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {

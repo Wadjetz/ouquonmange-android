@@ -38,7 +38,8 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:name=".CalendarActivity"/>
         <activity
-            android:name=".CreateEventActivity"/>
+            android:name=".CreateEventActivity"
+            android:parentActivityName=".CalendarActivity"/>
     </application>
 
 </manifest>

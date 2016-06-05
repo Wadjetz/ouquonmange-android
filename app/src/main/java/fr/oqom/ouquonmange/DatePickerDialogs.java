@@ -7,10 +7,7 @@ import android.os.Bundle;
 
 import java.util.Calendar;
 
-/**
- * Created by hedhili on 21/05/2016.
- */
-public class PickerDialogs extends DialogFragment {
+public class DatePickerDialogs extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
