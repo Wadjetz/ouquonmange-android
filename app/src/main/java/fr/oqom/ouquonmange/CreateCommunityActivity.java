@@ -11,8 +11,6 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
-import java.util.regex.Pattern;
-
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
