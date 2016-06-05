@@ -1,18 +1,29 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import org.json.JSONObject;
+
+import java.util.Calendar;
 
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
+import fr.oqom.ouquonmange.utils.Callback;
+import fr.oqom.ouquonmange.utils.Callback2;
 
 public class CreateEventActivity extends AppCompatActivity {
+
+    private static final String LOG_TAG = "CreateEventActivity";
 
     private int minLengthName = Constants.MIN_LENGTH_NAME_COMMUNITY;
     private int maxLengthName = Constants.MAX_LENGTH_NAME_COMMUNITY;
@@ -20,19 +31,54 @@ public class CreateEventActivity extends AppCompatActivity {
     private TextInputLayout titleLayout, layoutDateStart, layoutDateEnd;
     private EditText titleInput, descriptionInput, dateStartInput, dateEndInput;
     private Button saveEventAction;
+    private Calendar dateStart = Calendar.getInstance();
+    private Calendar dateEnd = Calendar.getInstance();
 
     private OuquonmangeApi api;
+
+    private String communityUuid;
+
+    private ProgressBar progressBar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
+        Intent intent = getIntent();
+        communityUuid =  intent.getStringExtra(Constants.COMMUNITY_UUID);
         initLayoutWidgets();
+        progressBar = (ProgressBar) findViewById(R.id.progress);
         api = new OuquonmangeApi(getApplicationContext());
+        progressBar.setVisibility(View.GONE);
     }
 
     private void submitEvent() {
-        Toast.makeText(getApplicationContext(), "TODO Event Created", Toast.LENGTH_SHORT).show();
+        progressBar.setVisibility(View.VISIBLE);
+        // TODO validate Data
+        String name = titleInput.getText().toString();
+        String description = descriptionInput.getText().toString();
+        api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
+            @Override
+            public void apply(JSONObject jsonObject) {
+                Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
+                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                startActivity(intent);
+                finish();
+            }
+        }, new Callback2<Throwable, JSONObject>() {
+            @Override
+            public void apply(Throwable throwable, JSONObject jsonObject) {
+                Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
+                if (jsonObject != null) {
+                    Log.e(LOG_TAG, jsonObject.toString());
+                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                }
+                Log.e(LOG_TAG, throwable.getMessage());
+                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void initLayoutWidgets() {

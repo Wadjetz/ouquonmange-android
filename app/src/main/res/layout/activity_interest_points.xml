@@ -12,7 +12,7 @@
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="fr.oqom.ouquonmange.CalendarActivity">
+        tools:context="fr.oqom.ouquonmange.InterestPointsActivity">
 
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
@@ -45,20 +45,12 @@
                 android:layout_centerHorizontal="true"/>
 
             <android.support.v7.widget.RecyclerView
-                android:id="@+id/events_list"
+                android:id="@+id/interest_points_list"
                 android:scrollbars="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
 
         </RelativeLayout>
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/create_events_fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/fab_margin"
-            android:src="@drawable/ic_add" />
 
     </android.support.design.widget.CoordinatorLayout>
 

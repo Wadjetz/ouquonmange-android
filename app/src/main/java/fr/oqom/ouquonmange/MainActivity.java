@@ -3,17 +3,15 @@ package fr.oqom.ouquonmange;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -25,21 +23,21 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.oqom.ouquonmange.models.CommunitiesAdapter;
+import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
 import fr.oqom.ouquonmange.models.Community;
+import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
 public class MainActivity extends BaseActivity {
 
-    private static String LOG_TAG = "MainActivity";
+    private static final String LOG_TAG = "MainActivity";
+
+    private ProgressBar progressBar;
 
     private RecyclerView communitiesRecyclerView;
-    private NavigationView navigationView;
     private RecyclerView.Adapter communitiesAdapter;
     private RecyclerView.LayoutManager communitiesLayoutManager;
-    private DrawerLayout drawer;
-    private Toolbar toolbar;
 
     private List<Community> communities = new ArrayList<>();
 
@@ -48,26 +46,24 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Instantiate elements
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
 
-        setSupportActionBar(toolbar);
+        initNav();
+        toolbar.setSubtitle(R.string.my_communities);
+        initCommunityList();
+        initFloatingButton();
+        checkAuth();
+        checkGcm();
+        fetchCommunities();
+    }
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        navigationView.setNavigationItemSelectedListener(this);
-
+    private void initCommunityList() {
         // Creating list view
         communitiesAdapter = new CommunitiesAdapter(communities, new Callback<Community>() {
             @Override
             public void apply(Community community) {
                 Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
-                intent.putExtra("uuid_community",community.uuid);
+                intent.putExtra(Constants.COMMUNITY_UUID, community.uuid);
                 startActivity(intent);
             }
         });
@@ -76,14 +72,21 @@ public class MainActivity extends BaseActivity {
         communitiesRecyclerView.setHasFixedSize(true);
         communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
         communitiesRecyclerView.setAdapter(communitiesAdapter);
+    }
 
-        if (authRepository.getToken() == null) {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-        } else {
-            this.fetchCommunities();
-        }
+    private void initFloatingButton() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_community);
+        assert fab != null;
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), CreateCommunityActivity.class));
+                finish();
+            }
+        });
+    }
 
+    private void checkGcm() {
         String gcmToken = FirebaseInstanceId.getInstance().getToken();
         if (gcmToken != null) {
             api.addGcmToken(gcmToken, new Callback<JSONObject>() {
@@ -103,17 +106,6 @@ public class MainActivity extends BaseActivity {
         }
 
         Log.d(LOG_TAG, "GCM Token " + gcmToken);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_community);
-        assert fab != null;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), CreateCommunityActivity.class));
-                finish();
-            }
-        });
-
     }
 
     @Override
@@ -150,20 +142,23 @@ public class MainActivity extends BaseActivity {
                 try {
                     communities.addAll(Community.fromJson(value));
                     communitiesAdapter.notifyDataSetChanged();
-                    Toast.makeText(getApplicationContext(), communities.toString(), Toast.LENGTH_SHORT).show();
+                    Log.i(LOG_TAG, "Fetch Communities = " + communities.size());
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
                     Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-                Log.i(LOG_TAG, value.toString());
+                progressBar.setVisibility(View.GONE);
             }
         }, new Callback2<Throwable, JSONObject>() {
             @Override
             public void apply(Throwable throwable, JSONObject jsonObject) {
                 if (jsonObject != null) {
-                    Log.e(LOG_TAG, jsonObject.toString());
+                    Log.e(LOG_TAG, "Fetch Communities = " + jsonObject.toString());
                 }
-                Log.e(LOG_TAG, throwable.getMessage());
+                Log.e(LOG_TAG, "Fetch Communities = " + throwable.getMessage());
+                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
             }
         });
     }

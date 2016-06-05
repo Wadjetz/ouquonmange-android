@@ -1,6 +1,7 @@
 package fr.oqom.ouquonmange.services;
 
 import android.content.Context;
+import android.location.Location;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -9,6 +10,7 @@ import com.loopj.android.http.RequestParams;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import cz.msebera.android.httpclient.Header;
@@ -112,7 +114,7 @@ public class OuquonmangeApi {
         params.add("username",username);
         params.add("password",password);
         params.add("email",email);
-        client.post(baseUrl+ "/auth/local/signup",params,new JsonHttpResponseHandler(){
+        client.post(baseUrl+ "/auth/local/signup", params, new JsonHttpResponseHandler(){
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 success.apply(response);
@@ -129,10 +131,36 @@ public class OuquonmangeApi {
             }
         });
     }
-    public void getEventsByUUID(String uuid,final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
+
+    public void createEvent(String communityUuid, String name, String description, Calendar dateStart, Calendar dateEnd ,final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams params = new RequestParams();
+        params.add("name", name);
+        params.add("description", description);
+        params.add("dateStart", Constants.dateTimeFormat.format(dateStart.getTime().getTime()));
+        params.add("dateEnd", Constants.dateTimeFormat.format(dateEnd.getTime().getTime()));
+        client.addHeader("Authorization", "Bearer " + getToken());
+        client.post(baseUrl+ "/api/event/" + communityUuid, params,new JsonHttpResponseHandler(){
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+    }
+
+    public void getEventsByUUID(String communityUuid, Calendar calendar, final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
         RequestParams params = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
-        String url = baseUrl+"/api/event/" + uuid + "/" + new Date().getTime();
+        String url = baseUrl+"/api/event/" + communityUuid + "/" + calendar.getTime().getTime();
         client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
@@ -173,4 +201,24 @@ public class OuquonmangeApi {
         });
     }
 
+    public void getInterestPoints(Location location, final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams requestParams = new RequestParams();
+        client.addHeader("Authorization", "Bearer " + getToken());
+        client.get(baseUrl + "/api/interest/point?lat=" + location.getLatitude() + "&lng=" + location.getLongitude(), requestParams,  new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+    }
 }

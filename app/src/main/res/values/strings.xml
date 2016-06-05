@@ -45,4 +45,6 @@
     <string name="parameters">Parameters</string>
     <string name="start_date_time">Start Date Time</string>
     <string name="end_date_time">End Date Time</string>
+    <string name="my_communities">My Communities</string>
+    <string name="join_group">Join Group</string>
 </resources>
