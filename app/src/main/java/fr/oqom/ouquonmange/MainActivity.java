@@ -16,6 +16,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.firebase.iid.FirebaseInstanceId;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,12 +84,33 @@ public class MainActivity extends BaseActivity {
             this.fetchCommunities();
         }
 
+        String gcmToken = FirebaseInstanceId.getInstance().getToken();
+        if (gcmToken != null) {
+            api.addGcmToken(gcmToken, new Callback<JSONObject>() {
+                @Override
+                public void apply(JSONObject jsonObject) {
+                    Log.e(LOG_TAG, jsonObject.toString());
+                }
+            }, new Callback2<Throwable, JSONObject>() {
+                @Override
+                public void apply(Throwable throwable, JSONObject jsonObject) {
+                    if (jsonObject != null) {
+                        Log.e(LOG_TAG, jsonObject.toString());
+                    }
+                    Log.e(LOG_TAG, throwable.getMessage());
+                }
+            });
+        }
+
+        Log.d(LOG_TAG, "GCM Token " + gcmToken);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_community);
         assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(), CreateCommunityActivity.class));
+                finish();
             }
         });
 

@@ -1,5 +1,7 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -56,7 +58,8 @@ public class CreateCommunityActivity extends AppCompatActivity {
                 @Override
                 public void apply(JSONObject value) {
                     Toast.makeText(getApplicationContext(), "Community Created", Toast.LENGTH_SHORT).show();
-                    onBackPressed();
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                    finish();
                 }
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
