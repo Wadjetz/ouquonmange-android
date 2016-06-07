@@ -10,18 +10,25 @@
             android:id="@+id/nav_communities"
             android:icon="@drawable/ic_group_black"
             android:title="@string/communities" />
+
+        <!--
+        TODO Implement search communities
         <item
             android:id="@+id/nav_search_communities"
             android:icon="@drawable/ic_group_add_black"
             android:title="@string/search_communities" />
+            -->
     </group>
 
     <item android:title="@string/parameters" android:id="@+id/nav_parameters">
         <menu>
+            <!--
+            TODO Implement settings
             <item
                 android:id="@+id/nav_settings"
                 android:icon="@drawable/ic_menu_manage"
                 android:title="@string/action_settings" />
+                -->
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/ic_power_settings"

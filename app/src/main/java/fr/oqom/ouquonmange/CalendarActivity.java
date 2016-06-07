@@ -27,6 +27,7 @@ import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.utils.Callback3;
 
 public class CalendarActivity extends BaseActivity {
     private static String LOG_TAG = "CalendarActivity";
@@ -153,15 +154,16 @@ public class CalendarActivity extends BaseActivity {
 
     private void setDate() {
         final DatePickerDialogs pickerDialogs = new DatePickerDialogs();
-        pickerDialogs.setCallback(new Callback<Calendar>() {
+        pickerDialogs.setCallback(new Callback3<Integer, Integer, Integer>() {
             @Override
-            public void apply(Calendar c) {
-                calendar = c;
+            public void apply(Integer year, Integer monthOfYear, Integer dayOfMonth) {
+                calendar = Calendar.getInstance();
+                calendar.set(year, monthOfYear, dayOfMonth);
                 eventOfCommunities.clear();
                 eventsAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.VISIBLE);
                 toolbar.setSubtitle(getString(R.string.events) + " at " + dateFormat.format(calendar.getTime()));
-                fetchEvents(communityUuid, c);
+                fetchEvents(communityUuid, calendar);
             }
         });
         pickerDialogs.show(getFragmentManager(), "date_picker");

@@ -51,6 +51,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/start_date_time"
             android:inputType="datetime"
+            android:focusable="false"
             android:maxLines="1" />
 
     </android.support.design.widget.TextInputLayout>
@@ -66,6 +67,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/end_date_time"
             android:inputType="datetime"
+            android:focusable="false"
             android:maxLines="1" />
 
     </android.support.design.widget.TextInputLayout>

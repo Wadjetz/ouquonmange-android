@@ -45,14 +45,16 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
                 finish();
                 break;
+            /*
             case R.id.nav_search_communities:
                 Toast.makeText(getApplicationContext(), "TODO Search Communities", Toast.LENGTH_SHORT).show();
                 break;
-
+            */
+            /*
             case R.id.nav_settings:
                 Toast.makeText(getApplicationContext(), "TODO Settings", Toast.LENGTH_SHORT).show();
                 break;
-
+            */
             case R.id.nav_logout:
                 Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_SHORT).show();
                 authRepository.deleteToken(null);

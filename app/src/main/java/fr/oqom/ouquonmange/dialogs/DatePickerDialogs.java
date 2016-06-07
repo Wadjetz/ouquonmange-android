@@ -12,10 +12,11 @@ import java.util.Calendar;
 import java.util.Date;
 
 import fr.oqom.ouquonmange.utils.Callback;
+import fr.oqom.ouquonmange.utils.Callback3;
 
 public class DatePickerDialogs extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
-    private Callback<Calendar> callback;
+    private Callback3<Integer, Integer, Integer> callback;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -28,14 +29,12 @@ public class DatePickerDialogs extends DialogFragment implements DatePickerDialo
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(year, monthOfYear, dayOfMonth);
         if (callback != null) {
-            callback.apply(calendar);
+            callback.apply(year, monthOfYear, dayOfMonth);
         }
     }
 
-    public void setCallback(Callback<Calendar> callback) {
+    public void setCallback(Callback3<Integer, Integer, Integer> callback) {
         this.callback = callback;
     }
 }

@@ -14,11 +14,21 @@ public class InterestPoint {
     public String foursquareId;
     public String name;
     public String address;
+    public String lat;
+    public String lng;
+    public List<Long> members;
+    public boolean isJoin;
+    public String imageUrl;
 
-    public InterestPoint(String foursquareId, String name, String address) {
+    public InterestPoint(String foursquareId, String name, String address, String lat, String lng, List<Long> members, boolean isJoin, String imageUrl) {
         this.foursquareId = foursquareId;
         this.name = name;
         this.address = address;
+        this.lat = lat;
+        this.lng = lng;
+        this.members = members;
+        this.isJoin = isJoin;
+        this.imageUrl = imageUrl;
     }
 
     public static List<InterestPoint> fromJson(JSONArray jsonArray) throws JSONException {
@@ -32,7 +42,13 @@ public class InterestPoint {
             String foursquareId = jsonInterestPoint.getString("foursquareId");
             String name = jsonInterestPoint.getString("name");
             String address = jsonInterestPoint.getString("address");
-            interestPoints.add(new InterestPoint(foursquareId, name, address));
+            String lat = jsonInterestPoint.getString("lat");
+            String lng = jsonInterestPoint.getString("lng");
+            //JSONObject data = jsonInterestPoint.getJSONObject("data");
+            List<Long> members = new ArrayList<>();// jsonInterestPoint.getJSONArray("members");
+            boolean isJoin = jsonInterestPoint.getBoolean("isJoin");
+            JSONObject data = jsonInterestPoint.getJSONObject("data");
+            interestPoints.add(new InterestPoint(foursquareId, name, address, lat, lng, /*data*/ members, isJoin, null));
         }
 
         return interestPoints;

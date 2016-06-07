@@ -29,7 +29,7 @@
         </activity>
         <activity android:name=".LoginActivity" />
         <activity
-            android:name=".SearchActivity"
+            android:name=".SearchCommunityActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 

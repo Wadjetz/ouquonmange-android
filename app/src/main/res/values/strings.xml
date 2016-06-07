@@ -50,4 +50,6 @@
     <string name="app_label">Search</string>
     <string name="search_hint">Search Me</string>
     <string name="community_join">JOIN</string>
+    <string name="quit_group">Quite group</string>
+    <string name="image_descr">Image</string>
 </resources>

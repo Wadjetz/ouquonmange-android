@@ -16,6 +16,7 @@ import org.json.JSONObject;
 
 import java.util.Calendar;
 
+import fr.oqom.ouquonmange.dialogs.DateTimePickerDialog;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
@@ -50,6 +51,38 @@ public class CreateEventActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.progress);
         api = new OuquonmangeApi(getApplicationContext());
         progressBar.setVisibility(View.GONE);
+
+        dateStartInput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog();
+                dateTimePickerDialog.setCallback(new Callback2<Integer, Integer>() {
+                    @Override
+                    public void apply(Integer hours, Integer minutes) {
+                        dateStart.set(Calendar.HOUR_OF_DAY, hours);
+                        dateStart.set(Calendar.MINUTE, minutes);
+                        dateStartInput.setText(Constants.simpleDateFormat.format(dateStart.getTime()));
+                    }
+                });
+                dateTimePickerDialog.show(getFragmentManager(), "date_time_start_picker");
+            }
+        });
+
+        dateEndInput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog();
+                dateTimePickerDialog.setCallback(new Callback2<Integer, Integer>() {
+                    @Override
+                    public void apply(Integer hours, Integer minutes) {
+                        dateEnd.set(Calendar.HOUR_OF_DAY, hours);
+                        dateEnd.set(Calendar.MINUTE, minutes);
+                        dateEndInput.setText(Constants.simpleDateFormat.format(dateEnd.getTime()));
+                    }
+                });
+                dateTimePickerDialog.show(getFragmentManager(), "date_time_end_picker");
+            }
+        });
     }
 
     private void submitEvent() {

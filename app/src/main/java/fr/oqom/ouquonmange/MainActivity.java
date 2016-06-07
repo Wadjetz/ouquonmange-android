@@ -128,7 +128,7 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_action_search:
-                startActivity(new Intent(getApplicationContext(), SearchActivity.class));
+                startActivity(new Intent(getApplicationContext(), SearchCommunityActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

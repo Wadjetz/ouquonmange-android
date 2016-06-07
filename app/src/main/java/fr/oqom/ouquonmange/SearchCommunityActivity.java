@@ -20,7 +20,7 @@ import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
-public class SearchActivity extends BaseActivity {
+public class SearchCommunityActivity extends BaseActivity {
     private static final String LOG_TAG = "SearchActivity";
     private List<Community> communitiesSearch = new ArrayList<>();
     private SearchCommunitiesAdapter searchCommunitiesAdapter;

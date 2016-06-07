@@ -13,5 +13,6 @@ public class Constants {
     public static final String EVENT_UUID = "EVENT_UUID";
 
     public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
 
 }

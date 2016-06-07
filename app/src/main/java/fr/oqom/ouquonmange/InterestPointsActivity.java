@@ -11,6 +11,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -42,6 +44,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private List<InterestPoint> interestPoints = new ArrayList<>();
     private String eventUuid;
+    private String communityUuid;
 
     private LocationManager locationManager;
     private Location location;
@@ -54,39 +57,59 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         progressBar = (ProgressBar) findViewById(R.id.progress);
 
         eventUuid = getIntent().getStringExtra(Constants.EVENT_UUID);
-        Toast.makeText(getApplicationContext(), eventUuid, Toast.LENGTH_LONG).show();
+        communityUuid = getIntent().getStringExtra(Constants.COMMUNITY_UUID);
+
         initNav();
         checkAuth();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            String[] permissions = new String[]{
-                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
-            };
-
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_LOCATION_ASK_PERMISSIONS);
-
-            return;
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-
         initInterestPointList();
+        fetchInterestPoints();
     }
 
     private void initInterestPointList() {
-        interestPointsAdapter = new InterestPointsAdapter(interestPoints, new Callback<InterestPoint>() {
+
+        final Callback2<Throwable, JSONObject> errorCallback = new Callback2<Throwable, JSONObject>() {
             @Override
-            public void apply(InterestPoint interestPoint) {
-                Toast.makeText(getApplicationContext(), interestPoint.name, Toast.LENGTH_SHORT).show();
+            public void apply(Throwable throwable, JSONObject jsonObject) {
+                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                if (jsonObject != null) {
+                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
+        interestPointsAdapter = new InterestPointsAdapter(getApplicationContext(), interestPoints, new Callback<InterestPoint>() {
+            @Override
+            public void apply(final InterestPoint interestPoint) {
+                if (interestPoint.isJoin) {
+                    api.quitGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                        @Override
+                        public void apply(JSONObject jsonObject) {
+                            for (InterestPoint ip : interestPoints) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                    ip.isJoin = false;
+                                    interestPointsAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }, errorCallback);
+                } else {
+                    api.joinGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                        @Override
+                        public void apply(JSONObject jsonObject) {
+                            for (InterestPoint ip : interestPoints) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                    ip.isJoin = true;
+                                } else {
+                                    ip.isJoin = false;
+                                }
+                            }
+                            interestPointsAdapter.notifyDataSetChanged();
+                        }
+                    }, errorCallback);
+                }
             }
         });
         interestPointsRecyclerView = (RecyclerView) findViewById(R.id.interest_points_list);
@@ -96,46 +119,105 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         interestPointsRecyclerView.setAdapter(interestPointsAdapter);
     }
 
-    private void fetchInterestPoints(Location location) {
-        api.getInterestPoints(location, new Callback<JSONArray>() {
-            @Override
-            public void apply(JSONArray jsonObject) {
-                try {
-                    interestPoints.addAll(InterestPoint.fromJson(jsonObject));
-                    interestPointsAdapter.notifyDataSetChanged();
-                    Log.i(LOG_TAG, "Fetch InterestPoint = " + interestPoints.size());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, "Fetch InterestPoint = " + e.getMessage());
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+    private Callback2<Throwable, JSONObject> apiErrorCallback = new Callback2<Throwable, JSONObject>() {
+        @Override
+        public void apply(Throwable throwable, JSONObject jsonObject) {
+            if (jsonObject != null) {
+                Log.e(LOG_TAG, "Fetch InterestPoint = " + jsonObject.toString());
+                Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+            }
+            Log.e(LOG_TAG, "Fetch InterestPoint = " + throwable.getMessage());
+            Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+            progressBar.setVisibility(View.GONE);
+        }
+    };
 
-                progressBar.setVisibility(View.GONE);
+    private Callback<JSONObject> apiSuccessCallback = new Callback<JSONObject>() {
+        @Override
+        public void apply(JSONObject jsonObject) {
+            try {
+                JSONArray interestPointsJson = jsonObject.getJSONArray("interestPoints");
+                JSONArray othersInterestPointsJson = jsonObject.getJSONArray("othersInterestPoints");
+                List<InterestPoint> interestPointsWithGroup = InterestPoint.fromJson(interestPointsJson);
+                List<InterestPoint> interestPointsByLocation = InterestPoint.fromJson(othersInterestPointsJson);
+                interestPoints.clear();
+                interestPoints.addAll(interestPointsWithGroup);
+                interestPoints.addAll(interestPointsByLocation);
+                interestPointsAdapter.notifyDataSetChanged();
+                Log.i(LOG_TAG, "Fetch InterestPoint = " + jsonObject.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e(LOG_TAG, "Fetch InterestPoint = " + e.getMessage());
+                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        }, new Callback2<Throwable, JSONObject>() {
-            @Override
-            public void apply(Throwable throwable, JSONObject jsonObject) {
-                if (jsonObject != null) {
-                    Log.e(LOG_TAG, "Fetch InterestPoint = " + jsonObject.toString());
-                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
-                }
-                Log.e(LOG_TAG, "Fetch InterestPoint = " + throwable.getMessage());
-                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                progressBar.setVisibility(View.GONE);
-            }
-        });
+
+            progressBar.setVisibility(View.GONE);
+        }
+    };
+
+    private void fetchInterestPoints() {
+        api.getInterestPoints(eventUuid, communityUuid, apiSuccessCallback, apiErrorCallback);
+    }
+
+    private void fetchInterestPoints(Location location) {
+        api.getInterestPointsByLocation(location, eventUuid, communityUuid, apiSuccessCallback, apiErrorCallback);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         eventUuid = savedInstanceState.getString(Constants.EVENT_UUID);
+        communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_interest_point_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_action_location:
+                progressBar.setVisibility(View.VISIBLE);
+                Toast.makeText(getApplicationContext(), "TODO Location Interest Points", Toast.LENGTH_SHORT).show();
+                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    String[] permissions = new String[]{
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    };
+
+                    ActivityCompat.requestPermissions(this, permissions, REQUEST_LOCATION_ASK_PERMISSIONS);
+
+                    return true;
+                }
+
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+
+                return true;
+            /*
+            case R.id.menu_action_search:
+                Toast.makeText(getApplicationContext(), "TODO Search Interest Points", Toast.LENGTH_SHORT).show();
+                return true;
+            */
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(Constants.EVENT_UUID, eventUuid);
+        outState.putString(Constants.COMMUNITY_UUID, communityUuid);
     }
 
     @Override
