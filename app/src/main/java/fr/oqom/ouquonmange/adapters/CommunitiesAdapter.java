@@ -1,4 +1,4 @@
-package fr.oqom.ouquonmange.models;
+package fr.oqom.ouquonmange.adapters;
 
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -11,6 +11,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import fr.oqom.ouquonmange.R;
+import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.utils.Callback;
 
 public class CommunitiesAdapter extends RecyclerView.Adapter<CommunitiesAdapter.ViewHolder> {
@@ -33,10 +34,10 @@ public class CommunitiesAdapter extends RecyclerView.Adapter<CommunitiesAdapter.
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Community c = communities.get(position);
-        holder.communityNameTextView.setText(c.name);
-        holder.communityDescriptionTextView.setText(c.description);
-        holder.community = c;
+        Community community = communities.get(position);
+        holder.communityNameTextView.setText(community.name);
+        holder.communityDescriptionTextView.setText(community.description);
+        holder.community = community;
     }
 
     @Override

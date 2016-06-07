@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by hedhili on 25/05/2016.
  */
-public class EventOfCommunity {
+public class Event {
     public long id;
     public String uuid;
     public String name;
@@ -20,7 +20,7 @@ public class EventOfCommunity {
     public long id_community;
     public int created;
 
-    public EventOfCommunity(long id, String uuid, String name, String description, int date_start,int date_end, long id_community, int created ) {
+    public Event(long id, String uuid, String name, String description, int date_start, int date_end, long id_community, int created ) {
         this.id = id;
         this.uuid = uuid;
         this.name = name;
@@ -30,8 +30,8 @@ public class EventOfCommunity {
         this.id_community = id_community;
         this.created = created;
     }
-    public static List<EventOfCommunity> fromJson(JSONArray jsonArray) throws JSONException {
-        List<EventOfCommunity> eventOfCommunityList = new ArrayList<>();
+    public static List<Event> fromJson(JSONArray jsonArray) throws JSONException {
+        List<Event> eventList = new ArrayList<>();
         int total = jsonArray.length();
         for (int i = 0; i < total; i++) {
             JSONObject jsonEvents = jsonArray.getJSONObject(i);
@@ -43,9 +43,9 @@ public class EventOfCommunity {
             int date_end = jsonEvents.getInt("dateEnd");
             int id_community = jsonEvents.getInt("communityId");
             int created = jsonEvents.getInt("created");
-        eventOfCommunityList.add(new EventOfCommunity(id,uuid,name,description,date_start,date_end,id_community,created));
+        eventList.add(new Event(id,uuid,name,description,date_start,date_end,id_community,created));
         }
-    return eventOfCommunityList;
+    return eventList;
     }
 
 }

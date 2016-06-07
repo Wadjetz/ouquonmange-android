@@ -6,7 +6,9 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -17,6 +19,10 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
 
     protected OuquonmangeApi api;
     protected AuthRepository authRepository;
+
+    protected NavigationView navigationView;
+    protected DrawerLayout drawer;
+    protected Toolbar toolbar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,5 +65,27 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         }
 
         return true;
+    }
+
+    protected void initNav() {
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        setSupportActionBar(toolbar);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    protected void checkAuth() {
+        if(authRepository.getToken() == null){
+            Intent intentLogin = new Intent(this,LoginActivity.class);
+            startActivity(intentLogin);
+        }
     }
 }
