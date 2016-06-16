@@ -221,4 +221,48 @@ public class OuquonmangeApi {
             }
         });
     }
+
+    public void getAllCommunities(final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams params = new RequestParams();
+        client.addHeader("Authorization", "Bearer " + getToken());
+        String url = baseUrl+"/api/community/search";
+        client.get(url, params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+    }
+
+    public void getCommunitiesByQuery(String query, final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams requestParams = new RequestParams();
+        client.addHeader("Authorization", "Bearer " + getToken());
+        client.get(baseUrl + "/api/community/search?query=" + query, requestParams,  new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+
+    }
 }

@@ -47,4 +47,6 @@
     <string name="end_date_time">End Date Time</string>
     <string name="my_communities">My Communities</string>
     <string name="join_group">Join Group</string>
+    <string name="app_label">Search</string>
+    <string name="search_hint">Search Me</string>
 </resources>

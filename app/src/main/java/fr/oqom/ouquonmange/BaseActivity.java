@@ -88,4 +88,19 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
             startActivity(intentLogin);
         }
     }
+
+    protected void initNavSearch() {
+        toolbar = (Toolbar) findViewById(R.id.toolbar_search);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout_search);
+        navigationView = (NavigationView) findViewById(R.id.nav_view_search);
+
+        setSupportActionBar(toolbar);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(this);
+    }
 }

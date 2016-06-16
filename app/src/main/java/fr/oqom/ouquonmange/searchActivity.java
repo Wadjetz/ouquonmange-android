@@ -1,0 +1,134 @@
+/**
+ * Created by hedhili on 15/06/2016.
+ */
+
+package fr.oqom.ouquonmange;
+
+import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
+import android.widget.SearchView;
+import android.widget.Toast;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
+import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
+import fr.oqom.ouquonmange.models.Community;
+import fr.oqom.ouquonmange.utils.Callback;
+import fr.oqom.ouquonmange.utils.Callback2;
+
+public class SearchActivity extends BaseActivity {
+    private List<Community> communitiesSearch = new ArrayList<>();
+    private CommunitiesAdapter communitiesAdapter;
+    private RecyclerView communitiesRecyclerView;
+    private RecyclerView.LayoutManager communitiesLayoutManager;
+    private ProgressBar progressBar;
+    private SearchView searchView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search_community);
+        progressBar = (ProgressBar) findViewById(R.id.progress_community);
+        searchView = (SearchView) findViewById(R.id.community_searched_view);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchView.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String query) {
+                communitiesSearch.clear();
+                if(query.length()>0) {
+                    searchCommunitiesByQuery(query);
+                }else if(query.length()==0){
+                    searchAllCommunities();
+                }
+                return true;
+            }
+        });
+
+        initNavSearch();
+        toolbar.setSubtitle(R.string.my_communities);
+        initCommunitySearchList();
+        checkAuth();
+        searchAllCommunities();
+    }
+
+    private void searchCommunitiesByQuery(String query) {
+        api.getCommunitiesByQuery(query,new Callback<JSONArray>() {
+            @Override
+            public void apply(JSONArray value) {
+                try {
+                    communitiesSearch.addAll(Community.fromJson(value));
+                    communitiesAdapter.notifyDataSetChanged();
+                    Log.i("Search Activity", "Fetch Communities = " + communitiesSearch.size());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e("Search Activity", "Fetch Communities = " + e.getMessage());
+                }
+                progressBar.setVisibility(View.GONE);
+            }
+        }, new Callback2<Throwable, JSONObject>() {
+            @Override
+            public void apply(Throwable throwable, JSONObject jsonObject) {
+                if (jsonObject != null) {
+                    Log.e("Search Activity", "Fetch Communities = " + jsonObject.toString());
+                }
+                Log.e("Search Activity", "Fetch Communities = " + throwable.getMessage());
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+
+    }
+
+    private void searchAllCommunities() {
+        api.getAllCommunities(new Callback<JSONArray>() {
+            @Override
+            public void apply(JSONArray value) {
+                try {
+                    communitiesSearch.addAll(Community.fromJson(value));
+                    communitiesAdapter.notifyDataSetChanged();
+                    Log.i("Search Activity", "Fetch Communities = " + communitiesSearch.size());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e("Search Activity", "Fetch Communities = " + e.getMessage());
+                }
+                progressBar.setVisibility(View.GONE);
+            }
+        }, new Callback2<Throwable, JSONObject>() {
+            @Override
+            public void apply(Throwable throwable, JSONObject jsonObject) {
+                if (jsonObject != null) {
+                    Log.e("Search Activity", "Fetch Communities = " + jsonObject.toString());
+                }
+                Log.e("Search Activity", "Fetch Communities = " + throwable.getMessage());
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+
+    }
+
+    private void initCommunitySearchList() {
+        // Creating list view
+        communitiesAdapter = new CommunitiesAdapter(communitiesSearch, new Callback<Community>() {
+            @Override
+            public void apply(Community community) {
+                //Toast.makeText(getApplicationContext(), "community clic", Toast.LENGTH_SHORT).show();
+            }
+        });
+        communitiesRecyclerView = (RecyclerView) findViewById(R.id.community_searched_list);
+        communitiesLayoutManager = new LinearLayoutManager(this);
+        communitiesRecyclerView.setHasFixedSize(true);
+        communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
+        communitiesRecyclerView.setAdapter(communitiesAdapter);
+    }
+}

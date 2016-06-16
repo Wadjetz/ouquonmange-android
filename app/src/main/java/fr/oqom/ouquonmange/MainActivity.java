@@ -128,7 +128,7 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_action_search:
-                Toast.makeText(getApplicationContext(), "TODO Search Community", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), SearchActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
