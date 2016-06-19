@@ -7,10 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 
 import java.util.List;
 
@@ -23,13 +20,15 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
     private final List<InterestPoint> interestPoints;
     private final Callback<InterestPoint> callbackGroup;
     private final Callback<InterestPoint> callbackDetails;
+    private final Callback<InterestPoint> callbackVote;
     private Context context;
 
-    public InterestPointsAdapter(Context context, List<InterestPoint> interestPoints, Callback<InterestPoint> callbackGroup, Callback<InterestPoint> callbackDetails) {
+    public InterestPointsAdapter(Context context, List<InterestPoint> interestPoints, Callback<InterestPoint> callbackGroup, Callback<InterestPoint> callbackDetails, Callback<InterestPoint> callbackVote) {
         this.context = context;
         this.interestPoints = interestPoints;
         this.callbackGroup = callbackGroup;
         this.callbackDetails = callbackDetails;
+        this.callbackVote = callbackVote;
     }
 
     @Override
@@ -45,8 +44,11 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
         holder.interestPointName.setText(interestPoint.name);
         holder.interestPointAddress.setText(interestPoint.address);
         holder.interestPoint = interestPoint;
-        String buttonText = interestPoint.isJoin ? context.getString(R.string.quit_group) : context.getString(R.string.join_group);
+        String buttonText = (interestPoint.isJoin ? context.getString(R.string.quit_group) : context.getString(R.string.join_group));//+"("+interestPoint.members+")";
         holder.joinAction.setText(buttonText);
+        String buttonVote = (interestPoint.isVote ? context.getString(R.string.unvote_group) : context.getString(R.string.vote_group));//+"("+interestPoint.votes+")";
+        holder.voteAction.setText(buttonVote);
+
     }
 
     @Override
@@ -61,6 +63,7 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
         public TextView interestPointAddress;
         public Button joinAction;
         public Button detailsAction;
+        public Button voteAction;
 
         public ViewHolder(View v) {
             super(v);
@@ -69,6 +72,7 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
             interestPointAddress = (TextView) v.findViewById(R.id.interest_point_address);
             joinAction = (Button) v.findViewById(R.id.action_join_group);
             detailsAction = (Button) v.findViewById(R.id.action_details);
+            voteAction = (Button) v.findViewById(R.id.action_vote_group);
             joinAction.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -80,6 +84,12 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
                 @Override
                 public void onClick(View v) {
                     callbackDetails.apply(interestPoint);
+                }
+            });
+            voteAction.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    callbackVote.apply(interestPoint);
                 }
             });
         }

@@ -405,4 +405,49 @@ public class OuquonmangeApi {
             }
         });
     }
+
+    public void unvoteGroup(String communityUuid, String eventUuid, String interestPointId, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams params = new RequestParams();
+        client.addHeader("Authorization", "Bearer " + getToken());
+        client.delete(baseUrl + "/api/vote/" + communityUuid + "/" + eventUuid + "/" + interestPointId, params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+
+    }
+
+    public void voteGroup(String communityUuid, String eventUuid, String interestPointId, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams params = new RequestParams();
+        params.add("event_uuid", eventUuid);
+        params.add("interest_point_id", interestPointId);
+        client.addHeader("Authorization", "Bearer " + getToken());
+        client.post(baseUrl+ "/api/vote/" + communityUuid, params, new JsonHttpResponseHandler(){
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+    }
 }

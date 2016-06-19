@@ -91,7 +91,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                             for (InterestPoint ip : interestPoints) {
                                 if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isJoin = false;
+                                    Log.i(LOG_TAG, " quit = " + ip.members+" - "+interestPoint.members);
                                     interestPointsAdapter.notifyDataSetChanged();
+
                                 }
                             }
                         }
@@ -103,8 +105,10 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                             for (InterestPoint ip : interestPoints) {
                                 if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isJoin = true;
+                                    Log.i(LOG_TAG, " join T = " + ip.members+" - "+interestPoint.members);
                                 } else {
                                     ip.isJoin = false;
+                                    Log.i(LOG_TAG, " join F = " + ip.members+" - "+interestPoint.members);
                                 }
                             }
                             interestPointsAdapter.notifyDataSetChanged();
@@ -121,6 +125,41 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
                 intent.putExtra(Constants.INTEREST_POINT, interestPoint);
                 startActivity(intent);
+            }
+        }, new Callback<InterestPoint>() {
+            @Override
+            public void apply(final InterestPoint interestPoint) {
+                if (interestPoint.isVote) {
+                    api.unvoteGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                        @Override
+                        public void apply(JSONObject jsonObject) {
+                            for (InterestPoint ip : interestPoints) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                    ip.isVote = false;
+                                    Log.i(LOG_TAG, " unvote = " + ip.votes+" - "+interestPoint.votes);
+
+                                    interestPointsAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }, errorCallback);
+                } else {
+                    api.voteGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                        @Override
+                        public void apply(JSONObject jsonObject) {
+                            for (InterestPoint ip : interestPoints) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                    ip.isVote = true;
+                                    Log.i(LOG_TAG, " vote T = " + ip.votes+" - "+interestPoint.votes);
+                                } else {
+                                    ip.isVote = false;
+                                    Log.i(LOG_TAG, " vote F = " + ip.votes+" - "+interestPoint.votes);
+                                }
+                            }
+                            interestPointsAdapter.notifyDataSetChanged();
+                        }
+                    }, errorCallback);
+                }
             }
         });
 
