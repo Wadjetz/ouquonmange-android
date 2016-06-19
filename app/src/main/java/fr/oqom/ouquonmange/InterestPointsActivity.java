@@ -1,6 +1,7 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -111,7 +112,18 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                     }, errorCallback);
                 }
             }
+        }, new Callback<InterestPoint>() {
+            @Override
+            public void apply(InterestPoint interestPoint) {
+                Intent intent = new Intent(getApplicationContext(), InterestPointDetailsActivity.class);
+                intent.putExtra(Constants.INTEREST_POINT_ID, interestPoint.foursquareId);
+                intent.putExtra(Constants.EVENT_UUID, eventUuid);
+                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                intent.putExtra(Constants.INTEREST_POINT, interestPoint);
+                startActivity(intent);
+            }
         });
+
         interestPointsRecyclerView = (RecyclerView) findViewById(R.id.interest_points_list);
         interestPointsLayoutManager = new LinearLayoutManager(this);
         interestPointsRecyclerView.setHasFixedSize(true);

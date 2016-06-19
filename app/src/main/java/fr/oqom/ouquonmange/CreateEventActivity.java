@@ -43,6 +43,18 @@ public class CreateEventActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(Constants.COMMUNITY_UUID, communityUuid);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);

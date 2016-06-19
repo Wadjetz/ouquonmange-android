@@ -96,12 +96,15 @@ public class CalendarActivity extends BaseActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
+        calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(savedInstanceState.getLong(Constants.EVENT_DATE));
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(Constants.COMMUNITY_UUID, communityUuid);
+        outState.putLong(Constants.EVENT_DATE, calendar.getTimeInMillis());
     }
 
     private void fetchEvents(final String communityUuid, final Calendar calendar) {

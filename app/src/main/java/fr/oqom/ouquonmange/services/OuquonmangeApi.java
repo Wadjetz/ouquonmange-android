@@ -359,8 +359,36 @@ public class OuquonmangeApi {
     public void addMemberInCommunity(String uuid, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
         RequestParams params = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
-        String url = baseUrl + "/api/member/"+uuid+"/member";
+        String url = baseUrl + "/api/member/" + uuid + "/member";
         client.post(url, params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+    }
+
+    public void getInterestPointDetails(
+            String interestPointId,
+            String eventUuid,
+            String communityUuid,
+            final Callback<JSONObject> success,
+            final Callback2<Throwable, JSONObject> failure
+    ) {
+        RequestParams params = new RequestParams();
+        client.addHeader("Authorization", "Bearer " + getToken());
+        String url = baseUrl + "/api/interest/point/" + communityUuid + "/" + eventUuid + "/" + interestPointId;
+        client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 success.apply(response);

@@ -21,13 +21,15 @@ import fr.oqom.ouquonmange.utils.Callback;
 public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAdapter.ViewHolder> {
 
     private final List<InterestPoint> interestPoints;
-    private final Callback<InterestPoint> callback;
+    private final Callback<InterestPoint> callbackGroup;
+    private final Callback<InterestPoint> callbackDetails;
     private Context context;
 
-    public InterestPointsAdapter(Context context, List<InterestPoint> interestPoints, Callback<InterestPoint> callback) {
+    public InterestPointsAdapter(Context context, List<InterestPoint> interestPoints, Callback<InterestPoint> callbackGroup, Callback<InterestPoint> callbackDetails) {
         this.context = context;
         this.interestPoints = interestPoints;
-        this.callback = callback;
+        this.callbackGroup = callbackGroup;
+        this.callbackDetails = callbackDetails;
     }
 
     @Override
@@ -43,7 +45,6 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
         holder.interestPointName.setText(interestPoint.name);
         holder.interestPointAddress.setText(interestPoint.address);
         holder.interestPoint = interestPoint;
-        UrlImageViewHelper.setUrlDrawable(holder.interestPointImageView, "http://www.pacinno.eu/wp-content/uploads/2014/05/placeholder1.png", R.drawable.side_nav_bar);
         String buttonText = interestPoint.isJoin ? context.getString(R.string.quit_group) : context.getString(R.string.join_group);
         holder.joinAction.setText(buttonText);
     }
@@ -56,22 +57,29 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
     public class ViewHolder extends RecyclerView.ViewHolder {
         public InterestPoint interestPoint;
         public CardView interestPointCardView;
-        public ImageView interestPointImageView;
         public TextView interestPointName;
         public TextView interestPointAddress;
         public Button joinAction;
+        public Button detailsAction;
 
         public ViewHolder(View v) {
             super(v);
             interestPointCardView = (CardView) v.findViewById(R.id.interest_point_cardView);
             interestPointName = (TextView) v.findViewById(R.id.interest_point_name);
             interestPointAddress = (TextView) v.findViewById(R.id.interest_point_address);
-            interestPointImageView = (ImageView) v.findViewById(R.id.interest_point_photo);
             joinAction = (Button) v.findViewById(R.id.action_join_group);
+            detailsAction = (Button) v.findViewById(R.id.action_details);
             joinAction.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    callback.apply(interestPoint);
+                    callbackGroup.apply(interestPoint);
+                }
+            });
+
+            detailsAction.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    callbackDetails.apply(interestPoint);
                 }
             });
         }
