@@ -45,11 +45,9 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
                 finish();
                 break;
-            /*
             case R.id.nav_search_communities:
-                Toast.makeText(getApplicationContext(), "TODO Search Communities", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), SearchCommunityActivity.class));
                 break;
-            */
             /*
             case R.id.nav_settings:
                 Toast.makeText(getApplicationContext(), "TODO Settings", Toast.LENGTH_SHORT).show();

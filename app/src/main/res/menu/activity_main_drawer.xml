@@ -11,13 +11,10 @@
             android:icon="@drawable/ic_group_black"
             android:title="@string/communities" />
 
-        <!--
-        TODO Implement search communities
         <item
             android:id="@+id/nav_search_communities"
             android:icon="@drawable/ic_group_add_black"
             android:title="@string/search_communities" />
-            -->
     </group>
 
     <item android:title="@string/parameters" android:id="@+id/nav_parameters">
