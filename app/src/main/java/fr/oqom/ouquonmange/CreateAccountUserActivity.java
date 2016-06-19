@@ -21,9 +21,6 @@ import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
-/**
- * Created by hedhili on 18/05/2016.
- */
 public class CreateAccountUserActivity extends BaseActivity {
     private TextInputLayout usernameLayoutSignup, emailLayoutSignup, passwordLayoutSignup, passwordConfirmLayoutSignup;
     private EditText usernameInputSignup, emailInputSignup, passwordInputSignup, passwordCofirmInputSignup;

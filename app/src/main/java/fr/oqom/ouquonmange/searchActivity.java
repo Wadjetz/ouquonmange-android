@@ -1,7 +1,3 @@
-/**
- * Created by hedhili on 15/06/2016.
- */
-
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
