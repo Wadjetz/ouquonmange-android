@@ -183,31 +183,22 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 progressBar.setVisibility(View.VISIBLE);
                 Toast.makeText(getApplicationContext(), "TODO Location Interest Points", Toast.LENGTH_SHORT).show();
                 if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
                     String[] permissions = new String[]{
                             android.Manifest.permission.ACCESS_FINE_LOCATION,
                             android.Manifest.permission.ACCESS_COARSE_LOCATION
                     };
 
                     ActivityCompat.requestPermissions(this, permissions, REQUEST_LOCATION_ASK_PERMISSIONS);
-
                     return true;
                 }
 
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
 
                 return true;
-            /*
             case R.id.menu_action_search:
                 Toast.makeText(getApplicationContext(), "TODO Search Interest Points", Toast.LENGTH_SHORT).show();
                 return true;
-            */
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -223,30 +214,34 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     @Override
     public void onLocationChanged(Location location) {
         Log.d(LOG_TAG, "Location Changed");
-        this.location = location;
-        Toast.makeText(getApplicationContext(), location.getLatitude() + " " + location.getLongitude(), Toast.LENGTH_LONG).show();
-        fetchInterestPoints(location);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+
+        if (this.location == null) {
+            this.location = location;
+            Toast.makeText(getApplicationContext(), location.getLatitude() + " " + location.getLongitude(), Toast.LENGTH_LONG).show();
+            fetchInterestPoints(location);
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+        } else {
+            locationManager.removeUpdates(InterestPointsActivity.this);
         }
-        locationManager.removeUpdates(InterestPointsActivity.this);
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        Log.d(LOG_TAG, "onStatusChanged");
+        Log.d(LOG_TAG, "onStatusChanged + " + provider);
         Toast.makeText(getApplicationContext(), "onStatusChanged", Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        Log.d(LOG_TAG, "Location Enabled");
+        Log.d(LOG_TAG, "Location Enabled = " + provider);
         Toast.makeText(getApplicationContext(), "Location Enabled", Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        Log.d(LOG_TAG, "Location Disabled");
+        Log.d(LOG_TAG, "Location Disabled = " + provider);
         Toast.makeText(getApplicationContext(), "Location Disabled", Toast.LENGTH_LONG).show();
     }
 }
