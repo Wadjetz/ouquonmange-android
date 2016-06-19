@@ -15,6 +15,7 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import fr.oqom.ouquonmange.dialogs.DateTimePickerDialog;
 import fr.oqom.ouquonmange.models.Constants;
@@ -88,30 +89,36 @@ public class CreateEventActivity extends AppCompatActivity {
     private void submitEvent() {
         progressBar.setVisibility(View.VISIBLE);
         // TODO validate Data
-        String name = titleInput.getText().toString();
+        final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
-        api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
-            @Override
-            public void apply(JSONObject jsonObject) {
-                Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
-                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-                startActivity(intent);
-                finish();
-            }
-        }, new Callback2<Throwable, JSONObject>() {
-            @Override
-            public void apply(Throwable throwable, JSONObject jsonObject) {
-                Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
-                if (jsonObject != null) {
-                    Log.e(LOG_TAG, jsonObject.toString());
-                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+
+        if(validateTitle(name) && validateDate(dateStart,dateEnd)){
+            api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
+                @Override
+                public void apply(JSONObject jsonObject) {
+                    Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
+                    intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                    startActivity(intent);
+                    finish();
                 }
-                Log.e(LOG_TAG, throwable.getMessage());
-                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                progressBar.setVisibility(View.GONE);
-            }
-        });
+            }, new Callback2<Throwable, JSONObject>() {
+                @Override
+                public void apply(Throwable throwable, JSONObject jsonObject) {
+                    Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
+                    if (jsonObject != null) {
+                        Log.e(LOG_TAG, jsonObject.toString());
+                        Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                    Log.e(LOG_TAG, throwable.getMessage());
+                    Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
+                }
+            });
+
+        }else{
+            Toast.makeText(getApplicationContext(), "Error in create", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void initLayoutWidgets() {
@@ -148,6 +155,40 @@ public class CreateEventActivity extends AppCompatActivity {
             titleLayout.setErrorEnabled(false);
         }
         return true;
+
+    }
+    private boolean validateDate(Calendar dateStart, Calendar dateEnd) {
+        Calendar dateNow = Calendar.getInstance();
+        dateNow.setTimeZone(TimeZone.getTimeZone("GMT+2"));
+        int dateStartHours = dateStart.getTime().getHours();
+        int dateEndHours = dateEnd.getTime().getHours();
+        int dateNowHours = dateNow.getTime().getHours() + 2 ; // GMT + 2
+        int dateStartMinutes = dateStart.getTime().getMinutes();
+        int dateEndMinutes = dateEnd.getTime().getMinutes();
+        int dateNowMinutes = dateNow.getTime().getMinutes();
+        layoutDateStart.setErrorEnabled(false);
+        layoutDateEnd.setErrorEnabled(false);
+        if((dateStartHours < dateNowHours) || (dateStartHours == dateNowHours && dateStartMinutes < dateNowMinutes)){
+            layoutDateStart.setError(getString(R.string.error_invalid_date));
+            requestFocus(layoutDateStart);
+            return false;
+        }
+        if ((dateEndHours < dateNowHours) || (dateEndHours == dateNowHours && dateEndMinutes < dateNowMinutes)){
+            layoutDateStart.setErrorEnabled(false);
+            layoutDateEnd.setError(getString(R.string.error_invalid_date));
+            requestFocus(layoutDateEnd);
+            return false;
+        }
+        if( (dateEndHours<dateStartHours) || (dateStartHours == dateEndHours && dateEndMinutes < dateStartMinutes)){
+            layoutDateEnd.setError(getString(R.string.error_invalid_date));
+            requestFocus(layoutDateEnd);
+            return false;
+        }
+
+        return true;
+
+
+
 
     }
 

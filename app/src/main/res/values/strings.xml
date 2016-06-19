@@ -52,4 +52,5 @@
     <string name="community_join">JOIN</string>
     <string name="quit_group">Quite group</string>
     <string name="image_descr">Image</string>
+    <string name="error_invalid_date">The date invalide</string>
 </resources>
