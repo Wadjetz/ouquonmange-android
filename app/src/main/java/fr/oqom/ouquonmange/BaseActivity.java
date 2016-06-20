@@ -16,7 +16,6 @@ import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
     protected OuquonmangeApi api;
     protected AuthRepository authRepository;
 
