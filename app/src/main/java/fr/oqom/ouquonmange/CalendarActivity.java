@@ -19,7 +19,6 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.EventsAdapter;
 import fr.oqom.ouquonmange.dialogs.DatePickerDialogs;
@@ -34,15 +33,14 @@ public class CalendarActivity extends BaseActivity {
 
     private ProgressBar progressBar;
 
-    private RecyclerView.Adapter eventsAdapter;
-    private List<Event> eventOfCommunities = new ArrayList<>();
     private RecyclerView eventsRecyclerView;
-    private LinearLayoutManager eventsLayoutManager;
+    private RecyclerView.Adapter eventsAdapter;
+    private RecyclerView.LayoutManager eventsLayoutManager;
+
+    private ArrayList<Event> events = new ArrayList<>();
 
     private String communityUuid;
-    private Calendar calendar = Calendar.getInstance();
-
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private Calendar day = Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,92 +48,44 @@ public class CalendarActivity extends BaseActivity {
         setContentView(R.layout.activity_calendar);
         Intent intent = getIntent();
         communityUuid =  intent.getStringExtra(Constants.COMMUNITY_UUID);
+        long dayFromIntent = intent.getLongExtra(Constants.EVENT_DATE, -1);
+
+        if (dayFromIntent != -1) {
+            this.day.setTimeInMillis(dayFromIntent);
+        }
+
         progressBar = (ProgressBar) findViewById(R.id.progress);
         Log.d(LOG_TAG, "Community UUID - " + communityUuid);
         initNav();
-        toolbar.setSubtitle(getString(R.string.events) + " at " + dateFormat.format(calendar.getTime()));
-        initEventList();
+        toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.getTime()));
         checkAuth();
         initFloatingButton();
-        fetchEvents(communityUuid, calendar);
-    }
 
-    private void initEventList() {
-        eventsAdapter = new EventsAdapter(eventOfCommunities, new Callback<Event>() {
-            @Override
-            public void apply(Event event) {
-                Intent intent = new Intent(getApplicationContext(), InterestPointsActivity.class);
-                intent.putExtra(Constants.EVENT_UUID, event.uuid);
-                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-                startActivity(intent);
-            }
-        });
+        if (savedInstanceState == null) {
+            fetchEvents(communityUuid, day);
+        } else {
+            this.events = savedInstanceState.getParcelableArrayList(Constants.EVENTS_LIST);
+            progressBar.setVisibility(View.GONE);
+            Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.events.size());
+        }
 
-        eventsRecyclerView = (RecyclerView) findViewById(R.id.events_list);
-        eventsLayoutManager = new LinearLayoutManager(this);
-        eventsRecyclerView.setHasFixedSize(true);
-        eventsRecyclerView.setLayoutManager(eventsLayoutManager);
-        eventsRecyclerView.setAdapter(eventsAdapter);
-    }
-
-    private void initFloatingButton() {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_events_fab);
-        assert fab != null;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), "Add Event TODO", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getApplicationContext(), CreateEventActivity.class);
-                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-                startActivity(intent);
-            }
-        });
+        initEventList();
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
-        calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(savedInstanceState.getLong(Constants.EVENT_DATE));
+        day = Calendar.getInstance();
+        day.setTimeInMillis(savedInstanceState.getLong(Constants.EVENT_DATE));
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putString(Constants.COMMUNITY_UUID, communityUuid);
-        outState.putLong(Constants.EVENT_DATE, calendar.getTimeInMillis());
-    }
-
-    private void fetchEvents(final String communityUuid, final Calendar calendar) {
-        api.getEventsByUUID(communityUuid, calendar, new Callback<JSONArray>() {
-            @Override
-            public void apply(JSONArray value) {
-                try {
-                    eventOfCommunities.addAll(Event.fromJson(value));
-                    eventsAdapter.notifyDataSetChanged();
-                    Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.toString() + " = " + eventOfCommunities.size());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, e.getMessage());
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-                Log.i(LOG_TAG, value.toString());
-                progressBar.setVisibility(View.GONE);
-            }
-        }, new Callback2<Throwable, JSONObject>() {
-            @Override
-            public void apply(Throwable throwable, JSONObject jsonObject) {
-                if (jsonObject != null) {
-                    Log.e(LOG_TAG, jsonObject.toString());
-                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
-                }
-                Log.e(LOG_TAG, throwable.getMessage());
-                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                progressBar.setVisibility(View.GONE);
-            }
-        });
-
+        outState.putLong(Constants.EVENT_DATE, day.getTimeInMillis());
+        outState.putParcelableArrayList(Constants.EVENTS_LIST, this.events);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -160,15 +110,78 @@ public class CalendarActivity extends BaseActivity {
         pickerDialogs.setCallback(new Callback3<Integer, Integer, Integer>() {
             @Override
             public void apply(Integer year, Integer monthOfYear, Integer dayOfMonth) {
-                calendar = Calendar.getInstance();
-                calendar.set(year, monthOfYear, dayOfMonth);
-                eventOfCommunities.clear();
+                day = Calendar.getInstance();
+                day.set(year, monthOfYear, dayOfMonth);
+                events.clear();
                 eventsAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.VISIBLE);
-                toolbar.setSubtitle(getString(R.string.events) + " at " + dateFormat.format(calendar.getTime()));
-                fetchEvents(communityUuid, calendar);
+                toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.getTime()));
+                fetchEvents(communityUuid, day);
             }
         });
         pickerDialogs.show(getFragmentManager(), "date_picker");
+    }
+
+    private void initEventList() {
+        eventsAdapter = new EventsAdapter(this.events, new Callback<Event>() {
+            @Override
+            public void apply(Event event) {
+                Intent intent = new Intent(getApplicationContext(), InterestPointsActivity.class);
+                intent.putExtra(Constants.EVENT_UUID, event.uuid);
+                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                startActivity(intent);
+            }
+        });
+
+        eventsRecyclerView = (RecyclerView) findViewById(R.id.events_list);
+        eventsLayoutManager = new LinearLayoutManager(getApplicationContext());
+        eventsRecyclerView.setHasFixedSize(true);
+        eventsRecyclerView.setLayoutManager(eventsLayoutManager);
+        eventsRecyclerView.setAdapter(eventsAdapter);
+    }
+
+    private void initFloatingButton() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_events_fab);
+        assert fab != null;
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), CreateEventActivity.class);
+                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                intent.putExtra(Constants.EVENT_DATE, day.getTimeInMillis());
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void fetchEvents(final String communityUuid, final Calendar calendar) {
+        api.getEventsByUUID(communityUuid, calendar, new Callback<JSONArray>() {
+            @Override
+            public void apply(JSONArray value) {
+                try {
+                    events.addAll(Event.fromJson(value));
+                    eventsAdapter.notifyDataSetChanged();
+                    Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.toString() + " = " + events.size());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.e(LOG_TAG, e.getMessage());
+                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                Log.i(LOG_TAG, value.toString());
+                progressBar.setVisibility(View.GONE);
+            }
+        }, new Callback2<Throwable, JSONObject>() {
+            @Override
+            public void apply(Throwable throwable, JSONObject jsonObject) {
+                if (jsonObject != null) {
+                    Log.e(LOG_TAG, jsonObject.toString());
+                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                }
+                Log.e(LOG_TAG, throwable.getMessage());
+                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+
     }
 }

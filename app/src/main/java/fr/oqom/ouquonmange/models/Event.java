@@ -1,5 +1,8 @@
 package fr.oqom.ouquonmange.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -7,10 +10,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by hedhili on 25/05/2016.
- */
-public class Event {
+public class Event implements Parcelable {
     public long id;
     public String uuid;
     public String name;
@@ -30,6 +30,30 @@ public class Event {
         this.id_community = id_community;
         this.created = created;
     }
+
+    protected Event(Parcel in) {
+        id = in.readLong();
+        uuid = in.readString();
+        name = in.readString();
+        description = in.readString();
+        date_start = in.readInt();
+        date_end = in.readInt();
+        id_community = in.readLong();
+        created = in.readInt();
+    }
+
+    public static final Creator<Event> CREATOR = new Creator<Event>() {
+        @Override
+        public Event createFromParcel(Parcel in) {
+            return new Event(in);
+        }
+
+        @Override
+        public Event[] newArray(int size) {
+            return new Event[size];
+        }
+    };
+
     public static List<Event> fromJson(JSONArray jsonArray) throws JSONException {
         List<Event> eventList = new ArrayList<>();
         int total = jsonArray.length();
@@ -43,9 +67,25 @@ public class Event {
             int date_end = jsonEvents.getInt("dateEnd");
             int id_community = jsonEvents.getInt("communityId");
             int created = jsonEvents.getInt("created");
-        eventList.add(new Event(id,uuid,name,description,date_start,date_end,id_community,created));
+            eventList.add(new Event(id,uuid,name,description,date_start,date_end,id_community,created));
         }
-    return eventList;
+        return eventList;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(uuid);
+        dest.writeString(name);
+        dest.writeString(description);
+        dest.writeInt(date_start);
+        dest.writeInt(date_end);
+        dest.writeLong(id_community);
+        dest.writeInt(created);
+    }
 }

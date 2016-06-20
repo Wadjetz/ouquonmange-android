@@ -77,6 +77,7 @@ public class LoginActivity extends AppCompatActivity {
                             @Override
                             public void apply(Void value) {
                                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                finish();
                             }
                         }, new Callback<Throwable>() {
                             @Override
@@ -131,7 +132,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void displayCreateAccountView() {
-        Intent intent = new Intent(this,CreateAccountUserActivity.class);
+        Intent intent = new Intent(getApplicationContext(), CreateAccountUserActivity.class);
         startActivity(intent);
     }
 }

@@ -1,5 +1,8 @@
 package fr.oqom.ouquonmange.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -7,7 +10,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Community {
+public class Community implements Parcelable {
     public long id;
     public String uuid;
     public String name;
@@ -22,6 +25,26 @@ public class Community {
         this.created = created;
     }
 
+    protected Community(Parcel in) {
+        id = in.readLong();
+        uuid = in.readString();
+        name = in.readString();
+        description = in.readString();
+        created = in.readInt();
+    }
+
+    public static final Creator<Community> CREATOR = new Creator<Community>() {
+        @Override
+        public Community createFromParcel(Parcel in) {
+            return new Community(in);
+        }
+
+        @Override
+        public Community[] newArray(int size) {
+            return new Community[size];
+        }
+    };
+
     public static List<Community> fromJson(JSONArray jsonArray) throws JSONException {
         List<Community> communities = new ArrayList<>();
         int total = jsonArray.length();
@@ -35,5 +58,19 @@ public class Community {
             communities.add(new Community(id, uuid, name, description, created));
         }
         return communities;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(uuid);
+        dest.writeString(name);
+        dest.writeString(description);
+        dest.writeInt(created);
     }
 }

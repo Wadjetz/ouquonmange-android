@@ -14,8 +14,12 @@ public class Constants {
 
     public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+    public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     public static final String INTEREST_POINT_ID = "INTEREST_POINT_ID";
     public static final String EVENT_DATE = "EVENT_DATE";
     public static final String INTEREST_POINT = "INTEREST_POINT";
+    public static final String COMMUNITIES_LIST = "COMMUNITIES_LIST";
+    public static final String EVENTS_LIST = "EVENTS_LIST";
+    public static final String INTEREST_POINTS_LIST = "INTEREST_POINTS_LIST";
 }

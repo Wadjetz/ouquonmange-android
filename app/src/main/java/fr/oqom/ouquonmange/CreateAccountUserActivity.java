@@ -74,6 +74,7 @@ public class CreateAccountUserActivity extends BaseActivity {
                             @Override
                             public void apply(Void value) {
                                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                finish();
                             }
                         }, new Callback<Throwable>() {
                             @Override

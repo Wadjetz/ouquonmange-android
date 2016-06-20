@@ -2,6 +2,7 @@ package fr.oqom.ouquonmange;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -39,7 +40,7 @@ public class MainActivity extends BaseActivity {
     private RecyclerView.Adapter communitiesAdapter;
     private RecyclerView.LayoutManager communitiesLayoutManager;
 
-    private List<Community> communities = new ArrayList<>();
+    private ArrayList<Community> communities = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,65 +48,28 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
-
         initNav();
         toolbar.setSubtitle(R.string.my_communities);
-        initCommunityList();
         initFloatingButton();
-        checkAuth();
-        checkGcm();
-        fetchCommunities();
-    }
 
-    private void initCommunityList() {
-        // Creating list view
-        communitiesAdapter = new CommunitiesAdapter(communities, new Callback<Community>() {
-            @Override
-            public void apply(Community community) {
-                Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
-                intent.putExtra(Constants.COMMUNITY_UUID, community.uuid);
-                startActivity(intent);
-            }
-        });
-        communitiesRecyclerView = (RecyclerView) findViewById(R.id.communities_list);
-        communitiesLayoutManager = new LinearLayoutManager(this);
-        communitiesRecyclerView.setHasFixedSize(true);
-        communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
-        communitiesRecyclerView.setAdapter(communitiesAdapter);
-    }
-
-    private void initFloatingButton() {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_community);
-        assert fab != null;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), CreateCommunityActivity.class));
-                finish();
-            }
-        });
-    }
-
-    private void checkGcm() {
-        String gcmToken = FirebaseInstanceId.getInstance().getToken();
-        if (gcmToken != null) {
-            api.addGcmToken(gcmToken, new Callback<JSONObject>() {
-                @Override
-                public void apply(JSONObject jsonObject) {
-                    Log.e(LOG_TAG, jsonObject.toString());
-                }
-            }, new Callback2<Throwable, JSONObject>() {
-                @Override
-                public void apply(Throwable throwable, JSONObject jsonObject) {
-                    if (jsonObject != null) {
-                        Log.e(LOG_TAG, jsonObject.toString());
-                    }
-                    Log.e(LOG_TAG, throwable.getMessage());
-                }
-            });
+        if (savedInstanceState == null) {
+            checkAuth();
+            fetchCommunities();
+            checkGcm();
+        } else {
+            this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
+            progressBar.setVisibility(View.GONE);
+            Log.d(LOG_TAG, "onCreate savedInstanceState = " + communities.size());
         }
 
-        Log.d(LOG_TAG, "GCM Token " + gcmToken);
+        initCommunityList();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.d(LOG_TAG, "onSaveInstanceState = " + this.communities.size());
+        outState.putParcelableArrayList(Constants.COMMUNITIES_LIST, this.communities);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -161,6 +125,57 @@ public class MainActivity extends BaseActivity {
                 progressBar.setVisibility(View.GONE);
             }
         });
+    }
+
+    private void initCommunityList() {
+        // Creating list view
+        communitiesAdapter = new CommunitiesAdapter(communities, new Callback<Community>() {
+            @Override
+            public void apply(Community community) {
+                Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
+                intent.putExtra(Constants.COMMUNITY_UUID, community.uuid);
+                startActivity(intent);
+                finish();
+            }
+        });
+        communitiesRecyclerView = (RecyclerView) findViewById(R.id.communities_list);
+        communitiesLayoutManager = new LinearLayoutManager(this);
+        communitiesRecyclerView.setHasFixedSize(true);
+        communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
+        communitiesRecyclerView.setAdapter(communitiesAdapter);
+    }
+
+    private void initFloatingButton() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.create_community);
+        assert fab != null;
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), CreateCommunityActivity.class));
+            }
+        });
+    }
+
+    private void checkGcm() {
+        String gcmToken = FirebaseInstanceId.getInstance().getToken();
+        if (gcmToken != null) {
+            api.addGcmToken(gcmToken, new Callback<JSONObject>() {
+                @Override
+                public void apply(JSONObject jsonObject) {
+                    Log.e(LOG_TAG, jsonObject.toString());
+                }
+            }, new Callback2<Throwable, JSONObject>() {
+                @Override
+                public void apply(Throwable throwable, JSONObject jsonObject) {
+                    if (jsonObject != null) {
+                        Log.e(LOG_TAG, jsonObject.toString());
+                    }
+                    Log.e(LOG_TAG, throwable.getMessage());
+                }
+            });
+        }
+
+        Log.d(LOG_TAG, "GCM Token " + gcmToken);
     }
 }
 

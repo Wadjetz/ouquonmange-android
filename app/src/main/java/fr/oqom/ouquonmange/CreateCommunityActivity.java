@@ -33,10 +33,8 @@ public class CreateCommunityActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_community);
 
         titleLayout = (TextInputLayout) findViewById(R.id.layout_community_title);
-
         titleInput = (EditText) findViewById(R.id.input_community_title);
         descriptionInput = (EditText) findViewById(R.id.input_community_description);
-
         saveAction = (Button) findViewById(R.id.action_create_community);
 
         api = new OuquonmangeApi(getApplicationContext());

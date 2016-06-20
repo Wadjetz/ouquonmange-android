@@ -43,7 +43,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private ProgressBar progressBar;
 
-    private List<InterestPoint> interestPoints = new ArrayList<>();
+    private ArrayList<InterestPoint> interestPoints = new ArrayList<>();
     private String eventUuid;
     private String communityUuid;
 
@@ -65,8 +65,30 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        if (savedInstanceState == null) {
+            fetchInterestPoints();
+        } else {
+            this.interestPoints = savedInstanceState.getParcelableArrayList(Constants.INTEREST_POINTS_LIST);
+            progressBar.setVisibility(View.GONE);
+            Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.interestPoints.size());
+        }
+
         initInterestPointList();
-        fetchInterestPoints();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(Constants.EVENT_UUID, eventUuid);
+        outState.putString(Constants.COMMUNITY_UUID, communityUuid);
+        outState.putParcelableArrayList(Constants.INTEREST_POINTS_LIST, this.interestPoints);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        eventUuid = savedInstanceState.getString(Constants.EVENT_UUID);
+        communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
     }
 
     private void initInterestPointList() {
@@ -221,13 +243,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        eventUuid = savedInstanceState.getString(Constants.EVENT_UUID);
-        communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_interest_point_menu, menu);
         return true;
@@ -259,13 +274,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString(Constants.EVENT_UUID, eventUuid);
-        outState.putString(Constants.COMMUNITY_UUID, communityUuid);
     }
 
     @Override

@@ -61,6 +61,7 @@ public class AuthRepository {
                 if (auths.size() > 0) {
                     auths.remove(0);
                 }
+                success.apply(null);
             }
 
         });

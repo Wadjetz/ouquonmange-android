@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
+import fr.oqom.ouquonmange.utils.Callback;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -55,8 +56,13 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
             */
             case R.id.nav_logout:
                 Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_SHORT).show();
-                authRepository.deleteToken(null);
-                startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                authRepository.deleteToken(new Callback<Void>() {
+                    @Override
+                    public void apply(Void aVoid) {
+                        startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                        finish();
+                    }
+                });
                 break;
         }
 
@@ -84,8 +90,9 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
 
     protected void checkAuth() {
         if(authRepository.getToken() == null){
-            Intent intentLogin = new Intent(this,LoginActivity.class);
+            Intent intentLogin = new Intent(this, LoginActivity.class);
             startActivity(intentLogin);
+            finish();
         }
     }
 

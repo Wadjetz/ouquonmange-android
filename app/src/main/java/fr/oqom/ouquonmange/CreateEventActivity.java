@@ -33,6 +33,7 @@ public class CreateEventActivity extends AppCompatActivity {
     private TextInputLayout titleLayout, layoutDateStart, layoutDateEnd;
     private EditText titleInput, descriptionInput, dateStartInput, dateEndInput;
     private Button saveEventAction;
+    private Calendar day = Calendar.getInstance();
     private Calendar dateStart = Calendar.getInstance();
     private Calendar dateEnd = Calendar.getInstance();
 
@@ -45,12 +46,15 @@ public class CreateEventActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putLong(Constants.EVENT_DATE, day.getTimeInMillis());
         outState.putString(Constants.COMMUNITY_UUID, communityUuid);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        day = Calendar.getInstance();
+        day.setTimeInMillis(savedInstanceState.getLong(Constants.EVENT_DATE));
         communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
     }
 
@@ -60,6 +64,11 @@ public class CreateEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_event);
         Intent intent = getIntent();
         communityUuid =  intent.getStringExtra(Constants.COMMUNITY_UUID);
+        day.setTimeInMillis(intent.getLongExtra(Constants.EVENT_DATE, Calendar.getInstance().getTimeInMillis()));
+
+        this.dateStart.setTimeInMillis(day.getTimeInMillis());
+        this.dateEnd.setTimeInMillis(day.getTimeInMillis());
+
         initLayoutWidgets();
         progressBar = (ProgressBar) findViewById(R.id.progress);
         api = new OuquonmangeApi(getApplicationContext());
@@ -111,6 +120,7 @@ public class CreateEventActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
                     intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                    intent.putExtra(Constants.EVENT_DATE, day.getTimeInMillis());
                     startActivity(intent);
                     finish();
                 }
