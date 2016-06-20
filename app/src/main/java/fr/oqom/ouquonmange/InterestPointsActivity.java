@@ -89,9 +89,12 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
+                                if(ip.isJoin){
+                                    Log.i(LOG_TAG, "Group joined = " + ip.name);
+                                    ip.members = (ip.members>0)?(ip.members-1):ip.members;
+                                }
                                 if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isJoin = false;
-                                    --ip.members;
                                     interestPointsAdapter.notifyDataSetChanged();
 
                                 }
@@ -103,12 +106,17 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
+                                if(ip.isJoin){
+                                    Log.i(LOG_TAG, "Group unjoined = " + ip.name);
+                                    ip.members = (ip.members>0)?ip.members-1:ip.members;
+                                }
+
                                 if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isJoin = true;
-                                    ++ip.members;
+                                    Log.i(LOG_TAG, "Group joining = " + ip.name);
+                                    ip.members++;
                                 } else {
                                     ip.isJoin = false;
-                                    --ip.members;
                                 }
                             }
                             interestPointsAdapter.notifyDataSetChanged();
@@ -136,7 +144,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                             for (InterestPoint ip : interestPoints) {
                                 if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isVote = false;
-                                    --ip.votes;
+                                    Log.i(LOG_TAG, "Group unvoting = " + ip.name);
+                                    ip.votes = (ip.votes>0)?(ip.votes-1):ip.votes;
                                     interestPointsAdapter.notifyDataSetChanged();
                                 }
                             }
@@ -149,11 +158,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                             for (InterestPoint ip : interestPoints) {
                                 if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isVote = true;
-                                    ++ip.votes;
-                                } else {
+                                    Log.i(LOG_TAG, "Group voting = " + ip.name);
+                                    ip.votes++;
+                                } /*else {
                                     ip.isVote = false;
-                                    --ip.votes;
-                                }
+                                }*/
                             }
                             interestPointsAdapter.notifyDataSetChanged();
                         }
