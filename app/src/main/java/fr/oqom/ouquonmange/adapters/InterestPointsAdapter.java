@@ -44,9 +44,9 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
         holder.interestPointName.setText(interestPoint.name);
         holder.interestPointAddress.setText(interestPoint.address);
         holder.interestPoint = interestPoint;
-        String buttonText = (interestPoint.isJoin ? context.getString(R.string.quit_group) : context.getString(R.string.join_group))+"("+interestPoint.members+")";
+        String buttonText = (interestPoint.isJoin ? context.getString(R.string.quit_group) : context.getString(R.string.join_group))+" ("+interestPoint.members+")";
         holder.joinAction.setText(buttonText);
-        String buttonVote = (interestPoint.isVote ? context.getString(R.string.unvote_group) : context.getString(R.string.vote_group))+"("+interestPoint.votes+")";
+        String buttonVote = (interestPoint.isVote ? context.getString(R.string.unvote_group) : context.getString(R.string.vote_group))+" ("+interestPoint.votes+")";
         holder.voteAction.setText(buttonVote);
 
     }

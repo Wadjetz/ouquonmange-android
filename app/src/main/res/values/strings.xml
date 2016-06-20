@@ -46,14 +46,14 @@
     <string name="start_date_time">Start Date Time</string>
     <string name="end_date_time">End Date Time</string>
     <string name="my_communities">My Communities</string>
-    <string name="join_group">JOIN</string>
+    <string name="join_group">Join</string>
     <string name="app_label">Search</string>
     <string name="search_hint">Search Me</string>
-    <string name="community_join">JOIN</string>
+    <string name="community_join">Join</string>
     <string name="quit_group">QUIT</string>
     <string name="image_descr">Image</string>
     <string name="more_infos">More Infos</string>
     <string name="error_invalid_date">The date invalide</string>
-    <string name="vote_group">VOTE</string>
-    <string name="unvote_group">UNVOTE</string>
+    <string name="vote_group">Vote</string>
+    <string name="unvote_group">Unvote</string>
 </resources>
