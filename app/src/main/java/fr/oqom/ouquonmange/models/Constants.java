@@ -18,4 +18,6 @@ public class Constants {
     public static final String INTEREST_POINT_ID = "INTEREST_POINT_ID";
     public static final String EVENT_DATE = "EVENT_DATE";
     public static final String INTEREST_POINT = "INTEREST_POINT";
+    public static final String COMMUNITIES_FRAGMENT = "COMMUNITIES_FRAGMENT";
+    public static final String CREATE_COMMUNITY_FRAGMENT = "CREATE_COMMUNITY_FRAGMENT";
 }

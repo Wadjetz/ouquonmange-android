@@ -16,6 +16,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.json.JSONObject;
 
+import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
@@ -23,10 +24,17 @@ public class MainActivity extends BaseActivity {
 
     private static final String LOG_TAG = "MainActivity";
 
+    private FragmentManager fragmentManager;
+
+    void setSubtitle(String subtitle) {
+        toolbar.setSubtitle(subtitle);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d(LOG_TAG, "onCreate");
 
         initNav();
         toolbar.setSubtitle(R.string.my_communities);
@@ -34,11 +42,11 @@ public class MainActivity extends BaseActivity {
         checkAuth();
         checkGcm();
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentManager = getSupportFragmentManager();
 
-        CommunitiesFragment communitiesFragment = new CommunitiesFragment();
-        fragmentTransaction.replace(R.id.fragment_container, communitiesFragment);
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        CommunitiesFragment currentFragment = new CommunitiesFragment();
+        fragmentTransaction.replace(R.id.fragment_container, currentFragment, Constants.COMMUNITIES_FRAGMENT);
         fragmentTransaction.commit();
     }
 
@@ -48,8 +56,12 @@ public class MainActivity extends BaseActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), CreateCommunityActivity.class));
-                finish();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                CreateCommunityFragment createCommunityFragment = new CreateCommunityFragment();
+                fragmentTransaction.replace(R.id.fragment_container, createCommunityFragment, Constants.CREATE_COMMUNITY_FRAGMENT);
+                fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                fragmentTransaction.addToBackStack(Constants.CREATE_COMMUNITY_FRAGMENT);
+                fragmentTransaction.commit();
             }
         });
     }
