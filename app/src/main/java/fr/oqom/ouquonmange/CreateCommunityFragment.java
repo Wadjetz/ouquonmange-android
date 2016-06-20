@@ -131,7 +131,11 @@ public class CreateCommunityFragment extends Fragment {
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
                 public void apply(Throwable throwable, JSONObject jsonObject) {
-                    Toast.makeText(getContext(), throwable.getMessage() + " " + jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                    if (jsonObject != null) {
+                        Toast.makeText(getContext(), throwable.getMessage() + " " + jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }

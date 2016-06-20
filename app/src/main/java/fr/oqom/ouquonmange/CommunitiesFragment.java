@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.loopj.android.http.RequestHandle;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +43,7 @@ public class CommunitiesFragment extends Fragment {
     private List<Community> communities = new ArrayList<>();
 
     protected OuquonmangeApi api;
+    private RequestHandle requestHandle;
 
     @Override
     public void onAttach(Context context) {
@@ -105,6 +108,9 @@ public class CommunitiesFragment extends Fragment {
         super.onDestroyView();
         Log.d(LOG_TAG, "onDestroyView");
         communities.clear();
+        if (requestHandle != null && !requestHandle.isFinished()) {
+            requestHandle.cancel(true);
+        }
     }
 
     @Override
@@ -137,7 +143,7 @@ public class CommunitiesFragment extends Fragment {
     }
 
     private void fetchCommunities() {
-        api.getCommunities(new Callback<JSONArray>() {
+        requestHandle = api.getCommunities(new Callback<JSONArray>() {
             @Override
             public void apply(JSONArray value) {
                 try {

@@ -32,16 +32,10 @@
             android:name=".SearchCommunityActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
-
         <activity
             android:name=".InterestPointDetailsActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
-
-        <activity
-            android:name=".CreateCommunityActivity"
-            android:label="@string/create_community"
-            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".CreateAccountUserActivity"
             android:label="@string/signup"
