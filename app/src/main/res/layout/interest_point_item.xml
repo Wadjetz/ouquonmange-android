@@ -41,6 +41,9 @@
                     android:text="@string/join_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="left"
+                    android:gravity="left"
                     style="@style/Widget.AppCompat.Button.Borderless" />
 
                 <Button
@@ -48,6 +51,9 @@
                     android:text="@string/vote_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center"
                     style="@style/Widget.AppCompat.Button.Borderless" />
 
                 <Button
@@ -55,8 +61,10 @@
                     android:text="@string/more_infos"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.AppCompat.Button.Borderless"
-                    android:layout_alignParentTop="true" />
+                    android:layout_weight="1"
+                    android:layout_gravity="right"
+                    android:gravity="right"
+                    style="@style/Widget.AppCompat.Button.Borderless"/>
 
             </LinearLayout>
 
