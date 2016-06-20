@@ -147,7 +147,6 @@ public class CommunitiesFragment extends Fragment {
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
                 progressBar.setVisibility(View.GONE);
             }
@@ -157,8 +156,8 @@ public class CommunitiesFragment extends Fragment {
                 if (jsonObject != null) {
                     Log.e(LOG_TAG, "Fetch Communities = " + jsonObject.toString());
                 }
+                throwable.printStackTrace();
                 Log.e(LOG_TAG, "Fetch Communities = " + throwable.getMessage());
-                Toast.makeText(getContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 progressBar.setVisibility(View.GONE);
             }
         });
