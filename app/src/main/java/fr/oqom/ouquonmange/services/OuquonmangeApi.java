@@ -15,6 +15,7 @@ import java.util.Date;
 
 import cz.msebera.android.httpclient.Header;
 import fr.oqom.ouquonmange.models.AuthRepository;
+import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
@@ -233,6 +234,27 @@ public class OuquonmangeApi {
         client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                success.apply(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                failure.apply(throwable, errorResponse);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                failure.apply(throwable, null);
+            }
+        });
+    }
+
+    public void setDefaultCommunity(Community community, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+        RequestParams params = new RequestParams();
+        client.addHeader("Authorization", "Bearer " + getToken());
+        client.put(baseUrl + "/api/user/community/" + community.uuid, params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 success.apply(response);
             }
 

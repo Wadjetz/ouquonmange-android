@@ -16,13 +16,17 @@ public class Community implements Parcelable {
     public String name;
     public String description;
     public int created;
+    public boolean isDefault;
 
-    public Community(long id, String uuid, String name, String description, int created) {
+    public Community() {}
+
+    public Community(long id, String uuid, String name, String description, int created, boolean isDefault) {
         this.id = id;
         this.uuid = uuid;
         this.name = name;
         this.description = description;
         this.created = created;
+        this.isDefault = isDefault;
     }
 
     protected Community(Parcel in) {
@@ -31,6 +35,7 @@ public class Community implements Parcelable {
         name = in.readString();
         description = in.readString();
         created = in.readInt();
+        isDefault = in.readInt() > 0;
     }
 
     public static final Creator<Community> CREATOR = new Creator<Community>() {
@@ -55,7 +60,7 @@ public class Community implements Parcelable {
             String name = jsonCommunity.getString("name");
             String description = jsonCommunity.getString("description");
             int created = jsonCommunity.getInt("created");
-            communities.add(new Community(id, uuid, name, description, created));
+            communities.add(new Community(id, uuid, name, description, created, false));
         }
         return communities;
     }
@@ -72,5 +77,6 @@ public class Community implements Parcelable {
         dest.writeString(name);
         dest.writeString(description);
         dest.writeInt(created);
+        dest.writeInt(isDefault ? 1 : 0);
     }
 }

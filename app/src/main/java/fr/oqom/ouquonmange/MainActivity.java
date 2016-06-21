@@ -2,7 +2,7 @@ package fr.oqom.ouquonmange;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -16,17 +16,18 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
@@ -47,6 +48,21 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Intent intent = getIntent();
+        String fromMenu = intent.getStringExtra(Constants.FROM_MENU);
+
+        String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+
+        Log.d(LOG_TAG, "fromMenu = " + fromMenu + " defaultCommunityUuid = " + defaultCommunityUuid);
+
+        if (defaultCommunityUuid != null && !defaultCommunityUuid.isEmpty() && !Constants.FROM_MENU.equals(fromMenu)) {
+            FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + defaultCommunityUuid);
+            Intent i = new Intent(getApplicationContext(), CalendarActivity.class);
+            i.putExtra(Constants.COMMUNITY_UUID, defaultCommunityUuid);
+            startActivity(i);
+            finish();
+        }
+
         progressBar = (ProgressBar) findViewById(R.id.progress);
         initNav();
         toolbar.setSubtitle(R.string.my_communities);
@@ -59,7 +75,6 @@ public class MainActivity extends BaseActivity {
         } else {
             this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
             progressBar.setVisibility(View.GONE);
-            Log.d(LOG_TAG, "onCreate savedInstanceState = " + communities.size());
         }
 
         initCommunityList();
@@ -67,7 +82,6 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.d(LOG_TAG, "onSaveInstanceState = " + this.communities.size());
         outState.putParcelableArrayList(Constants.COMMUNITIES_LIST, this.communities);
         super.onSaveInstanceState(outState);
     }
@@ -105,6 +119,14 @@ public class MainActivity extends BaseActivity {
             public void apply(JSONArray value) {
                 try {
                     communities.addAll(Community.fromJson(value));
+
+                    for (Community c : communities) {
+                        String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                        if (c.uuid.equals(defaultCommunityUuid)) {
+                            c.isDefault = true;
+                        }
+                    }
+
                     communitiesAdapter.notifyDataSetChanged();
                     Log.i(LOG_TAG, "Fetch Communities = " + communities.size());
                 } catch (JSONException e) {
@@ -129,13 +151,48 @@ public class MainActivity extends BaseActivity {
 
     private void initCommunityList() {
         // Creating list view
-        communitiesAdapter = new CommunitiesAdapter(communities, new Callback<Community>() {
+        communitiesAdapter = new CommunitiesAdapter(communities, getApplicationContext(), new Callback<Community>() {
             @Override
             public void apply(Community community) {
                 Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
                 intent.putExtra(Constants.COMMUNITY_UUID, community.uuid);
                 startActivity(intent);
                 finish();
+            }
+        }, new Callback2<Community, Boolean>() {
+            @Override
+            public void apply(Community community, Boolean isChecked) {
+                final Community communityFinal = community;
+                final boolean isCheckedFinal = isChecked;
+                Handler handler = new Handler();
+                final Runnable r = new Runnable() {
+                    public void run() {
+                        String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                        for(Community c: communities) {
+                            if (c.uuid.equals(communityFinal.uuid)) {
+                                c.isDefault = isCheckedFinal;
+                                if (isCheckedFinal) {
+                                    if (defaultCommunityUuid != null && !defaultCommunityUuid.isEmpty()) {
+                                        FirebaseMessaging.getInstance().unsubscribeFromTopic("/topics/" + defaultCommunityUuid);
+                                    }
+
+                                    Config.setDefaultCommunity(communityFinal.uuid, getApplicationContext());
+                                    Log.d(LOG_TAG, "new topic = " + communityFinal.uuid + " default topic deleted" + defaultCommunityUuid);
+                                    FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + communityFinal.uuid);
+                                } else {
+                                    FirebaseMessaging.getInstance().unsubscribeFromTopic("/topics/" + defaultCommunityUuid);
+                                    Config.setDefaultCommunity("", getApplicationContext());
+                                }
+                            } else {
+                                c.isDefault = false;
+                            }
+                        }
+
+                        communitiesAdapter.notifyDataSetChanged();
+
+                    }
+                };
+                handler.post(r);
             }
         });
         communitiesRecyclerView = (RecyclerView) findViewById(R.id.communities_list);

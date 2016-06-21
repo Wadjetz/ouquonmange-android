@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ouquonmange</string>
+    <string name="app_name">Où qu\'on mange</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -56,4 +56,5 @@
     <string name="error_invalid_date">The date invalide</string>
     <string name="vote_group">Vote</string>
     <string name="unvote_group">Unvote</string>
+    <string name="default_community">Default Community </string>
 </resources>

@@ -12,7 +12,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.Calendar;
+
 import fr.oqom.ouquonmange.models.AuthRepository;
+import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
 
@@ -39,11 +43,22 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
 
         switch (id) {
             case R.id.nav_calendar:
-                // TODO get default community and start new activity
-                Toast.makeText(getApplicationContext(), "Calendar", Toast.LENGTH_SHORT).show();
+                String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                if (defaultCommunityUuid != null && !defaultCommunityUuid.isEmpty()) {
+                    Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
+                    intent.putExtra(Constants.COMMUNITY_UUID, defaultCommunityUuid);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
                 break;
             case R.id.nav_communities:
-                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                intent.putExtra(Constants.FROM_MENU, Constants.FROM_MENU);
+                startActivity(intent);
                 finish();
                 break;
             case R.id.nav_search_communities:

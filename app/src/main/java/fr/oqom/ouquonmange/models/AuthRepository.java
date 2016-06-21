@@ -17,7 +17,7 @@ public class AuthRepository {
 
     public AuthRepository(Context context) {
         this.context = context;
-        realmConfig = new RealmConfiguration.Builder(context).build();
+        realmConfig = new RealmConfiguration.Builder(context).deleteRealmIfMigrationNeeded().build();
         realm = Realm.getInstance(realmConfig);
         auth = realm.where(Auth.class);
     }

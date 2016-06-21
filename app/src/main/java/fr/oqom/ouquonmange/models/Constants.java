@@ -22,4 +22,5 @@ public class Constants {
     public static final String COMMUNITIES_LIST = "COMMUNITIES_LIST";
     public static final String EVENTS_LIST = "EVENTS_LIST";
     public static final String INTEREST_POINTS_LIST = "INTEREST_POINTS_LIST";
+    public static final String FROM_MENU = "FROM_MENU";
 }
