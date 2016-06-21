@@ -1,12 +1,20 @@
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 
-
 android {
+    signingConfigs {
+        config {
+            def Properties localProps = new Properties()
+            localProps.load(new FileInputStream(file('../apk.properties')))
+
+            keyAlias 'ouquonmange'
+            keyPassword localProps['OQOM_RELEASE_KEY_ALIAS']
+            storeFile file('../ouquonmange.jks')
+            storePassword localProps['OQOM_RELEASE_STORE_FILE']
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
-
-
     defaultConfig {
         applicationId "fr.oqom.ouquonmange"
         minSdkVersion 21
@@ -39,7 +47,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-gcm:9.0.0'
     compile 'com.google.firebase:firebase-messaging:9.0.0'
     compile 'com.loopj.android:android-async-http:1.4.9'
-    compile group: 'com.koushikdutta.urlimageviewhelper', name: 'urlimageviewhelper', version: '1.0.4'
+    compile 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
 }
 
 apply plugin: 'com.google.gms.google-services'

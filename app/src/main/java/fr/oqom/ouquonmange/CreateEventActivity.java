@@ -113,7 +113,7 @@ public class CreateEventActivity extends AppCompatActivity {
         final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
 
-        if(validateTitle(name) && validateDate(dateStart,dateEnd)){
+        if(validateTitle(name) && validateDate(dateStart, dateEnd)){
             api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
                 @Override
                 public void apply(JSONObject jsonObject) {
@@ -208,10 +208,6 @@ public class CreateEventActivity extends AppCompatActivity {
         }
 
         return true;
-
-
-
-
     }
 
     private void requestFocus(View view) {
