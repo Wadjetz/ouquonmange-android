@@ -7,9 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.Date;
 import java.util.List;
 
 import fr.oqom.ouquonmange.R;
+import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.utils.Callback;
 
@@ -36,6 +38,8 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ListEventV
         Event event = eventsOfCommunities.get(position);
         holder.eventNameTextView.setText(event.name);
         holder.eventDescriptionTextView.setText(event.description);
+        holder.dateStart.setText(Constants.timeFormat.format(new Date(event.date_start)));
+        holder.dateEnd.setText(Constants.timeFormat.format(new Date(event.date_end)));
         holder.event = event;
     }
 
@@ -48,6 +52,9 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ListEventV
         public CardView eventCardView;
         public TextView eventNameTextView;
         public TextView eventDescriptionTextView;
+        public TextView dateStart;
+        public TextView dateEnd;
+
         public Event event;
 
         public ListEventViewHolder(View v) {
@@ -55,6 +62,8 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ListEventV
             eventCardView = (CardView) v.findViewById(R.id.event_cardView);
             eventNameTextView = (TextView) v.findViewById(R.id.event_name);
             eventDescriptionTextView = (TextView) v.findViewById(R.id.event_description);
+            dateStart = (TextView) v.findViewById(R.id.event_date_start);
+            dateEnd = (TextView) v.findViewById(R.id.event_date_end);
 
             eventCardView.setOnClickListener(new View.OnClickListener() {
                 @Override

@@ -15,12 +15,12 @@ public class Event implements Parcelable {
     public String uuid;
     public String name;
     public String description;
-    public int date_start;
-    public int date_end;
+    public long date_start;
+    public long date_end;
     public long id_community;
     public int created;
 
-    public Event(long id, String uuid, String name, String description, int date_start, int date_end, long id_community, int created ) {
+    public Event(long id, String uuid, String name, String description, long date_start, long date_end, long id_community, int created ) {
         this.id = id;
         this.uuid = uuid;
         this.name = name;
@@ -36,8 +36,8 @@ public class Event implements Parcelable {
         uuid = in.readString();
         name = in.readString();
         description = in.readString();
-        date_start = in.readInt();
-        date_end = in.readInt();
+        date_start = in.readLong();
+        date_end = in.readLong();
         id_community = in.readLong();
         created = in.readInt();
     }
@@ -63,8 +63,8 @@ public class Event implements Parcelable {
             String uuid = jsonEvents.getString("uuid");
             String name = jsonEvents.getString("name");
             String description = jsonEvents.getString("description");
-            int date_start = jsonEvents.getInt("dateStart");
-            int date_end = jsonEvents.getInt("dateEnd");
+            long date_start = jsonEvents.getLong("dateStart");
+            long date_end = jsonEvents.getLong("dateEnd");
             int id_community = jsonEvents.getInt("communityId");
             int created = jsonEvents.getInt("created");
             eventList.add(new Event(id,uuid,name,description,date_start,date_end,id_community,created));
@@ -83,8 +83,8 @@ public class Event implements Parcelable {
         dest.writeString(uuid);
         dest.writeString(name);
         dest.writeString(description);
-        dest.writeInt(date_start);
-        dest.writeInt(date_end);
+        dest.writeLong(date_start);
+        dest.writeLong(date_end);
         dest.writeLong(id_community);
         dest.writeInt(created);
     }

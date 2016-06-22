@@ -83,7 +83,7 @@ public class CreateEventActivity extends AppCompatActivity {
                     public void apply(Integer hours, Integer minutes) {
                         dateStart.set(Calendar.HOUR_OF_DAY, hours);
                         dateStart.set(Calendar.MINUTE, minutes);
-                        dateStartInput.setText(Constants.simpleDateFormat.format(dateStart.getTime()));
+                        dateStartInput.setText(Constants.timeFormat.format(dateStart.getTime()));
                     }
                 });
                 dateTimePickerDialog.show(getFragmentManager(), "date_time_start_picker");
@@ -99,7 +99,7 @@ public class CreateEventActivity extends AppCompatActivity {
                     public void apply(Integer hours, Integer minutes) {
                         dateEnd.set(Calendar.HOUR_OF_DAY, hours);
                         dateEnd.set(Calendar.MINUTE, minutes);
-                        dateEndInput.setText(Constants.simpleDateFormat.format(dateEnd.getTime()));
+                        dateEndInput.setText(Constants.timeFormat.format(dateEnd.getTime()));
                     }
                 });
                 dateTimePickerDialog.show(getFragmentManager(), "date_time_end_picker");
