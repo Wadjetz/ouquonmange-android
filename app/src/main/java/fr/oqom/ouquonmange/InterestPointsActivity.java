@@ -267,13 +267,13 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         return true;
     }
 
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_action_location:
-                progressBar.setVisibility(View.VISIBLE);
-                Toast.makeText(getApplicationContext(), "TODO Location Interest Points", Toast.LENGTH_SHORT).show();
-                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     String[] permissions = new String[]{
                             android.Manifest.permission.ACCESS_FINE_LOCATION,
                             android.Manifest.permission.ACCESS_COARSE_LOCATION
@@ -283,8 +283,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                     return true;
                 }
 
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10, 1000 * 60, this);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 1000 * 60, this);
 
                 return true;
             case R.id.menu_action_search:
@@ -297,35 +297,39 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(LOG_TAG, "Location Changed");
-
-        if (this.location == null) {
-            this.location = location;
-            Toast.makeText(getApplicationContext(), location.getLatitude() + " " + location.getLongitude(), Toast.LENGTH_LONG).show();
-            fetchInterestPoints(location);
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-        } else {
-            locationManager.removeUpdates(InterestPointsActivity.this);
+        Log.d(LOG_TAG, "Location Changed GPS_PROVIDER : " + " provider = " + location.getProvider() +  "  " + ((this.location != null) ? location.distanceTo(this.location) : "null") + " loc = " + location.getLatitude() + " " + location.getLongitude());
+        this.location = location;
+        Toast.makeText(getApplicationContext(), "GPS : " + location.getLatitude() + " " + location.getLongitude(), Toast.LENGTH_LONG).show();
+        fetchInterestPoints(location);
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(LOG_TAG, "Location Changed GPS_PROVIDER checkSelfPermission");
         }
+        //locationManager.removeUpdates(this);
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        Log.d(LOG_TAG, "onStatusChanged + " + provider);
-        Toast.makeText(getApplicationContext(), "onStatusChanged", Toast.LENGTH_LONG).show();
+        Log.d(LOG_TAG, "onStatusChanged provider = " + provider);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        Log.d(LOG_TAG, "Location Enabled = " + provider);
-        Toast.makeText(getApplicationContext(), "Location Enabled", Toast.LENGTH_LONG).show();
+        Log.d(LOG_TAG, "onProviderEnabled provider = " + provider);
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        Log.d(LOG_TAG, "Location Disabled = " + provider);
-        Toast.makeText(getApplicationContext(), "Location Disabled", Toast.LENGTH_LONG).show();
+        Log.d(LOG_TAG, "onProviderDisabled provider = " + provider);
+    }
+
+    @Override
+    protected void onStop() {
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(LOG_TAG, "onStop checkSelfPermission");
+        }
+        if (locationManager != null) {
+            locationManager.removeUpdates(this);
+        }
+        super.onStop();
     }
 }
