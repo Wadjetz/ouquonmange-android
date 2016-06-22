@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -36,6 +37,7 @@ public class MainActivity extends BaseActivity {
     private static final String LOG_TAG = "MainActivity";
 
     private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private RecyclerView communitiesRecyclerView;
     private RecyclerView.Adapter communitiesAdapter;
@@ -64,6 +66,17 @@ public class MainActivity extends BaseActivity {
         }
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d(LOG_TAG, "onRefresh");
+                communities.clear();
+                fetchCommunities();
+            }
+        });
+
         initNav();
         toolbar.setSubtitle(R.string.my_communities);
         initFloatingButton();
@@ -135,6 +148,7 @@ public class MainActivity extends BaseActivity {
                     Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
         }, new Callback2<Throwable, JSONObject>() {
             @Override
@@ -145,6 +159,7 @@ public class MainActivity extends BaseActivity {
                 Log.e(LOG_TAG, "Fetch Communities = " + throwable.getMessage());
                 Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }

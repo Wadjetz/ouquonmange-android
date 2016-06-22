@@ -9,6 +9,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -42,6 +43,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private RecyclerView.LayoutManager interestPointsLayoutManager;
 
     private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private ArrayList<InterestPoint> interestPoints = new ArrayList<>();
     private String eventUuid;
@@ -56,6 +58,21 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         setContentView(R.layout.activity_interest_points);
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d(LOG_TAG, "onRefresh");
+                interestPoints.clear();
+                if (location != null) {
+                    fetchInterestPoints(location);
+                } else {
+                    fetchInterestPoints();
+                }
+
+            }
+        });
 
         eventUuid = getIntent().getStringExtra(Constants.EVENT_UUID);
         communityUuid = getIntent().getStringExtra(Constants.COMMUNITY_UUID);
@@ -208,6 +225,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             Log.e(LOG_TAG, "Fetch InterestPoint = " + throwable.getMessage());
             Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.GONE);
+            swipeRefreshLayout.setRefreshing(false);
         }
     };
 
@@ -231,6 +249,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             }
 
             progressBar.setVisibility(View.GONE);
+            swipeRefreshLayout.setRefreshing(false);
         }
     };
 

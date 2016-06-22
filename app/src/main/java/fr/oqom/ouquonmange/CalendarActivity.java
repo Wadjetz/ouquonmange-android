@@ -3,6 +3,7 @@ package fr.oqom.ouquonmange;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -32,6 +33,7 @@ public class CalendarActivity extends BaseActivity {
     private static String LOG_TAG = "CalendarActivity";
 
     private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private RecyclerView eventsRecyclerView;
     private RecyclerView.Adapter eventsAdapter;
@@ -55,6 +57,17 @@ public class CalendarActivity extends BaseActivity {
         }
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d(LOG_TAG, "onRefresh");
+                events.clear();
+                fetchEvents(communityUuid, day);
+            }
+        });
+
         Log.d(LOG_TAG, "Community UUID - " + communityUuid);
         initNav();
         toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.getTime()));
@@ -169,6 +182,7 @@ public class CalendarActivity extends BaseActivity {
                 }
                 Log.i(LOG_TAG, value.toString());
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
         }, new Callback2<Throwable, JSONObject>() {
             @Override
@@ -180,6 +194,7 @@ public class CalendarActivity extends BaseActivity {
                 Log.e(LOG_TAG, throwable.getMessage());
                 Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
 
