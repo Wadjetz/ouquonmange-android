@@ -17,7 +17,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -50,11 +49,8 @@ public class CalendarActivity extends BaseActivity {
         setContentView(R.layout.activity_calendar);
         Intent intent = getIntent();
         communityUuid =  intent.getStringExtra(Constants.COMMUNITY_UUID);
-        long dayFromIntent = intent.getLongExtra(Constants.EVENT_DATE, -1);
 
-        if (dayFromIntent != -1) {
-            this.day.setTimeInMillis(dayFromIntent);
-        }
+        Log.d(LOG_TAG, "onCreate = " + communityUuid);
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
@@ -75,11 +71,27 @@ public class CalendarActivity extends BaseActivity {
         initFloatingButton();
 
         if (savedInstanceState == null) {
+            if (communityUuid == null) {
+                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                finish();
+            }
+
             fetchEvents(communityUuid, day);
         } else {
             this.events = savedInstanceState.getParcelableArrayList(Constants.EVENTS_LIST);
+            this.communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
             progressBar.setVisibility(View.GONE);
             Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.events.size());
+            long dayFromIntent = intent.getLongExtra(Constants.EVENT_DATE, -1);
+
+            if (dayFromIntent != -1) {
+                this.day.setTimeInMillis(dayFromIntent);
+            }
+        }
+
+        if (communityUuid == null) {
+            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            finish();
         }
 
         initEventList();
@@ -168,6 +180,9 @@ public class CalendarActivity extends BaseActivity {
     }
 
     private void fetchEvents(final String communityUuid, final Calendar calendar) {
+
+        Log.d(LOG_TAG, "fetchEvents communityUuid=" + communityUuid + " calendar" + calendar);
+
         api.getEventsByUUID(communityUuid, calendar, new Callback<JSONArray>() {
             @Override
             public void apply(JSONArray value) {

@@ -13,7 +13,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -148,17 +147,17 @@ public class CreateEventActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
                     if (jsonObject != null) {
                         Log.e(LOG_TAG, jsonObject.toString());
-                        snackbar.setText(jsonObject.toString()).setActionTextColor(Color.RED).show();
+                        snackbar.setText(jsonObject.toString()).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     } else {
                         Log.e(LOG_TAG, throwable.getMessage());
-                        snackbar.setText(throwable.getMessage()).setActionTextColor(Color.RED).show();
+                        snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
                     progressBar.setVisibility(View.GONE);
                 }
             });
 
         } else {
-            snackbar.setText(getText(R.string.create_event_error_validation)).setActionTextColor(Color.RED).show();
+            snackbar.setText(getText(R.string.create_event_error_validation)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
     }
 
@@ -233,5 +232,15 @@ public class CreateEventActivity extends AppCompatActivity {
         if (view.requestFocus()) {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
+        intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+        intent.putExtra(Constants.EVENT_DATE, day.getTimeInMillis());
+        startActivity(intent);
+        finish();
+        super.onBackPressed();
     }
 }

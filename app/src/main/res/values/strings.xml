@@ -57,4 +57,6 @@
     <string name="vote_group">Vote</string>
     <string name="unvote_group">Unvote</string>
     <string name="default_community">Default Community </string>
+    <string name="create_event_error_validation">Invalid Event</string>
+    <string name="close">Close</string>
 </resources>
