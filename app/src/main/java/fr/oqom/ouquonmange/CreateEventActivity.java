@@ -1,7 +1,10 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -10,6 +13,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -42,6 +46,7 @@ public class CreateEventActivity extends AppCompatActivity {
     private String communityUuid;
 
     private ProgressBar progressBar;
+    private Snackbar snackbar;
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -105,15 +110,28 @@ public class CreateEventActivity extends AppCompatActivity {
                 dateTimePickerDialog.show(getFragmentManager(), "date_time_end_picker");
             }
         });
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        snackbar = Snackbar.make(coordinatorLayout, "No internet connection!", Snackbar.LENGTH_LONG);
+
+        snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
+
     }
 
+    private View.OnClickListener closeSnackBarEvent = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            snackbar.dismiss();
+        }
+    };
+
     private void submitEvent() {
-        progressBar.setVisibility(View.VISIBLE);
-        // TODO validate Data
         final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
 
-        if(validateTitle(name) && validateDate(dateStart, dateEnd)){
+        if(validateTitle(name) && validateDate(dateStart, dateEnd)) {
+            progressBar.setVisibility(View.VISIBLE);
             api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
                 @Override
                 public void apply(JSONObject jsonObject) {
@@ -130,16 +148,17 @@ public class CreateEventActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
                     if (jsonObject != null) {
                         Log.e(LOG_TAG, jsonObject.toString());
-                        Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                        snackbar.setText(jsonObject.toString()).setActionTextColor(Color.RED).show();
+                    } else {
+                        Log.e(LOG_TAG, throwable.getMessage());
+                        snackbar.setText(throwable.getMessage()).setActionTextColor(Color.RED).show();
                     }
-                    Log.e(LOG_TAG, throwable.getMessage());
-                    Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
                     progressBar.setVisibility(View.GONE);
                 }
             });
 
-        }else{
-            Toast.makeText(getApplicationContext(), "Error in create", Toast.LENGTH_SHORT).show();
+        } else {
+            snackbar.setText(getText(R.string.create_event_error_validation)).setActionTextColor(Color.RED).show();
         }
     }
 
