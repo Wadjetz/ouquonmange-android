@@ -18,7 +18,6 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.util.Calendar;
-import java.util.TimeZone;
 
 import fr.oqom.ouquonmange.dialogs.DateTimePickerDialog;
 import fr.oqom.ouquonmange.models.Constants;
@@ -129,7 +128,7 @@ public class CreateEventActivity extends AppCompatActivity {
         final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
 
-        if(validateTitle(name) && validateDate(dateStart, dateEnd)) {
+        if(validateFormCreateEvent()) {
             progressBar.setVisibility(View.VISIBLE);
             api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
                 @Override
@@ -181,51 +180,90 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-    private boolean validateTitle(String title) {
+    private boolean validateFormCreateEvent() {
+        boolean flag = true, dateStartIsEmpty = true , dateEndIsEmpty = true;
+
+        String title = titleInput.getText().toString();
+        String description = descriptionInput.getText().toString();
+        String dateStart = dateStartInput.getText().toString();
+        String dateEnd = dateEndInput.getText().toString();
+        Calendar dateNow = Calendar.getInstance();
+
         if (title.isEmpty()) {
             titleLayout.setError(getString(R.string.error_field_required));
-            requestFocus(titleInput);
-            return false;
-        }
-        else if (title.length() > maxLengthName || title.length() < minLengthName ){
+            if (flag) {
+                requestFocus(titleInput);
+            }
+            flag = false;
+        } else if (title.length() > maxLengthName || title.length() < minLengthName ){
             titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity) + " ( between " + minLengthName + " and " + maxLengthName + " characters )");
-            requestFocus(titleInput);
-            return false;
+            if (flag) {
+                requestFocus(titleInput);
+            }
+            flag = false;
         } else {
             titleLayout.setErrorEnabled(false);
         }
-        return true;
 
-    }
-    private boolean validateDate(Calendar dateStart, Calendar dateEnd) {
-        Calendar dateNow = Calendar.getInstance();
-        dateNow.setTimeZone(TimeZone.getTimeZone("GMT+2"));
-        int dateStartHours = dateStart.getTime().getHours();
-        int dateEndHours = dateEnd.getTime().getHours();
-        int dateNowHours = dateNow.getTime().getHours() + 2 ; // GMT + 2
-        int dateStartMinutes = dateStart.getTime().getMinutes();
-        int dateEndMinutes = dateEnd.getTime().getMinutes();
-        int dateNowMinutes = dateNow.getTime().getMinutes();
-        layoutDateStart.setErrorEnabled(false);
-        layoutDateEnd.setErrorEnabled(false);
-        if((dateStartHours < dateNowHours) || (dateStartHours == dateNowHours && dateStartMinutes < dateNowMinutes)){
-            layoutDateStart.setError(getString(R.string.error_invalid_date));
-            requestFocus(layoutDateStart);
-            return false;
-        }
-        if ((dateEndHours < dateNowHours) || (dateEndHours == dateNowHours && dateEndMinutes < dateNowMinutes)){
+        if (dateStart.isEmpty()) {
+            layoutDateStart.setError(getString(R.string.error_field_required));
+            if (flag) {
+                requestFocus(dateStartInput);
+            }
+            dateStartIsEmpty = false;
+            flag = false;
+        } else {
             layoutDateStart.setErrorEnabled(false);
-            layoutDateEnd.setError(getString(R.string.error_invalid_date));
-            requestFocus(layoutDateEnd);
-            return false;
-        }
-        if( (dateEndHours<dateStartHours) || (dateStartHours == dateEndHours && dateEndMinutes < dateStartMinutes)){
-            layoutDateEnd.setError(getString(R.string.error_invalid_date));
-            requestFocus(layoutDateEnd);
-            return false;
         }
 
-        return true;
+        if (dateEnd.isEmpty()) {
+            layoutDateEnd.setError(getString(R.string.error_field_required));
+            if (flag) {
+                requestFocus(dateEndInput);
+            }
+            dateEndIsEmpty = false;
+            flag = false;
+        } else {
+            layoutDateEnd.setErrorEnabled(false);
+        }
+
+        if (dateStartIsEmpty) {
+            if (this.dateStart.before(dateNow)) {
+                layoutDateStart.setError(getString(R.string.error_start_date_in_the_past));
+                if (flag) {
+                    requestFocus(layoutDateStart);
+                }
+                flag = false;
+            } else {
+                layoutDateStart.setErrorEnabled(false);
+            }
+        }
+
+        if (dateEndIsEmpty) {
+            if (this.dateEnd.before(dateNow)) {
+                layoutDateEnd.setError(getString(R.string.error_end_date_in_the_past));
+                if (flag) {
+                    requestFocus(layoutDateEnd);
+                }
+                flag = false;
+            } else {
+                layoutDateEnd.setErrorEnabled(false);
+            }
+        }
+
+        if (dateEndIsEmpty && dateStartIsEmpty) {
+            if (this.dateStart.after(this.dateEnd)) {
+                layoutDateEnd.setError(getString(R.string.error_end_date_prior_start));
+                if (flag) {
+                    requestFocus(layoutDateEnd);
+                }
+                flag = false;
+            } else {
+                layoutDateEnd.setErrorEnabled(false);
+            }
+        }
+
+        return flag;
     }
 
     private void requestFocus(View view) {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_start_date_in_the_past">Vous ne pouvez pas créer un evenement dans le passé</string>
+    <string name="error_end_date_in_the_past">L\'événement ne pas finir dans le passé</string>
+    <string name="error_end_date_prior_start">La date de fin doit être superieur à la date du début</string>
+</resources>

@@ -59,4 +59,7 @@
     <string name="default_community">Default Community </string>
     <string name="create_event_error_validation">Invalid Event</string>
     <string name="close">Close</string>
+    <string name="error_start_date_in_the_past">You can not create an event in the past</string>
+    <string name="error_end_date_in_the_past">The event does not finish in the past</string>
+    <string name="error_end_date_prior_start">The end date must be superior to the start date</string>
 </resources>
