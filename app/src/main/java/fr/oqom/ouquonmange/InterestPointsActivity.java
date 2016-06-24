@@ -19,6 +19,13 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +39,7 @@ import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
-public class InterestPointsActivity extends BaseActivity implements LocationListener {
+public class InterestPointsActivity extends BaseActivity implements LocationListener, OnMapReadyCallback {
 
     private static final String LOG_TAG = "InterestPointsActivity";
     final private int REQUEST_LOCATION_ASK_PERMISSIONS = 123;
@@ -51,6 +58,28 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private LocationManager locationManager;
     private Location location;
+    private GoogleMap map;
+
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.map = googleMap;
+        final GoogleMap map = googleMap;
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        googleMap.setMyLocationEnabled(true);
+
+        Log.d(LOG_TAG, "onMapReady interestPoints = " + interestPoints);
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -81,6 +110,10 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         checkAuth();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        SupportMapFragment mapFragment =
+                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
         if (savedInstanceState == null) {
             fetchInterestPoints();
@@ -240,6 +273,23 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 interestPoints.clear();
                 interestPoints.addAll(interestPointsWithGroup);
                 interestPoints.addAll(interestPointsByLocation);
+
+                boolean setCamera = false;
+                for (InterestPoint interestPoint : interestPoints) {
+                    if (map != null) {
+                        LatLng position = new LatLng(Double.valueOf(interestPoint.lat), Double.valueOf(interestPoint.lng));
+                        if (setCamera) {
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 10));
+                            setCamera = true;
+                        }
+                        map.addMarker(new MarkerOptions()
+                                .position(position)
+                                .title(interestPoint.name));
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Map not ready", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
                 interestPointsAdapter.notifyDataSetChanged();
                 Log.i(LOG_TAG, "Fetch InterestPoint = " + jsonObject.toString());
             } catch (JSONException e) {
@@ -314,6 +364,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     public void onLocationChanged(Location location) {
         Log.d(LOG_TAG, "Location Changed GPS_PROVIDER : " + " provider = " + location.getProvider() +  "  " + ((this.location != null) ? location.distanceTo(this.location) : "null") + " loc = " + location.getLatitude() + " " + location.getLongitude());
         this.location = location;
+
+        if (this.map != null) {
+            this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 10));
+        }
+
         Toast.makeText(getApplicationContext(), "GPS : " + location.getLatitude() + " " + location.getLongitude(), Toast.LENGTH_LONG).show();
         fetchInterestPoints(location);
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
