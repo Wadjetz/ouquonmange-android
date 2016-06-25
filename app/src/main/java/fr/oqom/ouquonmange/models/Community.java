@@ -16,7 +16,7 @@ public class Community implements Parcelable {
     public String name;
     public String description;
     public int created;
-    public boolean isDefault;
+    public boolean isDefault = false;
 
     public Community() {}
 
