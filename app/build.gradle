@@ -12,6 +12,13 @@ android {
             storeFile file('../ouquonmange.jks')
             storePassword localProps['OQOM_RELEASE_STORE_FILE']
         }
+
+        debug {
+            keyAlias 'ouquonmange'
+            keyPassword 'ouquonmange'
+            storeFile file('../ouquonmange-debug.jks')
+            storePassword 'ouquonmange'
+        }
     }
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
@@ -29,7 +36,7 @@ android {
             signingConfig signingConfigs.config
         }
         debug {
-            signingConfig signingConfigs.config
+            signingConfig signingConfigs.debug
         }
     }
     dexOptions {
