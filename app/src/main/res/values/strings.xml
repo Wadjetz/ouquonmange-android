@@ -64,4 +64,7 @@
     <string name="error_end_date_prior_start">The end date must be superior to the start date</string>
     <string name="no_internet">No internet connection!</string>
     <string name="event_created">Event Created</string>
+    <string name="error_login">Error in login</string>
+    <string name="login_error_validation">Invalid fields</string>
+    <string name="login_error_connect">Error ! Try again.</string>
 </resources>
