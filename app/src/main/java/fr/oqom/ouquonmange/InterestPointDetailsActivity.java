@@ -109,11 +109,13 @@ public class InterestPointDetailsActivity extends BaseActivity {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putString(Constants.EVENT_UUID, eventUuid);
         outState.putString(Constants.COMMUNITY_UUID, communityUuid);
         outState.putString(Constants.INTEREST_POINT_ID, interestPointId);
         outState.putParcelable(Constants.INTEREST_POINT, interestPoint);
+        outState.putParcelableArrayList(Constants.MEMBERS_LIST, this.members);
+        super.onSaveInstanceState(outState);
+
     }
 
     @Override

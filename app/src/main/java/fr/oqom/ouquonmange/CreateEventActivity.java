@@ -111,7 +111,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
         CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        snackbar = Snackbar.make(coordinatorLayout, "No internet connection!", Snackbar.LENGTH_LONG);
+        snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
 
         snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
 
@@ -133,7 +133,6 @@ public class CreateEventActivity extends AppCompatActivity {
             api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
                 @Override
                 public void apply(JSONObject jsonObject) {
-                    Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
                     intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
                     intent.putExtra(Constants.EVENT_DATE, day.getTimeInMillis());
@@ -143,10 +142,9 @@ public class CreateEventActivity extends AppCompatActivity {
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
                 public void apply(Throwable throwable, JSONObject jsonObject) {
-                    Toast.makeText(getApplicationContext(), "Event Created", Toast.LENGTH_SHORT).show();
                     if (jsonObject != null) {
                         Log.e(LOG_TAG, jsonObject.toString());
-                        snackbar.setText(jsonObject.toString()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        snackbar.setText(R.string.event_created).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     } else {
                         Log.e(LOG_TAG, throwable.getMessage());
                         snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();

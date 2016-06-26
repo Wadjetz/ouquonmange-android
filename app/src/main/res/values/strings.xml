@@ -14,7 +14,7 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="prompt_username">Username</string>
 
-    <string name="login_action">Go</string>
+    <string name="login_action">LOGIN</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_username">This username is invalid</string>
@@ -62,4 +62,6 @@
     <string name="error_start_date_in_the_past">You can not create an event in the past</string>
     <string name="error_end_date_in_the_past">The event does not finish in the past</string>
     <string name="error_end_date_prior_start">The end date must be superior to the start date</string>
+    <string name="no_internet">No internet connection!</string>
+    <string name="event_created">Event Created</string>
 </resources>
