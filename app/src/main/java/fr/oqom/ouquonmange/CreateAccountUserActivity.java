@@ -79,7 +79,7 @@ public class CreateAccountUserActivity extends BaseActivity {
         }
     };
     private void signUp() {
-        if(validateEmail() && validatePassword() && validateUserName()) {
+        if(validateFormCreateAccount()) {
             Toast.makeText(getApplicationContext(), "Pending", Toast.LENGTH_SHORT).show();
             String username = usernameInputSignup.getText().toString().trim().toLowerCase();
             String email = emailInputSignup.getText().toString().trim().toLowerCase();
@@ -132,30 +132,71 @@ public class CreateAccountUserActivity extends BaseActivity {
         }
     }
 
-
-    private boolean validateUserName() {
-        String username = usernameInputSignup.getText().toString().trim().toLowerCase();
-        if(username.isEmpty()){
-            usernameLayoutSignup.setError(getString(R.string.error_invalid_username));
-            requestFocus(usernameInputSignup);
-            return false;
-        }else {
-            usernameLayoutSignup.setErrorEnabled(false);
-        }
-        return true;
-    }
-
-    private boolean validateEmail() {
+    private boolean validateFormCreateAccount(){
         String email = emailInputSignup.getText().toString().trim().toLowerCase();
+        boolean flag = true;
+        //check email
         if (email.isEmpty() || !isValidEmail(email)) {
             emailLayoutSignup.setError(getString(R.string.error_invalid_email));
-            requestFocus(emailInputSignup);
-            return false;
+            if(flag){
+                requestFocus(emailInputSignup);
+            }
+            flag = false;
         } else {
             emailLayoutSignup.setErrorEnabled(false);
         }
-        return true;
+
+        //check username
+        String username = usernameInputSignup.getText().toString().trim().toLowerCase();
+        if(username.isEmpty()){
+            usernameLayoutSignup.setError(getString(R.string.error_invalid_username));
+            if(flag){
+                requestFocus(usernameInputSignup);
+            }
+            flag = false;
+        }else {
+            usernameLayoutSignup.setErrorEnabled(false);
+        }
+
+        //check password
+        String password = passwordInputSignup.getText().toString().trim();
+        String passwordRepeat = passwordCofirmInputSignup.getText().toString().trim();
+
+        if(password.isEmpty()) {
+            // password vide
+            passwordLayoutSignup.setError(getString(R.string.error_field_required));
+            if(flag){
+                requestFocus(passwordInputSignup);
+            }
+            flag = false;
+        }else if(passwordRepeat.isEmpty()){
+            passwordConfirmLayoutSignup.setError(getString(R.string.error_field_required));
+            if(flag) {
+                requestFocus(passwordCofirmInputSignup);
+            }
+            flag = false;
+        }else if(!password.equals(passwordRepeat)){
+            // les 2 password différents
+            passwordConfirmLayoutSignup.setError(getString(R.string.error_different_password));
+            if(flag){
+                requestFocus(passwordInputSignup);
+            }
+            flag = false;
+        }else if(!isValidPassword(password)){
+            //password invalide
+            passwordLayoutSignup.setError(getString(R.string.error_invalid_password));
+            if(flag){
+                requestFocus(passwordInputSignup);
+            }
+            flag = false;
+        }else{
+            passwordLayoutSignup.setErrorEnabled(false);
+            passwordConfirmLayoutSignup.setErrorEnabled(false);
+        }
+
+        return flag;
     }
+
 
     private void requestFocus(View view) {
         if (view.requestFocus()) {
@@ -165,34 +206,6 @@ public class CreateAccountUserActivity extends BaseActivity {
 
     private static boolean isValidEmail(String email) {
         return !TextUtils.isEmpty(email) && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
-    }
-
-    private boolean validatePassword(){
-        String password = passwordInputSignup.getText().toString().trim();
-        String passwordRepeat = passwordCofirmInputSignup.getText().toString().trim();
-        boolean result = false;
-
-        if(password.isEmpty()) {
-            // password vide
-            passwordLayoutSignup.setError(getString(R.string.error_field_required));
-            requestFocus(passwordInputSignup);
-        }else if(passwordRepeat.isEmpty()){
-            passwordConfirmLayoutSignup.setError(getString(R.string.error_field_required));
-            requestFocus(passwordCofirmInputSignup);
-        }else if(!password.equals(passwordRepeat)){
-            // les 2 password différents
-            passwordConfirmLayoutSignup.setError(getString(R.string.error_different_password));
-            requestFocus(passwordInputSignup);
-        }else if(!isValidPassword(password)){
-                    //password invalide
-            passwordLayoutSignup.setError(getString(R.string.error_invalid_password));
-            requestFocus(passwordInputSignup);
-        }else{
-            result=true;
-            passwordLayoutSignup.setErrorEnabled(false);
-            passwordConfirmLayoutSignup.setErrorEnabled(false);
-        }
-        return result;
     }
 
     private boolean isValidPassword(String password) {
