@@ -113,7 +113,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             });
         }else{
-            snackbar.setText(getText(R.string.login_error_validation)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
     }
 

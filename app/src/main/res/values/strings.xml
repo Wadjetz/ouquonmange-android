@@ -65,8 +65,8 @@
     <string name="no_internet">No internet connection!</string>
     <string name="event_created">Event Created</string>
     <string name="error_login">Error in login</string>
-    <string name="login_error_validation">Invalid fields</string>
     <string name="login_error_connect">Error ! Try again.</string>
     <string name="error_Signin">Error in signin</string>
-    <string name="signin_error_validation">Invalid fields</string>
+    <string name="community_created">Community Created</string>
+    <string name="error_invalid_fields">invalid fields</string>
 </resources>
