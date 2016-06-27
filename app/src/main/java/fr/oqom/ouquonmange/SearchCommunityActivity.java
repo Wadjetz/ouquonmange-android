@@ -81,15 +81,19 @@ public class SearchCommunityActivity extends BaseActivity {
         api.getCommunitiesByQuery(query,new Callback<JSONArray>() {
             @Override
             public void apply(JSONArray value) {
-                try {
-                    communitiesSearch.addAll(Community.fromJson(value));
-                    searchCommunitiesAdapter.notifyDataSetChanged();
-                    Log.i(LOG_TAG, "Fetch Communities = " + communitiesSearch.size());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
+                if(value != null) {
+                    try {
+                        communitiesSearch.addAll(Community.fromJson(value));
+                        searchCommunitiesAdapter.notifyDataSetChanged();
+                        Log.i(LOG_TAG, "Fetch Communities = " + communitiesSearch.size());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
+                    }
+                    progressBar.setVisibility(View.GONE);
+                }else{
+                    snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
-                progressBar.setVisibility(View.GONE);
             }
         }, new Callback2<Throwable, JSONObject>() {
             @Override
@@ -101,7 +105,6 @@ public class SearchCommunityActivity extends BaseActivity {
                 progressBar.setVisibility(View.GONE);
             }
         });
-
     }
 
     private void searchAllCommunities() {
@@ -109,15 +112,19 @@ public class SearchCommunityActivity extends BaseActivity {
         api.getAllCommunities(new Callback<JSONArray>() {
             @Override
             public void apply(JSONArray value) {
-                try {
-                    communitiesSearch.addAll(Community.fromJson(value));
-                    searchCommunitiesAdapter.notifyDataSetChanged();
-                    Log.i(LOG_TAG, "Fetch Communities = " + communitiesSearch.size());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
+                if(value != null) {
+                    try {
+                        communitiesSearch.addAll(Community.fromJson(value));
+                        searchCommunitiesAdapter.notifyDataSetChanged();
+                        Log.i(LOG_TAG, "Fetch Communities = " + communitiesSearch.size());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
+                    }
+                    progressBar.setVisibility(View.GONE);
+                }else {
+                    snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
-                progressBar.setVisibility(View.GONE);
             }
         }, new Callback2<Throwable, JSONObject>() {
             @Override
@@ -147,6 +154,8 @@ public class SearchCommunityActivity extends BaseActivity {
                             Intent intent = getIntent();
                             finish();
                             startActivity(intent);
+                        }else {
+                            snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
                     }
                 }, new Callback2<Throwable, JSONObject>() {
@@ -165,6 +174,8 @@ public class SearchCommunityActivity extends BaseActivity {
                             Intent intent = getIntent();
                             finish();
                             startActivity(intent);
+                        }else {
+                            snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
                     }
                 });

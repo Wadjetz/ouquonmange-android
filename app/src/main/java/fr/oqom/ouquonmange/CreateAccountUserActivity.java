@@ -87,35 +87,43 @@ public class CreateAccountUserActivity extends BaseActivity {
             api.createAccountUser(username,email ,password , new Callback<JSONObject>() {
                 @Override
                 public void apply(final JSONObject value) {
-                    try {
-                        String token = value.getString("token");
-                        authRepository.save(token, new Callback<Void>() {
-                            @Override
-                            public void apply(Void value) {
-                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                                finish();
-                            }
-                        }, new Callback<Throwable>() {
-                            @Override
-                            public void apply(Throwable error) {
-                                Log.e(LOG_TAG, error.getMessage());
-                                snackbar.setText(R.string.error_Signin);
-                            }
-                        });
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    if(value != null) {
+                        try {
+                            String token = value.getString("token");
+                            authRepository.save(token, new Callback<Void>() {
+                                @Override
+                                public void apply(Void value) {
+                                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                    finish();
+                                }
+                            }, new Callback<Throwable>() {
+                                @Override
+                                public void apply(Throwable error) {
+                                    Log.e(LOG_TAG, error.getMessage());
+                                    snackbar.setText(R.string.error_Signin);
+                                }
+                            });
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }else{
+                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
                 }
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
                 public void apply(Throwable throwable, JSONObject error) {
                     String err = "";
-                    try {
-                        err = error.getString("error");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    if(error != null) {
+                        try {
+                            err = error.getString("error");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                    }else{
+                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                    snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
             });
 

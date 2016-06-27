@@ -144,16 +144,20 @@ public class InterestPointDetailsActivity extends BaseActivity {
     private Callback<JSONObject> apiSuccessCallback = new Callback<JSONObject>() {
         @Override
         public void apply(JSONObject jsonObject) {
-            try {
-                JSONArray membersJson = jsonObject.getJSONArray("members");
-                List<User> membersList = User.fromJson(membersJson);
-                members.clear();
-                members.addAll(membersList);
-                membersAdapter.notifyDataSetChanged();
-                Log.i(LOG_TAG, "Fetch members = " + members.size()+ " members list :"+membersList.size());
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Log.e(LOG_TAG, "Fetch members error : " + e.getMessage());
+            if(jsonObject !=null) {
+                try {
+                    JSONArray membersJson = jsonObject.getJSONArray("members");
+                    List<User> membersList = User.fromJson(membersJson);
+                    members.clear();
+                    members.addAll(membersList);
+                    membersAdapter.notifyDataSetChanged();
+                    Log.i(LOG_TAG, "Fetch members = " + members.size() + " members list :" + membersList.size());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.e(LOG_TAG, "Fetch members error : " + e.getMessage());
+                    snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                }
+            }else{
                 snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
             progressBar.setVisibility(View.GONE);
@@ -163,21 +167,18 @@ public class InterestPointDetailsActivity extends BaseActivity {
     private Callback2<Throwable, JSONObject> apiErrorCallback = new Callback2<Throwable, JSONObject>() {
         @Override
         public void apply(Throwable throwable, JSONObject jsonObject) {
-            Log.e(LOG_TAG, "fetch Interest PointDetails Error " + throwable.getMessage());
-
-            if (jsonObject != null) {
-                Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
-                String err = "";
+            Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
+            String err = "";
+            if(jsonObject != null) {
                 try {
                     err = jsonObject.getString("error");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
                 snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            } else {
-                snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            }else{
+                snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
-
         }
     };
 }

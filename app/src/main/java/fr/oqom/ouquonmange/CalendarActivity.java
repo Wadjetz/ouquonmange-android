@@ -201,18 +201,22 @@ public class CalendarActivity extends BaseActivity {
         api.getEventsByUUID(communityUuid, calendar, new Callback<JSONArray>() {
             @Override
             public void apply(JSONArray value) {
-                try {
-                    events.addAll(Event.fromJson(value));
-                    eventsAdapter.notifyDataSetChanged();
-                    Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.toString() + " = " + events.size());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, e.getMessage());
+                if(value != null) {
+                    try {
+                        events.addAll(Event.fromJson(value));
+                        eventsAdapter.notifyDataSetChanged();
+                        Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.toString() + " = " + events.size());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.e(LOG_TAG, e.getMessage());
+                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                    }
+                    Log.i(LOG_TAG, value.toString());
+                    progressBar.setVisibility(View.GONE);
+                    swipeRefreshLayout.setRefreshing(false);
+                }else{
                     snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
-                Log.i(LOG_TAG, value.toString());
-                progressBar.setVisibility(View.GONE);
-                swipeRefreshLayout.setRefreshing(false);
             }
         }, new Callback2<Throwable, JSONObject>() {
             @Override

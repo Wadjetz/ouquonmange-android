@@ -178,7 +178,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void apply(final InterestPoint interestPoint) {
                 if (interestPoint.isJoin) {
-                    api.quitGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
+                    api.quitGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
@@ -186,7 +186,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                                     Log.i(LOG_TAG, "Group joined = " + ip.name);
                                     ip.members = (ip.members>0)?(ip.members-1):ip.members;
                                 }
-                                if (ip.apiId.equals(interestPoint.apiId)) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isJoin = false;
                                     interestPointsAdapter.notifyDataSetChanged();
 
@@ -195,7 +195,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         }
                     }, errorCallback);
                 } else {
-                    api.joinGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
+                    api.joinGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
@@ -204,7 +204,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                                     ip.members = (ip.members>0)?ip.members-1:ip.members;
                                 }
 
-                                if (ip.apiId.equals(interestPoint.apiId)) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isJoin = true;
                                     Log.i(LOG_TAG, "Group joining = " + ip.name);
                                     ip.members++;
@@ -221,7 +221,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void apply(InterestPoint interestPoint) {
                 Intent intent = new Intent(getApplicationContext(), InterestPointDetailsActivity.class);
-                intent.putExtra(Constants.INTEREST_POINT_ID, interestPoint.apiId);
+                intent.putExtra(Constants.INTEREST_POINT_ID, interestPoint.foursquareId);
                 intent.putExtra(Constants.EVENT_UUID, eventUuid);
                 intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
                 intent.putExtra(Constants.INTEREST_POINT, interestPoint);
@@ -231,11 +231,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void apply(final InterestPoint interestPoint) {
                 if (interestPoint.isVote) {
-                    api.unvoteGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
+                    api.unvoteGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
-                                if (ip.apiId.equals(interestPoint.apiId)) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isVote = false;
                                     Log.i(LOG_TAG, "Group unvoting = " + ip.name);
                                     ip.votes--;
@@ -245,11 +245,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         }
                     }, errorCallback);
                 } else {
-                    api.voteGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
+                    api.voteGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
-                                if (ip.apiId.equals(interestPoint.apiId)) {
+                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
                                     ip.isVote = true;
                                     Log.i(LOG_TAG, "Group voting = " + ip.name);
                                     ip.votes++;
@@ -297,30 +297,30 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 interestPoints.clear();
                 interestPoints.addAll(InterestPoint.fromJson(json));
 
-                boolean setCamera = false;
-                for (InterestPoint interestPoint : interestPoints) {
-                    if (map != null) {
-                        LatLng position = new LatLng(Double.valueOf(interestPoint.lat), Double.valueOf(interestPoint.lng));
-                        if (setCamera) {
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 10));
-                            setCamera = true;
+                    boolean setCamera = false;
+                    for (InterestPoint interestPoint : interestPoints) {
+                        if (map != null) {
+                            LatLng position = new LatLng(Double.valueOf(interestPoint.lat), Double.valueOf(interestPoint.lng));
+                            if (setCamera) {
+                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 10));
+                                setCamera = true;
+                            }
+                            map.addMarker(new MarkerOptions()
+                                    .position(position)
+                                    .title(interestPoint.name));
+                        } else {
+                            snackbar.setText(R.string.map_not_ready).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                            Log.e(LOG_TAG, "Map not ready");
                         }
-                        map.addMarker(new MarkerOptions()
-                                .position(position)
-                                .title(interestPoint.name));
-                    } else {
-                        snackbar.setText(R.string.map_not_ready).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        Log.e(LOG_TAG, "Map not ready");
                     }
-                }
 
-                interestPointsAdapter.notifyDataSetChanged();
-                Log.i(LOG_TAG, "Fetch InterestPoint = " + json.length());
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Log.e(LOG_TAG, "Fetch InterestPoint = " + e.getMessage());
-                snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            }
+                    interestPointsAdapter.notifyDataSetChanged();
+                    Log.i(LOG_TAG, "Fetch InterestPoint = " + json.length());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.e(LOG_TAG, "Fetch InterestPoint = " + e.getMessage());
+                    snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                }
 
             progressBar.setVisibility(View.GONE);
             swipeRefreshLayout.setRefreshing(false);

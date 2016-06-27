@@ -70,21 +70,29 @@ public class CreateCommunityActivity extends AppCompatActivity {
             api.createCommunity(name, description, new Callback<JSONObject>() {
                 @Override
                 public void apply(JSONObject value) {
-                    Log.i(LOG_TAG, value.toString());
-                    snackbar.setText(R.string.community_created).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                    finish();
+                    if(value != null) {
+                        Log.i(LOG_TAG, value.toString());
+                        snackbar.setText(R.string.community_created).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                        finish();
+                    }else{
+                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                    }
                 }
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
                 public void apply(Throwable throwable, JSONObject error) {
                     String err = "";
-                    try {
-                        err = error.getString("error");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    if(error != null) {
+                        try {
+                            err = error.getString("error");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                    }else{
+                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                    snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
             });
         }else{

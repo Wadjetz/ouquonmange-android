@@ -144,22 +144,26 @@ public class MainActivity extends BaseActivity {
         api.getCommunities(new Callback<JSONArray>() {
             @Override
             public void apply(JSONArray value) {
-                try {
-                    communities.addAll(Community.fromJson(value));
+                if(value != null) {
+                    try {
+                        communities.addAll(Community.fromJson(value));
 
-                    for (Community c : communities) {
-                        String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
-                        if (c.uuid.equals(defaultCommunityUuid)) {
-                            c.isDefault = true;
+                        for (Community c : communities) {
+                            String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                            if (c.uuid.equals(defaultCommunityUuid)) {
+                                c.isDefault = true;
+                            }
                         }
-                    }
 
-                    communitiesAdapter.notifyDataSetChanged();
-                    Log.i(LOG_TAG, "Fetch Communities = " + communities.size());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
-                    snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        communitiesAdapter.notifyDataSetChanged();
+                        Log.i(LOG_TAG, "Fetch Communities = " + communities.size());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
+                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                    }
+                }else{
+                    snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
