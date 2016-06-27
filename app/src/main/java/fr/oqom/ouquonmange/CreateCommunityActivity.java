@@ -72,7 +72,6 @@ public class CreateCommunityActivity extends AppCompatActivity {
                 public void apply(JSONObject value) {
                     Log.i(LOG_TAG, value.toString());
                     snackbar.setText(R.string.community_created).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    //Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
                     finish();
                 }

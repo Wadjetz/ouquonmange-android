@@ -69,4 +69,8 @@
     <string name="error_Signin">Error in signin</string>
     <string name="community_created">Community Created</string>
     <string name="error_invalid_fields">invalid fields</string>
+    <string name="error_exception">Error ! Try again</string>
+    <string name="member_join_community">You joined.</string>
+    <string name="map_not_ready">Map not ready</string>
+
 </resources>

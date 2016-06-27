@@ -1,8 +1,11 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -42,6 +45,7 @@ public class CalendarActivity extends BaseActivity {
 
     private String communityUuid;
     private Calendar day = Calendar.getInstance();
+    private Snackbar snackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +99,18 @@ public class CalendarActivity extends BaseActivity {
         }
 
         initEventList();
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarCalendar);
     }
+
+    private View.OnClickListener closeSnackBarCalendar = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            snackbar.dismiss();
+        }
+    };
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -193,7 +208,7 @@ public class CalendarActivity extends BaseActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.e(LOG_TAG, e.getMessage());
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
                 Log.i(LOG_TAG, value.toString());
                 progressBar.setVisibility(View.GONE);
@@ -204,10 +219,15 @@ public class CalendarActivity extends BaseActivity {
             public void apply(Throwable throwable, JSONObject jsonObject) {
                 if (jsonObject != null) {
                     Log.e(LOG_TAG, jsonObject.toString());
-                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                    String err = "";
+                    try {
+                        err = jsonObject.getString("error");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
                 Log.e(LOG_TAG, throwable.getMessage());
-                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
             }

@@ -3,11 +3,14 @@ package fr.oqom.ouquonmange;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -59,6 +62,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private LocationManager locationManager;
     private Location location;
     private GoogleMap map;
+    private Snackbar snackbar;
 
 
     @Override
@@ -124,7 +128,18 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
 
         initInterestPointList();
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close),closeSnackBarInterestPoints);
     }
+
+    private View.OnClickListener closeSnackBarInterestPoints = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            snackbar.dismiss();
+        }
+    };
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -146,10 +161,16 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         final Callback2<Throwable, JSONObject> errorCallback = new Callback2<Throwable, JSONObject>() {
             @Override
             public void apply(Throwable throwable, JSONObject jsonObject) {
-                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                if (jsonObject != null) {
-                    Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+            if (jsonObject != null) {
+                Log.e(LOG_TAG, jsonObject.toString());
+                String err = "";
+                try {
+                    err = jsonObject.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+                snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            }
             }
         };
 
@@ -252,11 +273,18 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         @Override
         public void apply(Throwable throwable, JSONObject jsonObject) {
             if (jsonObject != null) {
-                Log.e(LOG_TAG, "Fetch InterestPoint = " + jsonObject.toString());
-                Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                Log.e(LOG_TAG, jsonObject.toString());
+                String err = "";
+                try {
+                    err = jsonObject.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            }else{
+                snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
             Log.e(LOG_TAG, "Fetch InterestPoint = " + throwable.getMessage());
-            Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.GONE);
             swipeRefreshLayout.setRefreshing(false);
         }
@@ -281,7 +309,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                                 .position(position)
                                 .title(interestPoint.name));
                     } else {
-                        Toast.makeText(getApplicationContext(), "Map not ready", Toast.LENGTH_SHORT).show();
+                        snackbar.setText(R.string.map_not_ready).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        Log.e(LOG_TAG, "Map not ready");
                     }
                 }
 
@@ -290,7 +319,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             } catch (JSONException e) {
                 e.printStackTrace();
                 Log.e(LOG_TAG, "Fetch InterestPoint = " + e.getMessage());
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
 
             progressBar.setVisibility(View.GONE);

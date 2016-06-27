@@ -1,8 +1,11 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -45,6 +48,7 @@ public class InterestPointDetailsActivity extends BaseActivity {
     private InterestPoint interestPoint;
     private RecyclerView membersRecyclerView;
     private RecyclerView.Adapter membersAdapter;
+    private Snackbar snackbar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -93,9 +97,19 @@ public class InterestPointDetailsActivity extends BaseActivity {
         membersRecyclerView.setHasFixedSize(true);
         membersRecyclerView.setLayoutManager(membersLayoutManager);
         membersRecyclerView.setAdapter(membersAdapter);
+
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsDetailsLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
     }
 
-
+    private View.OnClickListener closeSnackBarLogin = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            snackbar.dismiss();
+        }
+    };
 
     private void initView() {
         progressBar = (ProgressBar) findViewById(R.id.progress);
@@ -140,7 +154,7 @@ public class InterestPointDetailsActivity extends BaseActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
                 Log.e(LOG_TAG, "Fetch members error : " + e.getMessage());
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
             progressBar.setVisibility(View.GONE);
         }
@@ -150,9 +164,20 @@ public class InterestPointDetailsActivity extends BaseActivity {
         @Override
         public void apply(Throwable throwable, JSONObject jsonObject) {
             Log.e(LOG_TAG, "fetch Interest PointDetails Error " + throwable.getMessage());
+
             if (jsonObject != null) {
                 Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
+                String err = "";
+                try {
+                    err = jsonObject.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            } else {
+                snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
+
         }
     };
 }

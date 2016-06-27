@@ -1,9 +1,12 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -14,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -44,6 +46,7 @@ public class MainActivity extends BaseActivity {
     private RecyclerView.LayoutManager communitiesLayoutManager;
 
     private ArrayList<Community> communities = new ArrayList<>();
+    private Snackbar snackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +94,18 @@ public class MainActivity extends BaseActivity {
         }
 
         initCommunityList();
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarMain);
     }
+
+    private View.OnClickListener closeSnackBarMain = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            snackbar.dismiss();
+        }
+    };
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -145,7 +159,7 @@ public class MainActivity extends BaseActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
@@ -155,9 +169,15 @@ public class MainActivity extends BaseActivity {
             public void apply(Throwable throwable, JSONObject jsonObject) {
                 if (jsonObject != null) {
                     Log.e(LOG_TAG, "Fetch Communities = " + jsonObject.toString());
+                    String err = "";
+                    try {
+                        err = jsonObject.getString("error");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
                 Log.e(LOG_TAG, "Fetch Communities = " + throwable.getMessage());
-                Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
             }

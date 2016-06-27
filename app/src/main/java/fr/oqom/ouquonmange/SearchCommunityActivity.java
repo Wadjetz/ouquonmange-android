@@ -1,7 +1,10 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -11,6 +14,7 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +32,7 @@ public class SearchCommunityActivity extends BaseActivity {
     private RecyclerView.LayoutManager communitiesLayoutManager;
     private ProgressBar progressBar;
     private SearchView searchView;
+    private Snackbar snackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +64,18 @@ public class SearchCommunityActivity extends BaseActivity {
         initCommunitySearchList();
         checkAuth();
         searchAllCommunities();
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSearchCommunityLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarSearchCommunity);
     }
+
+    private View.OnClickListener closeSnackBarSearchCommunity = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            snackbar.dismiss();
+        }
+    };
 
     private void searchCommunitiesByQuery(String query) {
         api.getCommunitiesByQuery(query,new Callback<JSONArray>() {
@@ -127,7 +143,7 @@ public class SearchCommunityActivity extends BaseActivity {
                     public void apply(JSONObject jsonObject) {
                         if (jsonObject != null) {
                             Log.i(LOG_TAG, "JOIN : " + jsonObject.toString());
-                            Toast.makeText(getApplicationContext(), "JOIN : "+jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                            snackbar.setText(R.string.member_join_community).setActionTextColor(Color.parseColor("#D32F2F")).show();
                             Intent intent = getIntent();
                             finish();
                             startActivity(intent);
@@ -138,7 +154,14 @@ public class SearchCommunityActivity extends BaseActivity {
                     public void apply(Throwable throwable, JSONObject jsonObject) {
                         if (jsonObject != null) {
                             Log.e(LOG_TAG, "JOIN Error : " + jsonObject.toString());
-                            Toast.makeText(getApplicationContext(), "JOIN Error : "+jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                            String err = "";
+                            try {
+                                err = jsonObject.getString("error");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+
                             Intent intent = getIntent();
                             finish();
                             startActivity(intent);
