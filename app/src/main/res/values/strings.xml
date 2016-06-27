@@ -67,4 +67,6 @@
     <string name="error_login">Error in login</string>
     <string name="login_error_validation">Invalid fields</string>
     <string name="login_error_connect">Error ! Try again.</string>
+    <string name="error_Signin">Error in signin</string>
+    <string name="signin_error_validation">Invalid fields</string>
 </resources>

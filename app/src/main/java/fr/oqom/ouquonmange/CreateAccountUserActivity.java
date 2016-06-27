@@ -1,11 +1,16 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -22,13 +27,16 @@ import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
 public class CreateAccountUserActivity extends BaseActivity {
+    private static final String LOG_TAG = "SigninActivity";
+
     private TextInputLayout usernameLayoutSignup, emailLayoutSignup, passwordLayoutSignup, passwordConfirmLayoutSignup;
     private EditText usernameInputSignup, emailInputSignup, passwordInputSignup, passwordCofirmInputSignup;
     private Button signUpButton;
     private String regexPassword = Constants.REGEX_PASSWORD;
     private OuquonmangeApi api;
     private AuthRepository authRepository;
-    
+    private Snackbar snackbar;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,17 +58,28 @@ public class CreateAccountUserActivity extends BaseActivity {
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+                //imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                 signUp();
             }
 
 
         });
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSigninLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarSignin);
+
     }
+
+    private View.OnClickListener closeSnackBarSignin = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            snackbar.dismiss();
+        }
+    };
     private void signUp() {
-        if( !(validateEmail() && validatePassword() && validateUserName())) {
-            Toast.makeText(getApplicationContext(), "Errors", Toast.LENGTH_SHORT).show();
-        }else{
+        if(validateEmail() && validatePassword() && validateUserName()) {
             Toast.makeText(getApplicationContext(), "Pending", Toast.LENGTH_SHORT).show();
             String username = usernameInputSignup.getText().toString().trim().toLowerCase();
             String email = emailInputSignup.getText().toString().trim().toLowerCase();
@@ -79,7 +98,8 @@ public class CreateAccountUserActivity extends BaseActivity {
                         }, new Callback<Throwable>() {
                             @Override
                             public void apply(Throwable error) {
-                                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                                Log.e(LOG_TAG, error.getMessage());
+                                snackbar.setText(R.string.error_Signin);
                             }
                         });
                     } catch (JSONException e) {
@@ -89,10 +109,18 @@ public class CreateAccountUserActivity extends BaseActivity {
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
                 public void apply(Throwable throwable, JSONObject error) {
-                    Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
+                    String err = "";
+                    try {
+                        err = error.getString("error");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
                 }
             });
 
+        }else{
+            snackbar.setText(getText(R.string.signin_error_validation)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
     }
 
