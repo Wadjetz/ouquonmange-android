@@ -78,6 +78,7 @@ public class SearchCommunityActivity extends BaseActivity {
     };
 
     private void searchCommunitiesByQuery(String query) {
+        hiddenVirtualKeyboard();
         api.getCommunitiesByQuery(query,new Callback<JSONArray>() {
             @Override
             public void apply(JSONArray value) {

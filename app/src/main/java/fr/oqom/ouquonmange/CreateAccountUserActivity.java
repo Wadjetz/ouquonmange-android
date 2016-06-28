@@ -60,8 +60,6 @@ public class CreateAccountUserActivity extends BaseActivity {
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-                //imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                 signUp();
             }
 
@@ -89,6 +87,7 @@ public class CreateAccountUserActivity extends BaseActivity {
             String username = usernameInputSignup.getText().toString().trim().toLowerCase();
             String email = emailInputSignup.getText().toString().trim().toLowerCase();
             String password = passwordInputSignup.getText().toString().trim();
+            hiddenVirtualKeyboard();
             api.createAccountUser(username,email ,password , new Callback<JSONObject>() {
                 @Override
                 public void apply(final JSONObject value) {
@@ -98,7 +97,6 @@ public class CreateAccountUserActivity extends BaseActivity {
                             authRepository.save(token, new Callback<Void>() {
                                 @Override
                                 public void apply(Void value) {
-                                    progressBar.setVisibility(View.GONE);
                                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
                                     finish();
                                 }
@@ -132,10 +130,11 @@ public class CreateAccountUserActivity extends BaseActivity {
                     }
                 }
             });
-
+            progressBar.setVisibility(View.GONE);
         }else{
             snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
+
     }
 
     private boolean validateFormCreateAccount(){

@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -129,6 +130,7 @@ public class CreateEventActivity extends AppCompatActivity {
         String description = descriptionInput.getText().toString();
 
         if(validateFormCreateEvent()) {
+            hiddenVirtualKeyboard();
             progressBar.setVisibility(View.VISIBLE);
             api.createEvent(communityUuid, name, description, dateStart, dateEnd, new Callback<JSONObject>() {
                 @Override
@@ -278,5 +280,11 @@ public class CreateEventActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
         super.onBackPressed();
+    }
+
+    protected void hiddenVirtualKeyboard(){
+        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+
     }
 }

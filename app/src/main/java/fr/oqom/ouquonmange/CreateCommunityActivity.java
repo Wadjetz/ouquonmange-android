@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -67,6 +68,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
         String name = titleInput.getText().toString().trim();
         String description = descriptionInput.getText().toString().trim();
         if (validateName(name)) {
+            hiddenVirtualKeyboard();
             api.createCommunity(name, description, new Callback<JSONObject>() {
                 @Override
                 public void apply(JSONObject value) {
@@ -124,4 +126,9 @@ public class CreateCommunityActivity extends AppCompatActivity {
         }
     }
 
+    protected void hiddenVirtualKeyboard(){
+        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+
+    }
 }

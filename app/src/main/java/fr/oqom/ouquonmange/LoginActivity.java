@@ -11,6 +11,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -83,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
     private void submitForm() {
         if (validateEmail() && validatePassword()) {
             progressBar.setVisibility(View.VISIBLE);
-            //Toast.makeText(getApplicationContext(), "Pending", Toast.LENGTH_SHORT).show();
+            hiddenVirtualKeyboard();
             api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
                 @Override
                 public void apply(final JSONObject value) {
@@ -100,6 +101,7 @@ public class LoginActivity extends AppCompatActivity {
                             }, new Callback<Throwable>() {
                                 @Override
                                 public void apply(Throwable error) {
+                                    progressBar.setVisibility(View.GONE);
                                     Log.e(LOG_TAG, error.getMessage());
                                     snackbar.setText(R.string.error_login).setActionTextColor(Color.parseColor("#D32F2F")).show();
                                 }
@@ -172,5 +174,11 @@ public class LoginActivity extends AppCompatActivity {
     private void displayCreateAccountView() {
         Intent intent = new Intent(getApplicationContext(), CreateAccountUserActivity.class);
         startActivity(intent);
+    }
+
+    protected void hiddenVirtualKeyboard(){
+        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+
     }
 }
