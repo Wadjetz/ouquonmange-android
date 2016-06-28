@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONException;
@@ -32,6 +33,7 @@ public class LoginActivity extends AppCompatActivity {
     private OuquonmangeApi api;
     private AuthRepository authRepository;
     private Snackbar snackbar;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +68,9 @@ public class LoginActivity extends AppCompatActivity {
         CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
         snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
+
+        progressBar = (ProgressBar) findViewById(R.id.progressLogin);
+        progressBar.setVisibility(View.GONE);
     }
 
     private View.OnClickListener closeSnackBarLogin = new View.OnClickListener(){
@@ -77,7 +82,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void submitForm() {
         if (validateEmail() && validatePassword()) {
-            Toast.makeText(getApplicationContext(), "Pending", Toast.LENGTH_SHORT).show();
+            progressBar.setVisibility(View.VISIBLE);
+            //Toast.makeText(getApplicationContext(), "Pending", Toast.LENGTH_SHORT).show();
             api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
                 @Override
                 public void apply(final JSONObject value) {
@@ -87,6 +93,7 @@ public class LoginActivity extends AppCompatActivity {
                             authRepository.save(token, new Callback<Void>() {
                                 @Override
                                 public void apply(Void value) {
+                                    progressBar.setVisibility(View.GONE);
                                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
                                     finish();
                                 }

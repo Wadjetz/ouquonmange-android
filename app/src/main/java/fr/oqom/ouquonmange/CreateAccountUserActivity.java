@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -36,6 +37,7 @@ public class CreateAccountUserActivity extends BaseActivity {
     private OuquonmangeApi api;
     private AuthRepository authRepository;
     private Snackbar snackbar;
+    private ProgressBar progressBar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,9 @@ public class CreateAccountUserActivity extends BaseActivity {
         snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarSignin);
 
+        progressBar = (ProgressBar) findViewById(R.id.progressCreateAccountUser);
+        progressBar.setVisibility(View.GONE);
+
     }
 
     private View.OnClickListener closeSnackBarSignin = new View.OnClickListener(){
@@ -80,7 +85,7 @@ public class CreateAccountUserActivity extends BaseActivity {
     };
     private void signUp() {
         if(validateFormCreateAccount()) {
-            Toast.makeText(getApplicationContext(), "Pending", Toast.LENGTH_SHORT).show();
+            progressBar.setVisibility(View.VISIBLE);
             String username = usernameInputSignup.getText().toString().trim().toLowerCase();
             String email = emailInputSignup.getText().toString().trim().toLowerCase();
             String password = passwordInputSignup.getText().toString().trim();
@@ -93,6 +98,7 @@ public class CreateAccountUserActivity extends BaseActivity {
                             authRepository.save(token, new Callback<Void>() {
                                 @Override
                                 public void apply(Void value) {
+                                    progressBar.setVisibility(View.GONE);
                                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
                                     finish();
                                 }

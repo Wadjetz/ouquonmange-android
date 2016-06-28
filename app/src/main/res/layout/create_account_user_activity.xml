@@ -75,11 +75,21 @@
 
 
         </android.support.design.widget.TextInputLayout>
+
+        <ProgressBar
+            android:id="@+id/progressCreateAccountUser"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_centerHorizontal="true" />
+
         <Button
             android:id="@+id/signup_button"
             android:text="@string/signup_action"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+
 
     </LinearLayout>
 

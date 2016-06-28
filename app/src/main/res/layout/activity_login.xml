@@ -46,6 +46,13 @@
 
         </android.support.design.widget.TextInputLayout>
 
+        <ProgressBar
+            android:id="@+id/progressLogin"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_centerHorizontal="true" />
+
         <Button
             android:id="@+id/login_button"
             android:text="@string/login_action"
