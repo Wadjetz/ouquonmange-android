@@ -1,5 +1,6 @@
 package fr.oqom.ouquonmange;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -7,6 +8,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -70,14 +72,31 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
                 break;
             */
             case R.id.nav_logout:
-                Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_SHORT).show();
-                authRepository.deleteToken(new Callback<Void>() {
-                    @Override
-                    public void apply(Void aVoid) {
-                        startActivity(new Intent(getApplicationContext(), LoginActivity.class));
-                        finish();
-                    }
-                });
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(R.string.logout_confirm_message)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.yes_message, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                authRepository.deleteToken(new Callback<Void>() {
+                                    @Override
+                                    public void apply(Void aVoid) {
+                                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                                        finish();
+                                    }
+                                });
+                            }
+                        })
+                        .setNegativeButton(R.string.no_message, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
+
                 break;
         }
 
