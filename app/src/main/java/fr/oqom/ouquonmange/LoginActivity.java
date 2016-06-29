@@ -94,14 +94,12 @@ public class LoginActivity extends AppCompatActivity {
                             authRepository.save(token, new Callback<Void>() {
                                 @Override
                                 public void apply(Void value) {
-                                    progressBar.setVisibility(View.GONE);
                                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
                                     finish();
                                 }
                             }, new Callback<Throwable>() {
                                 @Override
                                 public void apply(Throwable error) {
-                                    progressBar.setVisibility(View.GONE);
                                     Log.e(LOG_TAG, error.getMessage());
                                     snackbar.setText(R.string.error_login).setActionTextColor(Color.parseColor("#D32F2F")).show();
                                 }
@@ -113,6 +111,8 @@ public class LoginActivity extends AppCompatActivity {
                     }else{
                         snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
+
+                    progressBar.setVisibility(View.GONE);
 
                 }
             }, new Callback2<Throwable, JSONObject>() {
@@ -130,6 +130,8 @@ public class LoginActivity extends AppCompatActivity {
                         Log.e(LOG_TAG,throwable.getMessage());
                         snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
+
+                    progressBar.setVisibility(View.GONE);
 
                 }
             });
