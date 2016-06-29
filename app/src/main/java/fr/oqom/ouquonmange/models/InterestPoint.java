@@ -13,7 +13,8 @@ import java.util.List;
 
 public class InterestPoint implements Parcelable {
 
-    public String foursquareId;
+    public String apiId;
+    public String type;
     public String name;
     public String address;
     public String lat;
@@ -24,8 +25,9 @@ public class InterestPoint implements Parcelable {
     public boolean isVote;
     public String imageUrl;
 
-    public InterestPoint(String foursquareId, String name, String address, String lat, String lng, int members, int votes, boolean isJoin, boolean isVote, String imageUrl) {
-        this.foursquareId = foursquareId;
+    public InterestPoint(String apiId, String type, String name, String address, String lat, String lng, int members, int votes, boolean isJoin, boolean isVote, String imageUrl) {
+        this.apiId = apiId;
+        this.type = type;
         this.name = name;
         this.address = address;
         this.lat = lat;
@@ -38,7 +40,8 @@ public class InterestPoint implements Parcelable {
     }
 
     public InterestPoint(Parcel in) {
-        foursquareId = in.readString();
+        apiId = in.readString();
+        type = in.readString();
         name = in.readString();
         address = in.readString();
         lat = in.readString();
@@ -58,7 +61,8 @@ public class InterestPoint implements Parcelable {
 
         for (int i=0; i<total; i++) {
             JSONObject jsonInterestPoint = jsonArray.getJSONObject(i);
-            String foursquareId = jsonInterestPoint.getString("foursquareId");
+            String apiId = jsonInterestPoint.getString("api_id");
+            String type = jsonInterestPoint.getString("type");
             String name = jsonInterestPoint.getString("name");
             String address = jsonInterestPoint.getString("address");
             String lat = jsonInterestPoint.getString("lat");
@@ -67,7 +71,7 @@ public class InterestPoint implements Parcelable {
             int votes = jsonInterestPoint.getInt("votes");
             boolean isJoin = jsonInterestPoint.getBoolean("isJoin");
             boolean isVote = jsonInterestPoint.getBoolean("isVote");
-            interestPoints.add(new InterestPoint(foursquareId, name, address, lat, lng, members, votes, isJoin, isVote, ""));
+            interestPoints.add(new InterestPoint(apiId, type, name, address, lat, lng, members, votes, isJoin, isVote, ""));
         }
 
         return interestPoints;
@@ -90,7 +94,8 @@ public class InterestPoint implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
-        out.writeString(foursquareId);
+        out.writeString(apiId);
+        out.writeString(type);
         out.writeString(name);
         out.writeString(address);
         out.writeString(lat);

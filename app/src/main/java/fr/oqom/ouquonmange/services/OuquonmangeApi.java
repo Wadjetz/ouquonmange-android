@@ -17,6 +17,7 @@ import cz.msebera.android.httpclient.Header;
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 
@@ -169,13 +170,14 @@ public class OuquonmangeApi {
     public void joinGroup(
             String communityUuid,
             String eventUuid,
-            String interestPointId,
+            InterestPoint interestPoint,
             final Callback<JSONObject> success,
             final Callback2<Throwable, JSONObject> failure
     ) {
         RequestParams params = new RequestParams();
         params.add("event_uuid", eventUuid);
-        params.add("interest_point_id", interestPointId);
+        params.add("interest_point_id", interestPoint.apiId);
+        params.add("typ", interestPoint.type);
         client.addHeader("Authorization", "Bearer " + getToken());
         client.post(baseUrl+ "/api/group/" + communityUuid, params, new JsonHttpResponseHandler(){
             @Override
@@ -198,13 +200,13 @@ public class OuquonmangeApi {
     public void quitGroup(
             String communityUuid,
             String eventUuid,
-            String interestPointId,
+            InterestPoint interestPoint,
             final Callback<JSONObject> success,
             final Callback2<Throwable, JSONObject> failure
     ) {
         RequestParams params = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
-        client.delete(baseUrl + "/api/group/" + communityUuid + "/" + eventUuid + "/" + interestPointId, params, new JsonHttpResponseHandler() {
+        client.delete(baseUrl + "/api/group/" + communityUuid + "/" + eventUuid + "/" + interestPoint.apiId, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 success.apply(response);
@@ -292,12 +294,12 @@ public class OuquonmangeApi {
         });
     }
 
-    public void getInterestPointsByLocation(Location location, String eventUuid, String communityUuid, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+    public void getInterestPointsByLocation(Location location, String eventUuid, String communityUuid, final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
         RequestParams requestParams = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
         client.get(baseUrl + "/api/interest/point/" + communityUuid + "/" + eventUuid + "?lat=" + location.getLatitude() + "&lng=" + location.getLongitude(), requestParams,  new JsonHttpResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 success.apply(response);
             }
 
@@ -313,12 +315,12 @@ public class OuquonmangeApi {
         });
     }
 
-    public void getInterestPoints(String eventUuid, String communityUuid ,final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+    public void getInterestPoints(String eventUuid, String communityUuid ,final Callback<JSONArray> success, final Callback2<Throwable, JSONObject> failure) {
         RequestParams requestParams = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
         client.get(baseUrl + "/api/interest/point/" + communityUuid + "/" + eventUuid, requestParams,  new JsonHttpResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 success.apply(response);
             }
 
@@ -401,7 +403,7 @@ public class OuquonmangeApi {
     }
 
     public void getInterestPointDetails(
-            String interestPointId,
+            InterestPoint interestPoint,
             String eventUuid,
             String communityUuid,
             final Callback<JSONObject> success,
@@ -409,7 +411,7 @@ public class OuquonmangeApi {
     ) {
         RequestParams params = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
-        String url = baseUrl + "/api/interest/point/" + communityUuid + "/" + eventUuid + "/" + interestPointId;
+        String url = baseUrl + "/api/interest/point/" + communityUuid + "/" + eventUuid + "/" + interestPoint.apiId + "/" + interestPoint.type;
         client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
@@ -428,10 +430,10 @@ public class OuquonmangeApi {
         });
     }
 
-    public void unvoteGroup(String communityUuid, String eventUuid, String interestPointId, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+    public void unvoteGroup(String communityUuid, String eventUuid, InterestPoint interestPoint, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
         RequestParams params = new RequestParams();
         client.addHeader("Authorization", "Bearer " + getToken());
-        client.delete(baseUrl + "/api/vote/" + communityUuid + "/" + eventUuid + "/" + interestPointId, params, new JsonHttpResponseHandler() {
+        client.delete(baseUrl + "/api/vote/" + communityUuid + "/" + eventUuid + "/" + interestPoint.apiId, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 success.apply(response);
@@ -450,10 +452,11 @@ public class OuquonmangeApi {
 
     }
 
-    public void voteGroup(String communityUuid, String eventUuid, String interestPointId, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
+    public void voteGroup(String communityUuid, String eventUuid, InterestPoint interestPoint, final Callback<JSONObject> success, final Callback2<Throwable, JSONObject> failure) {
         RequestParams params = new RequestParams();
         params.add("event_uuid", eventUuid);
-        params.add("interest_point_id", interestPointId);
+        params.add("interest_point_id", interestPoint.apiId);
+        params.add("typ", interestPoint.type);
         client.addHeader("Authorization", "Bearer " + getToken());
         client.post(baseUrl+ "/api/vote/" + communityUuid, params, new JsonHttpResponseHandler(){
             @Override

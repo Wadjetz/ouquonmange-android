@@ -62,7 +62,7 @@ public class InterestPointDetailsActivity extends BaseActivity {
         checkAuth();
 
         if (savedInstanceState == null) {
-            fetchInterestPointDetails(communityUuid,eventUuid,interestPointId);
+            fetchInterestPointDetails(communityUuid, eventUuid, interestPoint);
         } else {
             this.members = savedInstanceState.getParcelableArrayList(Constants.MEMBERS_LIST);
             progressBar.setVisibility(View.GONE);
@@ -103,8 +103,8 @@ public class InterestPointDetailsActivity extends BaseActivity {
         interestPointAddress = (TextView) findViewById(R.id.interest_point_detail_address);
     }
 
-    private void fetchInterestPointDetails(String communityUuid, String eventUuid, String interestPointId) {
-        api.getInterestPointDetails(interestPointId, eventUuid, communityUuid, apiSuccessCallback,apiErrorCallback );
+    private void fetchInterestPointDetails(String communityUuid, String eventUuid, InterestPoint interestPoint) {
+        api.getInterestPointDetails(interestPoint, eventUuid, communityUuid, apiSuccessCallback,apiErrorCallback );
     }
 
     @Override
@@ -147,7 +147,10 @@ public class InterestPointDetailsActivity extends BaseActivity {
     private Callback2<Throwable, JSONObject> apiErrorCallback = new Callback2<Throwable, JSONObject>() {
         @Override
         public void apply(Throwable throwable, JSONObject jsonObject) {
-            Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
+            Log.e(LOG_TAG, "fetch Interest PointDetails Error " + throwable.getMessage());
+            if (jsonObject != null) {
+                Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
+            }
         }
     };
 }
