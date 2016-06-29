@@ -34,7 +34,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.InterestPointsAdapter;
 import fr.oqom.ouquonmange.models.Constants;
@@ -178,7 +177,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void apply(final InterestPoint interestPoint) {
                 if (interestPoint.isJoin) {
-                    api.quitGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                    api.quitGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
@@ -186,7 +185,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                                     Log.i(LOG_TAG, "Group joined = " + ip.name);
                                     ip.members = (ip.members>0)?(ip.members-1):ip.members;
                                 }
-                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                if (ip.apiId.equals(interestPoint.apiId)) {
                                     ip.isJoin = false;
                                     interestPointsAdapter.notifyDataSetChanged();
 
@@ -195,7 +194,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         }
                     }, errorCallback);
                 } else {
-                    api.joinGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                    api.joinGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
@@ -204,7 +203,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                                     ip.members = (ip.members>0)?ip.members-1:ip.members;
                                 }
 
-                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                if (ip.apiId.equals(interestPoint.apiId)) {
                                     ip.isJoin = true;
                                     Log.i(LOG_TAG, "Group joining = " + ip.name);
                                     ip.members++;
@@ -221,7 +220,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void apply(InterestPoint interestPoint) {
                 Intent intent = new Intent(getApplicationContext(), InterestPointDetailsActivity.class);
-                intent.putExtra(Constants.INTEREST_POINT_ID, interestPoint.foursquareId);
+                intent.putExtra(Constants.INTEREST_POINT_ID, interestPoint.apiId);
                 intent.putExtra(Constants.EVENT_UUID, eventUuid);
                 intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
                 intent.putExtra(Constants.INTEREST_POINT, interestPoint);
@@ -231,11 +230,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void apply(final InterestPoint interestPoint) {
                 if (interestPoint.isVote) {
-                    api.unvoteGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                    api.unvoteGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
-                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                if (ip.apiId.equals(interestPoint.apiId)) {
                                     ip.isVote = false;
                                     Log.i(LOG_TAG, "Group unvoting = " + ip.name);
                                     ip.votes--;
@@ -245,11 +244,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         }
                     }, errorCallback);
                 } else {
-                    api.voteGroup(communityUuid, eventUuid, interestPoint.foursquareId, new Callback<JSONObject>() {
+                    api.voteGroup(communityUuid, eventUuid, interestPoint, new Callback<JSONObject>() {
                         @Override
                         public void apply(JSONObject jsonObject) {
                             for (InterestPoint ip : interestPoints) {
-                                if (ip.foursquareId.equals(interestPoint.foursquareId)) {
+                                if (ip.apiId.equals(interestPoint.apiId)) {
                                     ip.isVote = true;
                                     Log.i(LOG_TAG, "Group voting = " + ip.name);
                                     ip.votes++;
