@@ -61,20 +61,24 @@ public class InterestPoint implements Parcelable {
 
         for (int i=0; i<total; i++) {
             JSONObject jsonInterestPoint = jsonArray.getJSONObject(i);
-            String apiId = jsonInterestPoint.getString("api_id");
-            String type = jsonInterestPoint.getString("type");
-            String name = jsonInterestPoint.getString("name");
-            String address = jsonInterestPoint.getString("address");
-            String lat = jsonInterestPoint.getString("lat");
-            String lng = jsonInterestPoint.getString("lng");
-            int members = jsonInterestPoint.getInt("members");
-            int votes = jsonInterestPoint.getInt("votes");
-            boolean isJoin = jsonInterestPoint.getBoolean("isJoin");
-            boolean isVote = jsonInterestPoint.getBoolean("isVote");
-            interestPoints.add(new InterestPoint(apiId, type, name, address, lat, lng, members, votes, isJoin, isVote, ""));
+            interestPoints.add(fromJson(jsonInterestPoint));
         }
 
         return interestPoints;
+    }
+
+    public static InterestPoint fromJson(JSONObject json) throws JSONException {
+        String apiId = json.getString("api_id");
+        String type = json.getString("type");
+        String name = json.getString("name");
+        String address = json.getString("address");
+        String lat = json.getString("lat");
+        String lng = json.getString("lng");
+        int members = json.getInt("members");
+        int votes = json.getInt("votes");
+        boolean isJoin = json.getBoolean("isJoin");
+        boolean isVote = json.getBoolean("isVote");
+        return new InterestPoint(apiId, type, name, address, lat, lng, members, votes, isJoin, isVote, "");
     }
 
     public static final Parcelable.Creator<InterestPoint> CREATOR = new Parcelable.Creator<InterestPoint>() {

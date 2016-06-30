@@ -30,37 +30,64 @@
         </android.support.design.widget.AppBarLayout>
 
         <LinearLayout
+            android:id="@+id/root_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:orientation="vertical">
 
-            <ProgressBar
-                android:id="@+id/progress"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/map_container"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_gravity="center"/>
+                android:orientation="vertical">
 
-            <fragment
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                class="com.google.android.gms.maps.SupportMapFragment"
-                android:id="@+id/map"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"/>
-
-            <android.support.v4.widget.SwipeRefreshLayout
-                android:id="@+id/swipeRefreshLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/interest_points_list"
-                    android:scrollbars="vertical"
+                <fragment
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    class="com.google.android.gms.maps.SupportMapFragment"
+                    android:id="@+id/map"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="200dp"/>
 
-            </android.support.v4.widget.SwipeRefreshLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/list_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:id="@+id/container_collapse_action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:paddingLeft="30dp"
+                    android:paddingRight="30dp"
+                    style="@style/Widget.AppCompat.Button.Small"
+                    android:drawableStart="@drawable/ic_arrow_drop_down_black"
+                    android:drawableLeft="@drawable/ic_arrow_drop_down_black" />
+
+                <include
+                    android:id="@+id/interest_point_item"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    layout="@layout/interest_point_item" />
+
+                <android.support.v4.widget.SwipeRefreshLayout
+                    android:id="@+id/swipeRefreshLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/interest_points_list"
+                        android:scrollbars="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+
+                </android.support.v4.widget.SwipeRefreshLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
 

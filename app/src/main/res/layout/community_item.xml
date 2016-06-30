@@ -20,8 +20,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp"
-            android:elevation="2dp"
-            >
+            android:elevation="2dp">
 
             <TextView
                 android:id="@+id/community_name"
@@ -49,7 +48,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/default_community"
                     android:layout_centerVertical="true"
-                    android:layout_alignParentEnd="true" />
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true" />
 
             </RelativeLayout>
 
