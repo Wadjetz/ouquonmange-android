@@ -96,7 +96,7 @@
                                 android:id="@+id/interest_point_members_name"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_alignParentLeft="true"
+                                android:gravity="left|center"
                                 android:text="Members "
                                 />
 
@@ -104,7 +104,7 @@
                                 android:id="@+id/interest_point_members_numbers"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_alignParentRight="true"/>
+                                android:gravity="right|center"/>
 
                         </LinearLayout>
                         <LinearLayout
