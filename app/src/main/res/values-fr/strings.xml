@@ -63,4 +63,17 @@
     <string name="error_start_date_in_the_past">Vous ne pouvez pas créer un evenement dans le passé</string>
     <string name="error_end_date_in_the_past">L\'événement ne pas finir dans le passé</string>
     <string name="error_end_date_prior_start">La date de fin doit être superieur à la date du début</string>
+    <string name="no_internet">No internet connection!</string>
+    <string name="event_created">Event Created</string>
+    <string name="error_login">Error in login</string>
+    <string name="login_error_connect">Error ! Try again.</string>
+    <string name="error_Signin">Error in signin</string>
+    <string name="community_created">Community Created</string>
+    <string name="error_invalid_fields">invalid fields</string>
+    <string name="error_exception">Error ! Try again</string>
+    <string name="member_join_community">You joined.</string>
+    <string name="map_not_ready">Map not ready</string>
+    <string name="logout_confirm_message">Are you sure you want to logout?</string>
+    <string name="yes_message">Yes</string>
+    <string name="no_message">No</string>
 </resources>
