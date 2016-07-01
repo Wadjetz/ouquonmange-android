@@ -1,8 +1,11 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -18,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -31,8 +35,8 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
-
     private static final String LOG_TAG = "BaseActivity";
+
     protected OuquonmangeApi api;
     protected AuthRepository authRepository;
 
@@ -186,6 +190,32 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
     }
+
+    public boolean checkConnection(Context context){
+        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
+
+        if (activeNetworkInfo != null) { // connected to the internet
+            Toast.makeText(context, activeNetworkInfo.getTypeName(), Toast.LENGTH_SHORT).show();
+
+            if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI ) {
+                // connected to wifi
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG,"type wifi");
+                    return true;
+                }
+
+            } else if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG, "type data");
+                    return true;
+                }
+            }
+        }
+        return false;
+   }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {

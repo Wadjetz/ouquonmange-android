@@ -72,8 +72,13 @@ public class MainActivity extends BaseActivity {
             finish();
         }
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarMain);
+
         progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -90,8 +95,13 @@ public class MainActivity extends BaseActivity {
 
         if (savedInstanceState == null) {
             checkAuth();
-            fetchCommunities();
-            checkGcm();
+            if(checkConnection(getApplicationContext())) {
+                fetchCommunities();
+                checkGcm();
+            }else {
+                Log.e(LOG_TAG, "NOT INTERNET");
+                refreshSnackBar();
+            }
         } else {
             this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
             progressBar.setVisibility(View.GONE);
@@ -99,10 +109,8 @@ public class MainActivity extends BaseActivity {
 
         initCommunityList();
 
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarMain);
     }
+
 
     private View.OnClickListener closeSnackBarMain = new View.OnClickListener(){
         @Override
@@ -145,51 +153,56 @@ public class MainActivity extends BaseActivity {
     }
 
     private void fetchCommunities() {
-        api.getCommunities(new Callback<JSONArray>() {
-            @Override
-            public void apply(JSONArray value) {
-                if(value != null) {
-                    try {
-                        communities.addAll(Community.fromJson(value));
+        if (checkConnection(getApplicationContext())) {
+            api.getCommunities(new Callback<JSONArray>() {
+                @Override
+                public void apply(JSONArray value) {
+                    if (value != null) {
+                        try {
+                            communities.addAll(Community.fromJson(value));
 
-                        for (Community c : communities) {
-                            String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
-                            if (c.uuid.equals(defaultCommunityUuid)) {
-                                c.isDefault = true;
+                            for (Community c : communities) {
+                                String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                                if (c.uuid.equals(defaultCommunityUuid)) {
+                                    c.isDefault = true;
+                                }
                             }
-                        }
 
-                        communitiesAdapter.notifyDataSetChanged();
-                        Log.i(LOG_TAG, "Fetch Communities = " + communities.size());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                            communitiesAdapter.notifyDataSetChanged();
+                            Log.i(LOG_TAG, "Fetch Communities = " + communities.size());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
+                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        }
+                    } else {
+                        snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                }else{
-                    snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                    progressBar.setVisibility(View.GONE);
+                    swipeRefreshLayout.setRefreshing(false);
                 }
-                progressBar.setVisibility(View.GONE);
-                swipeRefreshLayout.setRefreshing(false);
-            }
-        }, new Callback2<Throwable, JSONObject>() {
-            @Override
-            public void apply(Throwable throwable, JSONObject jsonObject) {
-                if (jsonObject != null) {
-                    Log.e(LOG_TAG, "Fetch Communities = " + jsonObject.toString());
-                    String err = "";
-                    try {
-                        err = jsonObject.getString("error");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+            }, new Callback2<Throwable, JSONObject>() {
+                @Override
+                public void apply(Throwable throwable, JSONObject jsonObject) {
+                    if (jsonObject != null) {
+                        Log.e(LOG_TAG, "Fetch Communities = " + jsonObject.toString());
+                        String err = "";
+                        try {
+                            err = jsonObject.getString("error");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                    snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                    Log.e(LOG_TAG, "Fetch Communities = " + throwable.getMessage());
+                    progressBar.setVisibility(View.GONE);
+                    swipeRefreshLayout.setRefreshing(false);
                 }
-                Log.e(LOG_TAG, "Fetch Communities = " + throwable.getMessage());
-                progressBar.setVisibility(View.GONE);
-                swipeRefreshLayout.setRefreshing(false);
-            }
-        });
+            });
+        }else{
+            //snackbar.setText(R.string.no_internet).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            refreshSnackBar();
+        }
     }
 
     private void initCommunityList() {
@@ -282,5 +295,23 @@ public class MainActivity extends BaseActivity {
 
         Log.d(LOG_TAG, "GCM Token " + gcmToken);
     }
+
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarMain)
+                .show();
+
+    }
+    private View.OnClickListener refreshSnackBarMain = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+        }
+    };
+
 }
 
