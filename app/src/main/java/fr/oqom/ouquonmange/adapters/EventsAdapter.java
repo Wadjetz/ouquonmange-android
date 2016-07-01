@@ -38,8 +38,8 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ListEventV
         Event event = eventsOfCommunities.get(position);
         holder.eventNameTextView.setText(event.name);
         holder.eventDescriptionTextView.setText(event.description);
-        holder.dateStart.setText(Constants.timeFormat.format(new Date(event.date_start)));
-        holder.dateEnd.setText(Constants.timeFormat.format(new Date(event.date_end)));
+        holder.dateStart.setText(Constants.timeFormat.format(event.date_start.toDate()));
+        holder.dateEnd.setText(Constants.timeFormat.format(event.date_start.toDate()));
         holder.event = event;
     }
 

@@ -3,6 +3,7 @@ package fr.oqom.ouquonmange.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,20 +16,20 @@ public class Event implements Parcelable {
     public String uuid;
     public String name;
     public String description;
-    public long date_start;
-    public long date_end;
+    public DateTime date_start;
+    public DateTime date_end;
     public long id_community;
-    public int created;
+    public DateTime created;
 
-    public Event(long id, String uuid, String name, String description, long date_start, long date_end, long id_community, int created ) {
+    public Event(long id, String uuid, String name, String description, long date_start, long date_end, long id_community, long created) {
         this.id = id;
         this.uuid = uuid;
         this.name = name;
         this.description = description;
-        this.date_start = date_start;
-        this.date_end = date_end;
+        this.date_start = new DateTime(date_start);
+        this.date_end = new DateTime(date_end);
         this.id_community = id_community;
-        this.created = created;
+        this.created = new DateTime(created);
     }
 
     protected Event(Parcel in) {
@@ -36,10 +37,10 @@ public class Event implements Parcelable {
         uuid = in.readString();
         name = in.readString();
         description = in.readString();
-        date_start = in.readLong();
-        date_end = in.readLong();
+        date_start = new DateTime(in.readLong());
+        date_end = new DateTime(in.readLong());
         id_community = in.readLong();
-        created = in.readInt();
+        created = new DateTime(in.readLong());
     }
 
     public static final Creator<Event> CREATOR = new Creator<Event>() {
@@ -66,7 +67,7 @@ public class Event implements Parcelable {
             long date_start = jsonEvents.getLong("dateStart");
             long date_end = jsonEvents.getLong("dateEnd");
             int id_community = jsonEvents.getInt("communityId");
-            int created = jsonEvents.getInt("created");
+            long created = jsonEvents.getLong("created");
             eventList.add(new Event(id,uuid,name,description,date_start,date_end,id_community,created));
         }
         return eventList;
@@ -83,9 +84,9 @@ public class Event implements Parcelable {
         dest.writeString(uuid);
         dest.writeString(name);
         dest.writeString(description);
-        dest.writeLong(date_start);
-        dest.writeLong(date_end);
+        dest.writeLong(date_start.getMillis());
+        dest.writeLong(date_end.getMillis());
         dest.writeLong(id_community);
-        dest.writeInt(created);
+        dest.writeLong(created.getMillis());
     }
 }
