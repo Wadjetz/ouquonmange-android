@@ -3,6 +3,8 @@ package fr.oqom.ouquonmange.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.cardinalsolutions.sectioned_adapter.Categorizable;
+
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,7 +13,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Event implements Parcelable {
+public class Event implements Parcelable, Categorizable {
     public long id;
     public String uuid;
     public String name;
@@ -88,5 +90,10 @@ public class Event implements Parcelable {
         dest.writeLong(date_end.getMillis());
         dest.writeLong(id_community);
         dest.writeLong(created.getMillis());
+    }
+
+    @Override
+    public String getCategory() {
+        return date_start.getHourOfDay() + "h";
     }
 }

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import fr.oqom.ouquonmange.adapters.EventsAdapter;
+import fr.oqom.ouquonmange.adapters.EventsSectionedAdapter;
 import fr.oqom.ouquonmange.dialogs.DatePickerDialogs;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
@@ -38,7 +38,7 @@ public class CalendarActivity extends BaseActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
 
     private RecyclerView eventsRecyclerView;
-    private RecyclerView.Adapter eventsAdapter;
+    private EventsSectionedAdapter eventsSectionedAdapter;
     private RecyclerView.LayoutManager eventsLayoutManager;
 
     private ArrayList<Event> events = new ArrayList<>();
@@ -98,11 +98,28 @@ public class CalendarActivity extends BaseActivity {
             finish();
         }
 
-        initEventList();
+        initSectionedEventList();
 
         CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
         snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarCalendar);
+    }
+
+    private void initSectionedEventList() {
+        eventsSectionedAdapter = new EventsSectionedAdapter(events, new Callback<Event>() {
+            @Override
+            public void apply(Event event) {
+                Intent intent = new Intent(getApplicationContext(), InterestPointsActivity.class);
+                intent.putExtra(Constants.EVENT_UUID, event.uuid);
+                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                startActivity(intent);
+            }
+        });
+        eventsRecyclerView = (RecyclerView) findViewById(R.id.events_list);
+        eventsLayoutManager = new LinearLayoutManager(getApplicationContext());
+        eventsRecyclerView.setHasFixedSize(true);
+        eventsRecyclerView.setLayoutManager(eventsLayoutManager);
+        eventsRecyclerView.setAdapter(eventsSectionedAdapter);
     }
 
     private View.OnClickListener closeSnackBarCalendar = new View.OnClickListener(){
@@ -153,31 +170,14 @@ public class CalendarActivity extends BaseActivity {
                 day = Calendar.getInstance();
                 day.set(year, monthOfYear, dayOfMonth);
                 events.clear();
-                eventsAdapter.notifyDataSetChanged();
+                eventsSectionedAdapter.setItemList(events);
+                eventsSectionedAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.VISIBLE);
                 toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.getTime()));
                 fetchEvents(communityUuid, day);
             }
         });
         pickerDialogs.show(getFragmentManager(), "date_picker");
-    }
-
-    private void initEventList() {
-        eventsAdapter = new EventsAdapter(this.events, new Callback<Event>() {
-            @Override
-            public void apply(Event event) {
-                Intent intent = new Intent(getApplicationContext(), InterestPointsActivity.class);
-                intent.putExtra(Constants.EVENT_UUID, event.uuid);
-                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-                startActivity(intent);
-            }
-        });
-
-        eventsRecyclerView = (RecyclerView) findViewById(R.id.events_list);
-        eventsLayoutManager = new LinearLayoutManager(getApplicationContext());
-        eventsRecyclerView.setHasFixedSize(true);
-        eventsRecyclerView.setLayoutManager(eventsLayoutManager);
-        eventsRecyclerView.setAdapter(eventsAdapter);
     }
 
     private void initFloatingButton() {
@@ -219,7 +219,8 @@ public class CalendarActivity extends BaseActivity {
                         Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.getTime().toString() + " = " + events.size());
                         progressBar.setVisibility(View.GONE);
                         swipeRefreshLayout.setRefreshing(false);
-                        eventsAdapter.notifyDataSetChanged();
+                        eventsSectionedAdapter.setItemList(events);
+                        eventsSectionedAdapter.notifyDataSetChanged();
                     }
                 }, new Action1<Throwable>() {
                     @Override

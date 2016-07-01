@@ -7,7 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.Date;
+import com.cardinalsolutions.sectioned_adapter.SectionedAdapter;
+
 import java.util.List;
 
 import fr.oqom.ouquonmange.R;
@@ -15,49 +16,43 @@ import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.utils.Callback;
 
-public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ListEventViewHolder> {
+public class EventsSectionedAdapter extends SectionedAdapter<Event> {
 
-    private List<Event> eventsOfCommunities;
-    private final Callback<Event> callback;
+    private Callback<Event> callback;
 
-    public EventsAdapter(List<Event> eventsOfCommunities, final Callback<Event> callback) {
-        this.eventsOfCommunities = eventsOfCommunities;
+    public EventsSectionedAdapter(List<Event> events, Callback<Event> callback) {
+        this.setItemList(events);
+        this.setCustomHeaderLayout(R.layout.recycler_header_events);
         this.callback = callback;
     }
 
     @Override
-    public ListEventViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.event_item, parent, false);
-        ListEventViewHolder vh = new ListEventViewHolder(v);
-        return vh;
+    public void onBindItemViewHolder(RecyclerView.ViewHolder holder, Event event, int viewType) {
+        EventsViewHolder h = (EventsViewHolder) holder;
+        h.eventNameTextView.setText(event.name);
+        h.eventNameTextView.setText(event.name);
+        h.eventDescriptionTextView.setText(event.description);
+        h.dateStart.setText(Constants.timeFormat.format(event.date_start.toDate()));
+        h.dateEnd.setText(Constants.timeFormat.format(event.date_start.toDate()));
+        h.event = event;
+
     }
 
     @Override
-    public void onBindViewHolder(ListEventViewHolder holder, int position) {
-        Event event = eventsOfCommunities.get(position);
-        holder.eventNameTextView.setText(event.name);
-        holder.eventDescriptionTextView.setText(event.description);
-        holder.dateStart.setText(Constants.timeFormat.format(event.date_start.toDate()));
-        holder.dateEnd.setText(Constants.timeFormat.format(event.date_start.toDate()));
-        holder.event = event;
+    public RecyclerView.ViewHolder onCreateItemViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.event_item, parent, false);
+        return new EventsViewHolder(view);
     }
 
-    @Override
-    public int getItemCount() {
-        return eventsOfCommunities.size();
-    }
-
-    public class ListEventViewHolder extends RecyclerView.ViewHolder {
+    public class EventsViewHolder extends RecyclerView.ViewHolder {
         public CardView eventCardView;
         public TextView eventNameTextView;
         public TextView eventDescriptionTextView;
         public TextView dateStart;
         public TextView dateEnd;
-
         public Event event;
 
-        public ListEventViewHolder(View v) {
+        public EventsViewHolder(View v) {
             super(v);
             eventCardView = (CardView) v.findViewById(R.id.event_cardView);
             eventNameTextView = (TextView) v.findViewById(R.id.event_name);
@@ -71,7 +66,6 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ListEventV
                     callback.apply(event);
                 }
             });
-
         }
     }
 }

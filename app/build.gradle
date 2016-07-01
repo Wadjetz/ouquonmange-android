@@ -65,6 +65,7 @@ dependencies {
     compile 'io.reactivex:rxandroid:1.2.1'
     compile 'io.reactivex:rxjava:1.1.6'
     compile 'net.danlew:android.joda:2.9.3.1'
+    compile 'com.cardinalsolutions:android-sectioned-adapter:1.0.0'
 }
 
 apply plugin: 'com.google.gms.google-services'
