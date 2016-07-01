@@ -10,11 +10,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,15 +55,6 @@ public class CreateAccountUserActivity extends BaseActivity {
         api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
 
-        signUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                signUp();
-            }
-
-
-        });
-
         CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSigninLayout);
         snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarSignin);
@@ -73,6 +62,12 @@ public class CreateAccountUserActivity extends BaseActivity {
         progressBar = (ProgressBar) findViewById(R.id.progressCreateAccountUser);
         progressBar.setVisibility(View.GONE);
 
+        signUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                signUp();
+            }
+        });
     }
 
     private View.OnClickListener closeSnackBarSignin = new View.OnClickListener(){
@@ -88,48 +83,52 @@ public class CreateAccountUserActivity extends BaseActivity {
             String email = emailInputSignup.getText().toString().trim().toLowerCase();
             String password = passwordInputSignup.getText().toString().trim();
             hiddenVirtualKeyboard();
-            api.createAccountUser(username,email ,password , new Callback<JSONObject>() {
-                @Override
-                public void apply(final JSONObject value) {
-                    if(value != null) {
-                        try {
-                            String token = value.getString("token");
-                            authRepository.save(token, new Callback<Void>() {
-                                @Override
-                                public void apply(Void value) {
-                                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                                    finish();
-                                }
-                            }, new Callback<Throwable>() {
-                                @Override
-                                public void apply(Throwable error) {
-                                    Log.e(LOG_TAG, error.getMessage());
-                                    snackbar.setText(R.string.error_Signin);
-                                }
-                            });
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+            if(checkConnection(getApplicationContext())) {
+                api.createAccountUser(username, email, password, new Callback<JSONObject>() {
+                    @Override
+                    public void apply(final JSONObject value) {
+                        if (value != null) {
+                            try {
+                                String token = value.getString("token");
+                                authRepository.save(token, new Callback<Void>() {
+                                    @Override
+                                    public void apply(Void value) {
+                                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                        finish();
+                                    }
+                                }, new Callback<Throwable>() {
+                                    @Override
+                                    public void apply(Throwable error) {
+                                        Log.e(LOG_TAG, error.getMessage());
+                                        snackbar.setText(R.string.error_Signin);
+                                    }
+                                });
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
-                    }else{
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                }
-            }, new Callback2<Throwable, JSONObject>() {
-                @Override
-                public void apply(Throwable throwable, JSONObject error) {
-                    String err = "";
-                    if(error != null) {
-                        try {
-                            err = error.getString("error");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                }, new Callback2<Throwable, JSONObject>() {
+                    @Override
+                    public void apply(Throwable throwable, JSONObject error) {
+                        String err = "";
+                        if (error != null) {
+                            try {
+                                err = error.getString("error");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        } else {
+                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
-                        snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    }else{
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                }
-            });
+                });
+            }else{
+                refreshSnackBar();
+            }
             progressBar.setVisibility(View.GONE);
         }else{
             snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
@@ -216,5 +215,20 @@ public class CreateAccountUserActivity extends BaseActivity {
     private boolean isValidPassword(String password) {
         return Pattern.compile(regexPassword).matcher(password).matches();
     }
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarSignIn)
+                .show();
 
+    }
+    private View.OnClickListener refreshSnackBarSignIn = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+        }
+    };
 }

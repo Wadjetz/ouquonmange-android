@@ -290,6 +290,10 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         //progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close),closeSnackBarInterestPoints);
+
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -326,9 +330,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
         initInterestPointList();
 
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close),closeSnackBarInterestPoints);
     }
 
     private View.OnClickListener closeSnackBarInterestPoints = new View.OnClickListener(){
@@ -447,28 +448,33 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
     };
 
+
     private void initInterestPointList() {
         interestPointsAdapter = new InterestPointsAdapter(getApplicationContext(), interestPoints, new Callback<InterestPoint>() {
             @Override
             public void apply(final InterestPoint interestPoint) {
-                if (interestPoint.isJoin) {
-                    api.quitGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject jsonObject) {
-                                    updateListAfterQuitGroup(interestPoint);
-                                }
-                            }, errorCallback);
-                } else {
-                    api.joinGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject response) {
-                                    updateListAfterJoinGroup(interestPoint);
-                                }
-                            }, errorCallback);
+                if(checkConnection(getApplicationContext())) {
+                    if (interestPoint.isJoin) {
+                        api.quitGroup(communityUuid, eventUuid, interestPoint)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<JSONObject>() {
+                                    @Override
+                                    public void call(JSONObject jsonObject) {
+                                        updateListAfterQuitGroup(interestPoint);
+                                    }
+                                }, errorCallback);
+                    } else {
+                        api.joinGroup(communityUuid, eventUuid, interestPoint)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<JSONObject>() {
+                                    @Override
+                                    public void call(JSONObject response) {
+                                        updateListAfterJoinGroup(interestPoint);
+                                    }
+                                }, errorCallback);
+                    }
+                }else{
+                    refreshSnackBar();
                 }
             }
         }, new Callback<InterestPoint>() {
@@ -479,24 +485,28 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }, new Callback<InterestPoint>() {
             @Override
             public void apply(final InterestPoint interestPoint) {
-                if (interestPoint.isVote) {
-                    api.unvoteGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject jsonObject) {
-                                    updateListAfterUnvote(interestPoint);
-                                }
-                            }, errorCallback);
-                } else {
-                    api.voteGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject jsonObject) {
-                                    updateListAfterVote(interestPoint);
-                                }
-                            }, errorCallback);
+                if(checkConnection(getApplicationContext())) {
+                    if (interestPoint.isVote) {
+                        api.unvoteGroup(communityUuid, eventUuid, interestPoint)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<JSONObject>() {
+                                    @Override
+                                    public void call(JSONObject jsonObject) {
+                                        updateListAfterUnvote(interestPoint);
+                                    }
+                                }, errorCallback);
+                    } else {
+                        api.voteGroup(communityUuid, eventUuid, interestPoint)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<JSONObject>() {
+                                    @Override
+                                    public void call(JSONObject jsonObject) {
+                                        updateListAfterVote(interestPoint);
+                                    }
+                                }, errorCallback);
+                    }
+                }else{
+                    refreshSnackBar();
                 }
             }
         });
@@ -531,15 +541,23 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     };
 
     private void fetchInterestPoints() {
-        api.getInterestPoints(eventUuid, communityUuid)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(apiSuccessCallback, apiErrorCallback);
+        if(checkConnection(getApplicationContext())) {
+            api.getInterestPoints(eventUuid, communityUuid)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(apiSuccessCallback, apiErrorCallback);
+        }else{
+            refreshSnackBar();
+        }
     }
 
     private void fetchInterestPoints(Location location) {
-        api.getInterestPointsByLocation(location, eventUuid, communityUuid)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(apiSuccessCallback, apiErrorCallback);
+        if(checkConnection(getApplicationContext())) {
+            api.getInterestPointsByLocation(location, eventUuid, communityUuid)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(apiSuccessCallback, apiErrorCallback);
+        }else{
+            refreshSnackBar();
+        }
     }
 
     @Override
@@ -634,19 +652,38 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         super.onStop();
     }
 
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarInterestPoints)
+                .show();
+
+    }
+    private View.OnClickListener refreshSnackBarInterestPoints = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            intent.putExtra(Constants.EVENT_UUID,eventUuid);
+            intent.putExtra(Constants.COMMUNITY_UUID,communityUuid);
+            finish();
+            startActivity(intent);
+        }
+    };
+
     private void showMarkers() {
         if (map != null) {
             boolean setCamera = false;
             for (InterestPoint interestPoint : interestPoints) {
-                    LatLng position = new LatLng(Double.valueOf(interestPoint.lat), Double.valueOf(interestPoint.lng));
-                    if (!setCamera) {
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 13));
-                        setCamera = true;
-                        showInterestPointItem(interestPoint);
-                    }
-                    map.addMarker(new MarkerOptions()
-                            .position(position)
-                            .title(interestPoint.name));
+                LatLng position = new LatLng(Double.valueOf(interestPoint.lat), Double.valueOf(interestPoint.lng));
+                if (!setCamera) {
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 13));
+                    setCamera = true;
+                    showInterestPointItem(interestPoint);
+                }
+                map.addMarker(new MarkerOptions()
+                        .position(position)
+                        .title(interestPoint.name));
             }
         } else {
             snackbar.setText(R.string.map_not_ready).setActionTextColor(Color.parseColor("#D32F2F")).show();

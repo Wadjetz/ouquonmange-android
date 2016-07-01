@@ -1,7 +1,10 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -51,6 +54,10 @@ public class LoginActivity extends AppCompatActivity {
         api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
+
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,10 +72,6 @@ public class LoginActivity extends AppCompatActivity {
 
 
         });
-
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
 
         progressBar = (ProgressBar) findViewById(R.id.progressLogin);
         progressBar.setVisibility(View.GONE);
@@ -85,56 +88,60 @@ public class LoginActivity extends AppCompatActivity {
         if (validateEmail() && validatePassword()) {
             progressBar.setVisibility(View.VISIBLE);
             hiddenVirtualKeyboard();
-            api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
-                @Override
-                public void apply(final JSONObject value) {
-                    if(value != null){
-                        try {
-                            String token = value.getString("token");
-                            authRepository.save(token, new Callback<Void>() {
-                                @Override
-                                public void apply(Void value) {
-                                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                                    finish();
-                                }
-                            }, new Callback<Throwable>() {
-                                @Override
-                                public void apply(Throwable error) {
-                                    Log.e(LOG_TAG, error.getMessage());
-                                    snackbar.setText(R.string.error_login).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                                }
-                            });
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+            if(checkConnection(getApplicationContext())) {
+                api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
+                    @Override
+                    public void apply(final JSONObject value) {
+                        if (value != null) {
+                            try {
+                                String token = value.getString("token");
+                                authRepository.save(token, new Callback<Void>() {
+                                    @Override
+                                    public void apply(Void value) {
+                                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                        finish();
+                                    }
+                                }, new Callback<Throwable>() {
+                                    @Override
+                                    public void apply(Throwable error) {
+                                        Log.e(LOG_TAG, error.getMessage());
+                                        snackbar.setText(R.string.error_login).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                    }
+                                });
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        } else {
+                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
 
-                    }else{
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        progressBar.setVisibility(View.GONE);
+
                     }
-
-                    progressBar.setVisibility(View.GONE);
-
-                }
-            }, new Callback2<Throwable, JSONObject>() {
-                @Override
-                public void apply(Throwable throwable, JSONObject error) {
-                    if(error != null){
-                        String err = "";
-                        try {
-                            err = error.getString("error");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                }, new Callback2<Throwable, JSONObject>() {
+                    @Override
+                    public void apply(Throwable throwable, JSONObject error) {
+                        if (error != null) {
+                            String err = "";
+                            try {
+                                err = error.getString("error");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        } else {
+                            Log.e(LOG_TAG, throwable.getMessage());
+                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
-                        snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    }else{
-                        Log.e(LOG_TAG,throwable.getMessage());
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+
+                        progressBar.setVisibility(View.GONE);
+
                     }
-
-                    progressBar.setVisibility(View.GONE);
-
-                }
-            });
+                });
+            }else{
+                refreshSnackBar();
+            }
         }else{
             snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
@@ -183,4 +190,49 @@ public class LoginActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
     }
+
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarLogin)
+                .show();
+
+    }
+    private View.OnClickListener refreshSnackBarLogin = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+        }
+    };
+    private boolean checkConnection(Context context) {
+        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
+
+        if (activeNetworkInfo != null) { // connected to the internet
+            Toast.makeText(context, activeNetworkInfo.getTypeName(), Toast.LENGTH_SHORT).show();
+
+            if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI ) {
+                // connected to wifi
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG,"type wifi");
+                    return true;
+                }
+
+            } else if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG, "type data");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+
 }

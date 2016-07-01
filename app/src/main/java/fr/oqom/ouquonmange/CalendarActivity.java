@@ -59,6 +59,10 @@ public class CalendarActivity extends BaseActivity {
         progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarCalendar);
+
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -99,10 +103,6 @@ public class CalendarActivity extends BaseActivity {
         }
 
         initSectionedEventList();
-
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarCalendar);
     }
 
     private void initSectionedEventList() {
@@ -209,27 +209,52 @@ public class CalendarActivity extends BaseActivity {
     }
 
     private void fetchEvents(final String communityUuid, final Calendar calendar) {
-        api.getEvents(communityUuid, calendar)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<Event>>() {
-                    @Override
-                    public void call(List<Event> eventsList) {
-                        events.clear();
-                        events.addAll(eventsList);
-                        Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.getTime().toString() + " = " + events.size());
-                        progressBar.setVisibility(View.GONE);
-                        swipeRefreshLayout.setRefreshing(false);
-                        eventsSectionedAdapter.setItemList(events);
-                        eventsSectionedAdapter.notifyDataSetChanged();
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
-                        showApiError(throwableWithJson);
-                        progressBar.setVisibility(View.GONE);
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                });
+
+        Log.d(LOG_TAG, "fetchEvents communityUuid=" + communityUuid + " calendar" + calendar);
+        if(checkConnection(getApplicationContext())) {
+
+            api.getEvents(communityUuid, calendar)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<List<Event>>() {
+                        @Override
+                        public void call(List<Event> eventsList) {
+                            events.clear();
+                            events.addAll(eventsList);
+                            Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.getTime().toString() + " = " + events.size());
+                            progressBar.setVisibility(View.GONE);
+                            swipeRefreshLayout.setRefreshing(false);
+                            eventsSectionedAdapter.setItemList(events);
+                            eventsSectionedAdapter.notifyDataSetChanged();
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
+                            showApiError(throwableWithJson);
+                            progressBar.setVisibility(View.GONE);
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+        }else {
+            refreshSnackBar();
+        }
+
     }
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarCalendar)
+                .show();
+
+    }
+    private View.OnClickListener refreshSnackBarCalendar = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+            finish();
+            startActivity(intent);
+        }
+    };
 }

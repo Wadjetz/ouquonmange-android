@@ -1,18 +1,23 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.joda.time.DateTime;
 import org.json.JSONException;
@@ -76,6 +81,11 @@ public class CreateEventActivity extends AppCompatActivity {
         this.dayStartInput.setText(TimeUtils.printDate(day, getApplicationContext()));
         this.dayEndInput.setText(TimeUtils.printDate(day, getApplicationContext()));
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
+
+
         progressBar = (ProgressBar) findViewById(R.id.progress);
         api = new OuquonmangeApi(getApplicationContext());
         progressBar.setVisibility(View.GONE);
@@ -109,11 +119,6 @@ public class CreateEventActivity extends AppCompatActivity {
                 dateTimePickerDialog.show(getFragmentManager(), "date_time_end_picker");
             }
         });
-
-        snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
-
-        snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
-
     }
 
     private void initLayoutWidgets() {
@@ -158,25 +163,31 @@ public class CreateEventActivity extends AppCompatActivity {
         if(validateFormCreateEvent()) {
             hiddenVirtualKeyboard();
             progressBar.setVisibility(View.VISIBLE);
-            api.createEvent(communityUuid, name, description, dateStart, dateEnd)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<Event>() {
-                        @Override
-                        public void call(Event event) {
-                            Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
-                            intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-                            intent.putExtra(Constants.EVENT_DATE, day.getMillis());
-                            startActivity(intent);
-                            finish();
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
-                            showApiError(throwableWithJson);
-                            progressBar.setVisibility(View.GONE);
-                        }
-                    });
+            if(checkConnection(getApplicationContext())) {
+
+                api.createEvent(communityUuid, name, description, dateStart, dateEnd)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Event>() {
+                            @Override
+                            public void call(Event event) {
+                                Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
+                                intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+                                intent.putExtra(Constants.EVENT_DATE, day.getMillis());
+                                startActivity(intent);
+                                finish();
+                            }
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
+                                showApiError(throwableWithJson);
+                                progressBar.setVisibility(View.GONE);
+                            }
+                        });
+            }else{
+                refreshSnackBar();
+            }
+
         } else {
             snackbar.setText(getText(R.string.create_event_error_validation)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
@@ -303,5 +314,50 @@ public class CreateEventActivity extends AppCompatActivity {
         } else {
             snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
+    }
+
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarCreateEvent)
+                .show();
+
+    }
+    private View.OnClickListener refreshSnackBarCreateEvent = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            intent.putExtra(Constants.EVENT_DATE, day.getMillis());
+            intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+            finish();
+            startActivity(intent);
+        }
+    };
+
+    private boolean checkConnection(Context context) {
+        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
+
+        if (activeNetworkInfo != null) { // connected to the internet
+            Toast.makeText(context, activeNetworkInfo.getTypeName(), Toast.LENGTH_SHORT).show();
+
+            if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI ) {
+                // connected to wifi
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG,"type wifi");
+                    return true;
+                }
+
+            } else if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG, "type data");
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

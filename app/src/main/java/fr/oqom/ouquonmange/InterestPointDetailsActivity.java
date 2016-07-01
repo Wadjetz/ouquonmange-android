@@ -10,10 +10,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -60,6 +58,10 @@ public class InterestPointDetailsActivity extends BaseActivity {
         interestPointId = intent.getStringExtra(Constants.INTEREST_POINT_ID);
         interestPoint = intent.getParcelableExtra(Constants.INTEREST_POINT);
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsDetailsLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
+
         initView();
         initNav();
         initText();
@@ -98,10 +100,6 @@ public class InterestPointDetailsActivity extends BaseActivity {
         membersRecyclerView.setLayoutManager(membersLayoutManager);
         membersRecyclerView.setAdapter(membersAdapter);
 
-
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsDetailsLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
     }
 
     private View.OnClickListener closeSnackBarLogin = new View.OnClickListener(){
@@ -118,7 +116,11 @@ public class InterestPointDetailsActivity extends BaseActivity {
     }
 
     private void fetchInterestPointDetails(String communityUuid, String eventUuid, InterestPoint interestPoint) {
-        api.getInterestPointDetails(interestPoint, eventUuid, communityUuid, apiSuccessCallback,apiErrorCallback );
+        if(checkConnection(getApplicationContext())) {
+            api.getInterestPointDetails(interestPoint, eventUuid, communityUuid, apiSuccessCallback, apiErrorCallback);
+        }else{
+            refreshSnackBar();
+        }
     }
 
     @Override
@@ -179,6 +181,26 @@ public class InterestPointDetailsActivity extends BaseActivity {
             }else{
                 snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
+        }
+    };
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarInterestPointsDetails)
+                .show();
+
+    }
+    private View.OnClickListener refreshSnackBarInterestPointsDetails = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            intent.putExtra(Constants.EVENT_UUID,eventUuid);
+            intent.putExtra(Constants.COMMUNITY_UUID,communityUuid);
+            intent.putExtra(Constants.INTEREST_POINT_ID,interestPointId);
+            intent.putExtra(Constants.INTEREST_POINT,interestPoint);
+            finish();
+            startActivity(intent);
         }
     };
 }

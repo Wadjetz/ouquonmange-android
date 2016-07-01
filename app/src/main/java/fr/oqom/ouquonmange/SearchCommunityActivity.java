@@ -11,11 +11,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +40,11 @@ public class SearchCommunityActivity extends BaseActivity {
         setContentView(R.layout.activity_search_community);
         progressBar = (ProgressBar) findViewById(R.id.progress_community);
         searchView = (SearchView) findViewById(R.id.community_searched_view);
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSearchCommunityLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarSearchCommunity);
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -64,10 +69,6 @@ public class SearchCommunityActivity extends BaseActivity {
         initCommunitySearchList();
         checkAuth();
         searchAllCommunities();
-
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSearchCommunityLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarSearchCommunity);
     }
 
     private View.OnClickListener closeSnackBarSearchCommunity = new View.OnClickListener(){

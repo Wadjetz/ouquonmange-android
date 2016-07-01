@@ -1,7 +1,10 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -46,6 +49,10 @@ public class CreateCommunityActivity extends AppCompatActivity {
         saveAction = (Button) findViewById(R.id.action_create_community);
 
         api = new OuquonmangeApi(getApplicationContext());
+        
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCreateCommunityLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close),closeSnackBarCreateCommunity);
 
         saveAction.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,9 +61,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
             }
         });
 
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCreateCommunityLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close),closeSnackBarCreateCommunity);
+
     }
     private View.OnClickListener closeSnackBarCreateCommunity = new View.OnClickListener(){
         @Override
@@ -69,38 +74,68 @@ public class CreateCommunityActivity extends AppCompatActivity {
         String description = descriptionInput.getText().toString().trim();
         if (validateName(name)) {
             hiddenVirtualKeyboard();
-            api.createCommunity(name, description, new Callback<JSONObject>() {
-                @Override
-                public void apply(JSONObject value) {
-                    if(value != null) {
-                        Log.i(LOG_TAG, value.toString());
-                        snackbar.setText(R.string.community_created).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                        finish();
-                    }else{
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    }
-                }
-            }, new Callback2<Throwable, JSONObject>() {
-                @Override
-                public void apply(Throwable throwable, JSONObject error) {
-                    String err = "";
-                    if(error != null) {
-                        try {
-                            err = error.getString("error");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+            if(checkConnection(getApplicationContext())) {
+                api.createCommunity(name, description, new Callback<JSONObject>() {
+                    @Override
+                    public void apply(JSONObject value) {
+                        if (value != null) {
+                            Log.i(LOG_TAG, value.toString());
+                            snackbar.setText(R.string.community_created).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            finish();
+                        } else {
+                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
-                        snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    }else{
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                }
-            });
+                }, new Callback2<Throwable, JSONObject>() {
+                    @Override
+                    public void apply(Throwable throwable, JSONObject error) {
+                        String err = "";
+                        if (error != null) {
+                            try {
+                                err = error.getString("error");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        } else {
+                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                        }
+                    }
+                });
+            }else{
+                refreshSnackBar();
+            }
         }else{
             snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
 
+    }
+
+    private boolean checkConnection(Context context) {
+        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
+
+        if (activeNetworkInfo != null) { // connected to the internet
+            Toast.makeText(context, activeNetworkInfo.getTypeName(), Toast.LENGTH_SHORT).show();
+
+            if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI ) {
+                // connected to wifi
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG,"type wifi");
+                    return true;
+                }
+
+            } else if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                // connected to the mobile provider's data plan
+                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
+                    Log.i(LOG_TAG, "type data");
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean validateName(String name) {
@@ -131,4 +166,21 @@ public class CreateCommunityActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
     }
+
+    public void refreshSnackBar(){
+        snackbar.setText(R.string.no_internet)
+                .setActionTextColor(Color.parseColor("#D32F2F"))
+                .setDuration(Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.refresh, refreshSnackBarCreateCom)
+                .show();
+
+    }
+    private View.OnClickListener refreshSnackBarCreateCom = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+        }
+    };
 }

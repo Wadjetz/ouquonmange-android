@@ -62,6 +62,10 @@ public class MainActivity extends BaseActivity {
 
 
 
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarMain);
+
         if (defaultCommunityUuid != null && !defaultCommunityUuid.isEmpty() && !Constants.FROM_MENU.equals(fromMenu)) {
             if (Config.isNotificationEnabled(getApplicationContext())) {
                 FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + defaultCommunityUuid);
@@ -71,10 +75,6 @@ public class MainActivity extends BaseActivity {
             startActivity(i);
             finish();
         }
-
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarMain);
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
@@ -200,7 +200,6 @@ public class MainActivity extends BaseActivity {
                 }
             });
         }else{
-            //snackbar.setText(R.string.no_internet).setActionTextColor(Color.parseColor("#D32F2F")).show();
             refreshSnackBar();
         }
     }
@@ -275,22 +274,26 @@ public class MainActivity extends BaseActivity {
     private void checkGcm() {
         String gcmToken = FirebaseInstanceId.getInstance().getToken();
         if (gcmToken != null) {
-            api.addGcmToken(gcmToken, new Callback<JSONObject>() {
-                @Override
-                public void apply(JSONObject jsonObject) {
-                    if (jsonObject != null) {
-                        Log.e(LOG_TAG, jsonObject.toString());
+            if(checkConnection(getApplicationContext())) {
+                api.addGcmToken(gcmToken, new Callback<JSONObject>() {
+                    @Override
+                    public void apply(JSONObject jsonObject) {
+                        if (jsonObject != null) {
+                            Log.e(LOG_TAG, jsonObject.toString());
+                        }
                     }
-                }
-            }, new Callback2<Throwable, JSONObject>() {
-                @Override
-                public void apply(Throwable throwable, JSONObject jsonObject) {
-                    if (jsonObject != null) {
-                        Log.e(LOG_TAG, jsonObject.toString());
+                }, new Callback2<Throwable, JSONObject>() {
+                    @Override
+                    public void apply(Throwable throwable, JSONObject jsonObject) {
+                        if (jsonObject != null) {
+                            Log.e(LOG_TAG, jsonObject.toString());
+                        }
+                        Log.e(LOG_TAG, throwable.getMessage());
                     }
-                    Log.e(LOG_TAG, throwable.getMessage());
-                }
-            });
+                });
+            }else{
+              refreshSnackBar();
+            }
         }
 
         Log.d(LOG_TAG, "GCM Token " + gcmToken);
@@ -308,6 +311,7 @@ public class MainActivity extends BaseActivity {
         @Override
         public void onClick(View v) {
             Intent intent = getIntent();
+            intent.putExtra(Constants.FROM_MENU, Constants.FROM_MENU);
             finish();
             startActivity(intent);
         }
