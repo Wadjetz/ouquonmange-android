@@ -33,7 +33,7 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
         h.eventNameTextView.setText(event.name);
         h.eventDescriptionTextView.setText(event.description);
         h.dateStart.setText(Constants.timeFormat.format(event.date_start.toDate()));
-        h.dateEnd.setText(Constants.timeFormat.format(event.date_start.toDate()));
+        h.dateEnd.setText(Constants.timeFormat.format(event.date_end.toDate()));
         h.event = event;
 
     }
