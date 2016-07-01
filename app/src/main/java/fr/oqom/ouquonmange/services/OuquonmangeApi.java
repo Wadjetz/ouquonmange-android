@@ -13,7 +13,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
@@ -22,6 +21,7 @@ import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.models.InterestPoint;
+import fr.oqom.ouquonmange.models.Profile;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.TimeUtils;
@@ -235,33 +235,6 @@ public class OuquonmangeApi {
                         subscriber.onError(new ThrowableWithJson(throwable, null));
                     }
                 });
-            }
-        });
-    }
-
-    public void getEventsByUUID(
-            String communityUuid,
-            Calendar calendar,
-            final Callback<JSONArray> success,
-            final Callback2<Throwable, JSONObject> failure
-    ) {
-        RequestParams params = new RequestParams();
-        client.addHeader("Authorization", "Bearer " + getToken());
-        String url = baseUrl+"/api/event/" + communityUuid + "/" + calendar.getTime().getTime();
-        client.get(url, params, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                success.apply(response);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                failure.apply(throwable, errorResponse);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
-                failure.apply(throwable, null);
             }
         });
     }
@@ -553,6 +526,38 @@ public class OuquonmangeApi {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
                         subscriber.onError(new ThrowableWithJson(throwable, null));
+                    }
+                });
+            }
+        });
+    }
+
+    public Observable<Profile> getProfile() {
+        return Observable.create(new Observable.OnSubscribe<Profile>() {
+            @Override
+            public void call(final Subscriber<? super Profile> subscriber) {
+                RequestParams requestParams = new RequestParams();
+                client.addHeader("Authorization", "Bearer " + getToken());
+                String url = baseUrl + "/api/user";
+                client.get(url, requestParams, new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        try {
+                            subscriber.onNext(Profile.fromJson(response));
+                            subscriber.onCompleted();
+                        } catch (JSONException e) {
+                            subscriber.onError(e);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                        subscriber.onError(throwable);
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                        subscriber.onError(throwable);
                     }
                 });
             }

@@ -11,26 +11,36 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Calendar;
 
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.Profile;
 import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String LOG_TAG = "BaseActivity";
     protected OuquonmangeApi api;
     protected AuthRepository authRepository;
 
     protected NavigationView navigationView;
     protected DrawerLayout drawer;
     protected Toolbar toolbar;
+    protected View navigationViewHeader;
+    protected TextView navigationViewHeaderUserName;
+    protected TextView navigationViewHeaderEmail;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -121,6 +131,31 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(this);
+
+        navigationViewHeader = navigationView.inflateHeaderView(R.layout.nav_header_main);
+        navigationViewHeaderUserName = (TextView) navigationViewHeader.findViewById(R.id.profile_name);
+        navigationViewHeaderUserName.setText(getText(R.string.app_name));
+        navigationViewHeaderEmail = (TextView) navigationViewHeader.findViewById(R.id.profile_email);
+        navigationViewHeaderEmail.setText(getText(R.string.app_name));
+
+        initProfile();
+    }
+
+    private void initProfile() {
+        api.getProfile()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Profile>() {
+                    @Override
+                    public void call(Profile profile) {
+                        navigationViewHeaderUserName.setText(profile.username);
+                        navigationViewHeaderEmail.setText(profile.email);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.d(LOG_TAG, throwable.getMessage());
+                    }
+                });
     }
 
     protected void checkAuth() {
