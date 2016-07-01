@@ -19,6 +19,7 @@ import cz.msebera.android.httpclient.Header;
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
@@ -251,6 +252,39 @@ public class OuquonmangeApi {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
                 failure.apply(throwable, null);
+            }
+        });
+    }
+
+    public Observable<List<Event>> getEvents(final String communityUuid, final Calendar calendar) {
+        return Observable.create(new Observable.OnSubscribe<List<Event>>() {
+            @Override
+            public void call(final Subscriber<? super List<Event>> subscriber) {
+                RequestParams params = new RequestParams();
+                client.addHeader("Authorization", "Bearer " + getToken());
+                String url = baseUrl+"/api/event/" + communityUuid + "/" + calendar.getTime().getTime();
+                client.get(url, params, new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                        try {
+                            List<Event> interestPoints = Event.fromJson(response);
+                            subscriber.onNext(interestPoints);
+                            subscriber.onCompleted();
+                        } catch (JSONException e) {
+                            subscriber.onError(new ThrowableWithJson(e, null));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                        subscriber.onError(new ThrowableWithJson(throwable, errorResponse));
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                        subscriber.onError(new ThrowableWithJson(throwable, null));
+                    }
+                });
             }
         });
     }

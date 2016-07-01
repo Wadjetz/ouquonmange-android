@@ -14,22 +14,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.EventsAdapter;
 import fr.oqom.ouquonmange.dialogs.DatePickerDialogs;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
+import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback;
-import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.Callback3;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class CalendarActivity extends BaseActivity {
     private static String LOG_TAG = "CalendarActivity";
@@ -194,48 +194,41 @@ public class CalendarActivity extends BaseActivity {
         });
     }
 
+    private void showApiError(ThrowableWithJson throwableWithJson) {
+        if (throwableWithJson.getJson() != null) {
+            try {
+                String serverError = throwableWithJson.getJson().getString("error");
+                snackbar.setText(serverError).setActionTextColor(Color.parseColor("#D32F2F")).show();
+
+            } catch (JSONException e) {
+                snackbar.setText(e.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            }
+        } else {
+            snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+        }
+    }
+
     private void fetchEvents(final String communityUuid, final Calendar calendar) {
-
-        Log.d(LOG_TAG, "fetchEvents communityUuid=" + communityUuid + " calendar" + calendar);
-
-        api.getEventsByUUID(communityUuid, calendar, new Callback<JSONArray>() {
-            @Override
-            public void apply(JSONArray value) {
-                if(value != null) {
-                    try {
-                        events.addAll(Event.fromJson(value));
+        api.getEvents(communityUuid, calendar)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<Event>>() {
+                    @Override
+                    public void call(List<Event> eventsList) {
+                        events.clear();
+                        events.addAll(eventsList);
+                        Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.getTime().toString() + " = " + events.size());
+                        progressBar.setVisibility(View.GONE);
+                        swipeRefreshLayout.setRefreshing(false);
                         eventsAdapter.notifyDataSetChanged();
-                        Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.toString() + " = " + events.size());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Log.e(LOG_TAG, e.getMessage());
-                        snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
                     }
-                    Log.i(LOG_TAG, value.toString());
-                    progressBar.setVisibility(View.GONE);
-                    swipeRefreshLayout.setRefreshing(false);
-                }else{
-                    snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                }
-            }
-        }, new Callback2<Throwable, JSONObject>() {
-            @Override
-            public void apply(Throwable throwable, JSONObject jsonObject) {
-                if (jsonObject != null) {
-                    Log.e(LOG_TAG, jsonObject.toString());
-                    String err = "";
-                    try {
-                        err = jsonObject.getString("error");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
+                        showApiError(throwableWithJson);
+                        progressBar.setVisibility(View.GONE);
+                        swipeRefreshLayout.setRefreshing(false);
                     }
-                    snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                }
-                Log.e(LOG_TAG, throwable.getMessage());
-                progressBar.setVisibility(View.GONE);
-                swipeRefreshLayout.setRefreshing(false);
-            }
-        });
-
+                });
     }
 }

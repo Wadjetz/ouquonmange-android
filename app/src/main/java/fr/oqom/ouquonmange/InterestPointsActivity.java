@@ -429,15 +429,12 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         if (throwableWithJson.getJson() != null) {
             try {
                 String serverError = throwableWithJson.getJson().getString("error");
-                Log.e(LOG_TAG, "joinGroup " + serverError);
                 snackbar.setText(serverError).setActionTextColor(Color.parseColor("#D32F2F")).show();
 
             } catch (JSONException e) {
-                Log.e(LOG_TAG, "joinGroup " + e.getMessage());
                 snackbar.setText(e.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
             }
         } else {
-            Log.e(LOG_TAG, "joinGroup " + throwableWithJson.getThrowable().getMessage());
             snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
     }
