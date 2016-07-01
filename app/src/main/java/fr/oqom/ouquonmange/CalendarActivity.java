@@ -247,6 +247,8 @@ public class CalendarActivity extends BaseActivity {
                 .setAction(R.string.refresh, refreshSnackBarCalendar)
                 .show();
 
+        progressBar.setVisibility(View.GONE);
+
     }
     private View.OnClickListener refreshSnackBarCalendar = new View.OnClickListener(){
         @Override

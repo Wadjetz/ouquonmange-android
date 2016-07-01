@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -66,6 +67,9 @@ public class MainActivity extends BaseActivity {
         snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarMain);
 
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
         if (defaultCommunityUuid != null && !defaultCommunityUuid.isEmpty() && !Constants.FROM_MENU.equals(fromMenu)) {
             if (Config.isNotificationEnabled(getApplicationContext())) {
                 FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + defaultCommunityUuid);
@@ -75,10 +79,6 @@ public class MainActivity extends BaseActivity {
             startActivity(i);
             finish();
         }
-
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -305,6 +305,7 @@ public class MainActivity extends BaseActivity {
                 .setDuration(Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.refresh, refreshSnackBarMain)
                 .show();
+        progressBar.setVisibility(View.GONE);
 
     }
     private View.OnClickListener refreshSnackBarMain = new View.OnClickListener(){

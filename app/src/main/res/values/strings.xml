@@ -13,7 +13,7 @@
     <string name="prompt_password">Password</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="prompt_username">Username</string>
-    <string name="login_action">LOGIN</string>
+    <string name="login_action">Login</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_username">This username is invalid</string>
@@ -37,7 +37,7 @@
     <string name="drower_close">Close</string>
     <string name="event_name">Name</string>
     <string name="event_description">Description</string>
-    <string name="create_event">CREATE EVENT</string>
+    <string name="create_event">Create event</string>
     <string name="events">Events</string>
     <string name="parameters">Parameters</string>
     <string name="end_date_day">End Day</string>
@@ -47,9 +47,9 @@
     <string name="my_communities">My Communities</string>
     <string name="join_group">Join</string>
     <string name="app_label">Search</string>
-    <string name="search_hint">Search Me</string>
+    <string name="search_hint">Search</string>
     <string name="community_join">Join</string>
-    <string name="quit_group">QUIT</string>
+    <string name="quit_group">Quit</string>
     <string name="image_descr">Image</string>
     <string name="more_infos">More Infos</string>
     <string name="error_invalid_date">The date invalide</string>
