@@ -258,7 +258,9 @@ public class MainActivity extends BaseActivity {
             api.addGcmToken(gcmToken, new Callback<JSONObject>() {
                 @Override
                 public void apply(JSONObject jsonObject) {
-                    Log.e(LOG_TAG, jsonObject.toString());
+                    if (jsonObject != null) {
+                        Log.e(LOG_TAG, jsonObject.toString());
+                    }
                 }
             }, new Callback2<Throwable, JSONObject>() {
                 @Override
