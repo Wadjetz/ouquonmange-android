@@ -2,6 +2,9 @@ package fr.oqom.ouquonmange.services;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
+import fr.oqom.ouquonmange.R;
 
 public class Config {
 
@@ -30,5 +33,10 @@ public class Config {
         SharedPreferences.Editor spe = sp.edit();
         spe.putString(DEFAULT_COMMUNITY_KEY, communityUuid);
         return spe.commit();
+    }
+
+    public static boolean isNotificationEnabled(Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getBoolean(context.getString(R.string.key_notifications_enabled), true);
     }
 }

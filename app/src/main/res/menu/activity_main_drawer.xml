@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:id="@+id/nav_main_items" android:checkableBehavior="single">
         <item
             android:id="@+id/nav_calendar"
             android:icon="@drawable/ic_event_black"
@@ -17,20 +17,16 @@
             android:title="@string/search_communities" />
     </group>
 
-    <item android:title="@string/parameters" android:id="@+id/nav_parameters">
-        <menu>
-            <!--
-            TODO Implement settings
-            <item
-                android:id="@+id/nav_settings"
-                android:icon="@drawable/ic_menu_manage"
-                android:title="@string/action_settings" />
-                -->
-            <item
-                android:id="@+id/nav_logout"
-                android:icon="@drawable/ic_power_settings"
-                android:title="@string/logout" />
-        </menu>
-    </item>
+    <group android:id="@+id/nav_secondary_items" android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="@string/action_settings" />
+
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_power_settings"
+            android:title="@string/logout" />
+    </group>
 
 </menu>

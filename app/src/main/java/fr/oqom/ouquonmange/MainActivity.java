@@ -60,8 +60,12 @@ public class MainActivity extends BaseActivity {
 
         Log.d(LOG_TAG, "fromMenu = " + fromMenu + " defaultCommunityUuid = " + defaultCommunityUuid);
 
+
+
         if (defaultCommunityUuid != null && !defaultCommunityUuid.isEmpty() && !Constants.FROM_MENU.equals(fromMenu)) {
-            FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + defaultCommunityUuid);
+            if (Config.isNotificationEnabled(getApplicationContext())) {
+                FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + defaultCommunityUuid);
+            }
             Intent i = new Intent(getApplicationContext(), CalendarActivity.class);
             i.putExtra(Constants.COMMUNITY_UUID, defaultCommunityUuid);
             startActivity(i);
@@ -217,7 +221,10 @@ public class MainActivity extends BaseActivity {
 
                                     Config.setDefaultCommunity(communityFinal.uuid, getApplicationContext());
                                     Log.d(LOG_TAG, "new topic = " + communityFinal.uuid + " default topic deleted" + defaultCommunityUuid);
-                                    FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + communityFinal.uuid);
+
+                                    if (Config.isNotificationEnabled(getApplicationContext())) {
+                                        FirebaseMessaging.getInstance().subscribeToTopic("/topics/" + communityFinal.uuid);
+                                    }
                                 } else {
                                     FirebaseMessaging.getInstance().unsubscribeFromTopic("/topics/" + defaultCommunityUuid);
                                     Config.setDefaultCommunity("", getApplicationContext());

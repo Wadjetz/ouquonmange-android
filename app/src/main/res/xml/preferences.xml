@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:key="@string/key_notifications_enabled"
+        android:title="@string/notifications"
+        android:defaultValue="true"
+        android:summary="@string/preference_notification_description"/>
+
+    <Preference
+        android:key="google_play_service_licence"
+        android:title="@string/google_play_service_licence" />
+
+</PreferenceScreen>
