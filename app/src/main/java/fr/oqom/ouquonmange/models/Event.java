@@ -13,25 +13,27 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.oqom.ouquonmange.utils.TimeUtils;
+
 public class Event implements Parcelable, Categorizable {
     public long id;
     public String uuid;
     public String name;
     public String description;
-    public DateTime date_start;
-    public DateTime date_end;
-    public long id_community;
+    public DateTime dateStart;
+    public DateTime dateEnd;
+    public long idCommunity;
     public DateTime created;
 
-    public Event(long id, String uuid, String name, String description, long date_start, long date_end, long id_community, long created) {
+    public Event(long id, String uuid, String name, String description, long dateStart, long dateEnd, long idCommunity, long created) {
         this.id = id;
         this.uuid = uuid;
         this.name = name;
         this.description = description;
-        this.date_start = new DateTime(date_start);
-        this.date_end = new DateTime(date_end);
-        this.id_community = id_community;
-        this.created = new DateTime(created);
+        this.dateStart = TimeUtils.getDateTime(dateStart);
+        this.dateEnd = TimeUtils.getDateTime(dateEnd);
+        this.idCommunity = idCommunity;
+        this.created = TimeUtils.getDateTime(created);
     }
 
     protected Event(Parcel in) {
@@ -39,9 +41,9 @@ public class Event implements Parcelable, Categorizable {
         uuid = in.readString();
         name = in.readString();
         description = in.readString();
-        date_start = new DateTime(in.readLong());
-        date_end = new DateTime(in.readLong());
-        id_community = in.readLong();
+        dateStart = new DateTime(in.readLong());
+        dateEnd = new DateTime(in.readLong());
+        idCommunity = in.readLong();
         created = new DateTime(in.readLong());
     }
 
@@ -61,18 +63,21 @@ public class Event implements Parcelable, Categorizable {
         List<Event> eventList = new ArrayList<>();
         int total = jsonArray.length();
         for (int i = 0; i < total; i++) {
-            JSONObject jsonEvents = jsonArray.getJSONObject(i);
-            long id = jsonEvents.getLong("id");
-            String uuid = jsonEvents.getString("uuid");
-            String name = jsonEvents.getString("name");
-            String description = jsonEvents.getString("description");
-            long date_start = jsonEvents.getLong("dateStart");
-            long date_end = jsonEvents.getLong("dateEnd");
-            int id_community = jsonEvents.getInt("communityId");
-            long created = jsonEvents.getLong("created");
-            eventList.add(new Event(id,uuid,name,description,date_start,date_end,id_community,created));
+            eventList.add(Event.fromJson(jsonArray.getJSONObject(i)));
         }
         return eventList;
+    }
+
+    public static Event fromJson(JSONObject json) throws JSONException {
+        long id = json.getLong("id");
+        String uuid = json.getString("uuid");
+        String name = json.getString("name");
+        String description = json.getString("description");
+        long dateStart = json.getLong("dateStart");
+        long dateEnd = json.getLong("dateEnd");
+        long idCommunity = json.getLong("communityId");
+        long created = json.getLong("created");
+        return new Event(id, uuid, name, description, dateStart, dateEnd, idCommunity, created);
     }
 
     @Override
@@ -86,14 +91,14 @@ public class Event implements Parcelable, Categorizable {
         dest.writeString(uuid);
         dest.writeString(name);
         dest.writeString(description);
-        dest.writeLong(date_start.getMillis());
-        dest.writeLong(date_end.getMillis());
-        dest.writeLong(id_community);
+        dest.writeLong(dateStart.getMillis());
+        dest.writeLong(dateEnd.getMillis());
+        dest.writeLong(idCommunity);
         dest.writeLong(created.getMillis());
     }
 
     @Override
     public String getCategory() {
-        return date_start.getHourOfDay() + "h";
+        return dateStart.getHourOfDay() + "h";
     }
 }

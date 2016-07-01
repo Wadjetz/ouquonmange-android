@@ -1,5 +1,6 @@
 package fr.oqom.ouquonmange.adapters;
 
+import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -15,15 +16,18 @@ import fr.oqom.ouquonmange.R;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.utils.Callback;
+import fr.oqom.ouquonmange.utils.TimeUtils;
 
 public class EventsSectionedAdapter extends SectionedAdapter<Event> {
 
     private Callback<Event> callback;
+    private Context context;
 
-    public EventsSectionedAdapter(List<Event> events, Callback<Event> callback) {
+    public EventsSectionedAdapter(List<Event> events, Context context, Callback<Event> callback) {
         this.setItemList(events);
         this.setCustomHeaderLayout(R.layout.recycler_header_events);
         this.callback = callback;
+        this.context = context;
     }
 
     @Override
@@ -32,8 +36,8 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
         h.eventNameTextView.setText(event.name);
         h.eventNameTextView.setText(event.name);
         h.eventDescriptionTextView.setText(event.description);
-        h.dateStart.setText(Constants.timeFormat.format(event.date_start.toDate()));
-        h.dateEnd.setText(Constants.timeFormat.format(event.date_end.toDate()));
+        h.dateStart.setText(TimeUtils.printTime(event.dateStart, context));
+        h.dateEnd.setText(TimeUtils.printTime(event.dateEnd, context));
         h.event = event;
 
     }

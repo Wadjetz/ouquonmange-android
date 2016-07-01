@@ -1,5 +1,8 @@
 package fr.oqom.ouquonmange.models;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.text.SimpleDateFormat;
 
 public class Constants {
@@ -13,7 +16,6 @@ public class Constants {
     public static final String EVENT_UUID = "EVENT_UUID";
 
     public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    public static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     public static final String INTEREST_POINT_ID = "INTEREST_POINT_ID";

@@ -3,6 +3,7 @@ package fr.oqom.ouquonmange.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,22 +11,24 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.oqom.ouquonmange.utils.TimeUtils;
+
 public class Community implements Parcelable {
     public long id;
     public String uuid;
     public String name;
     public String description;
-    public int created;
+    public DateTime created;
     public boolean isDefault = false;
 
     public Community() {}
 
-    public Community(long id, String uuid, String name, String description, int created, boolean isDefault) {
+    public Community(long id, String uuid, String name, String description, long created, boolean isDefault) {
         this.id = id;
         this.uuid = uuid;
         this.name = name;
         this.description = description;
-        this.created = created;
+        this.created = TimeUtils.getDateTime(created);
         this.isDefault = isDefault;
     }
 
@@ -34,8 +37,8 @@ public class Community implements Parcelable {
         uuid = in.readString();
         name = in.readString();
         description = in.readString();
-        created = in.readInt();
-        isDefault = in.readInt() > 0;
+        created = new DateTime(in.readLong());
+        isDefault = 1 == in.readInt();
     }
 
     public static final Creator<Community> CREATOR = new Creator<Community>() {
@@ -76,7 +79,7 @@ public class Community implements Parcelable {
         dest.writeString(uuid);
         dest.writeString(name);
         dest.writeString(description);
-        dest.writeInt(created);
+        dest.writeLong(created.getMillis());
         dest.writeInt(isDefault ? 1 : 0);
     }
 }

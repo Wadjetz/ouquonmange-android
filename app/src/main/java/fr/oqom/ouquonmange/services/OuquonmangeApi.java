@@ -7,6 +7,7 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +24,7 @@ import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.utils.TimeUtils;
 import rx.Observable;
 import rx.Subscriber;
 
@@ -139,35 +141,43 @@ public class OuquonmangeApi {
         });
     }
 
-    public void createEvent(
-            String communityUuid,
-            String name,
-            String description,
-            Calendar dateStart,
-            Calendar dateEnd,
-            final Callback<JSONObject> success,
-            final Callback2<Throwable, JSONObject> failure
+    public Observable<Event> createEvent(final String communityUuid,
+                                         final String name,
+                                         final String description,
+                                         final DateTime dateStart,
+                                         final DateTime dateEnd
     ) {
-        RequestParams params = new RequestParams();
-        params.add("name", name);
-        params.add("description", description);
-        params.add("dateStart", Constants.dateTimeFormat.format(dateStart.getTime().getTime()));
-        params.add("dateEnd", Constants.dateTimeFormat.format(dateEnd.getTime().getTime()));
-        client.addHeader("Authorization", "Bearer " + getToken());
-        client.post(baseUrl+ "/api/event/" + communityUuid, params, new JsonHttpResponseHandler(){
+        return Observable.create(new Observable.OnSubscribe<Event>() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                success.apply(response);
-            }
+            public void call(final Subscriber<? super Event> subscriber) {
+                RequestParams params = new RequestParams();
+                params.add("name", name);
+                params.add("description", description);
+                params.add("dateStart", TimeUtils.printDateTime(dateStart));
+                params.add("dateEnd", TimeUtils.printDateTime(dateEnd));
+                client.addHeader("Authorization", "Bearer " + getToken());
+                client.post(baseUrl+ "/api/event/" + communityUuid, params, new JsonHttpResponseHandler(){
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        try {
+                            Event event = Event.fromJson(response);
+                            subscriber.onNext(event);
+                            subscriber.onCompleted();
+                        } catch (JSONException e) {
+                            subscriber.onError(new ThrowableWithJson(e, null));
+                        }
+                    }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                failure.apply(throwable, errorResponse);
-            }
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                        subscriber.onError(new ThrowableWithJson(throwable, errorResponse));
+                    }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
-                failure.apply(throwable, null);
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String responseText, Throwable throwable) {
+                        subscriber.onError(new ThrowableWithJson(throwable, null));
+                    }
+                });
             }
         });
     }

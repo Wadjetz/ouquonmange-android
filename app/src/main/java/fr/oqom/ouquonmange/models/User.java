@@ -10,9 +10,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by hedhili on 24/06/2016.
- */
 public class User implements Parcelable {
     public String uuid;
     public String username;

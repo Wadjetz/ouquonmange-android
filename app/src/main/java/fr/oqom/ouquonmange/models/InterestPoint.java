@@ -48,8 +48,8 @@ public class InterestPoint implements Parcelable {
         lng = in.readString();
         members = in.readInt();
         votes = in.readInt();
-        isJoin = (1 == in.readInt()) ? true : false;
-        isVote = (1 == in.readInt()) ? true : false;
+        isJoin = (1 == in.readInt());
+        isVote = (1 == in.readInt());
         imageUrl = in.readString();
     }
 

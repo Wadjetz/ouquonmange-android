@@ -106,7 +106,7 @@ public class CalendarActivity extends BaseActivity {
     }
 
     private void initSectionedEventList() {
-        eventsSectionedAdapter = new EventsSectionedAdapter(events, new Callback<Event>() {
+        eventsSectionedAdapter = new EventsSectionedAdapter(events, getApplicationContext(), new Callback<Event>() {
             @Override
             public void apply(Event event) {
                 Intent intent = new Intent(getApplicationContext(), InterestPointsActivity.class);
