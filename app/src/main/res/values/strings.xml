@@ -23,9 +23,7 @@
     <string name="error_different_password">Passwords are differents</string>
     <string name="error_regex_password">This password is too short (min. 6 &amp; max. 20 characters)</string>
     <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
     <string name="logout">Logout</string>
     <string name="create_community">Create Community</string>
     <string name="title">Title</string>
