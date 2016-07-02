@@ -85,7 +85,7 @@ public class SearchCommunityActivity extends BaseActivity {
             @Override
             public void onRefresh() {
                 Log.d(LOG_TAG, "onRefresh");
-                if(query.isEmpty()) {
+                if(query == null || query.isEmpty()) {
                     searchAllCommunities();
                 } else {
                     searchCommunitiesByQuery(query);
