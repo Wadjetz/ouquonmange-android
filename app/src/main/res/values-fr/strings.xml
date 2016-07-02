@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Où qu\'on mange</string>
-
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
     <string name="action_settings">Paramètres</string>
     <string name="calendar">Calendrier</string>
     <string name="title_activity_login">S\'inscrire</string>
-
-    <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Mot de passe</string>
     <string name="confirm_password">Confirmez le mot de passe</string>
@@ -83,18 +79,14 @@
     <string name="activate_wifi_message">Wifi</string>
     <string name="activate_data_mobile_message">Données mobiles</string>
     <string name="cancel_message">Annuler</string>
-
     <string name="setting_connection_confirm_message">Internet not available, Cross check your internet connectivity and try again</string>
     <string name="setting_wifi_confirm_title">Wifi Settings</string>
     <string name="setting_mobile_data_confirm_title">Data Mobile Settings</string>
-
     <string name="settings">Settings</string>
     <string name="google_play_service_licence">Google Play Service Licence</string>
     <string name="notifications">Notifications</string>
     <string name="preference_notification_description">Disable all notifications</string>
-
     <string name="key_notifications_enabled">KEY_NOTIFICATIONS_ENABLED</string>
-
     <string name="login_error">Email or password invalid</string>
     <string name="create_community_error_already_exist">Community Already Exist</string>
     <string name="error_already_join">You have already join this community</string>
