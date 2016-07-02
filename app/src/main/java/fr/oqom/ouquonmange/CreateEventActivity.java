@@ -153,12 +153,10 @@ public class CreateEventActivity extends AppCompatActivity {
     private void submitEvent() {
         final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
-
-        if (validateFormCreateEvent()) {
-            hiddenVirtualKeyboard();
-            progressBar.setVisibility(View.VISIBLE);
+        hiddenVirtualKeyboard();
+        if(validateFormCreateEvent()) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
-
+                progressBar.setVisibility(View.VISIBLE);
                 api.createEvent(communityUuid, name, description, dateStart, dateEnd)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Event>() {

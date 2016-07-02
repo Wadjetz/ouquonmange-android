@@ -85,9 +85,10 @@ public class LoginActivity extends AppCompatActivity {
     };
 
     private void submitForm() {
+
+        hiddenVirtualKeyboard();
         if (validateEmail() && validatePassword()) {
             progressBar.setVisibility(View.VISIBLE);
-            hiddenVirtualKeyboard();
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
                     @Override

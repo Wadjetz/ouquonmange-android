@@ -80,12 +80,13 @@ public class CreateAccountUserActivity extends BaseActivity {
     };
 
     private void signUp() {
+        hiddenVirtualKeyboard();
         if (validateFormCreateAccount()) {
             progressBar.setVisibility(View.VISIBLE);
             String username = usernameInputSignup.getText().toString().trim().toLowerCase();
             String email = emailInputSignup.getText().toString().trim().toLowerCase();
             String password = passwordInputSignup.getText().toString().trim();
-            hiddenVirtualKeyboard();
+
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 api.createAccountUser(username, email, password, new Callback<JSONObject>() {
                     @Override

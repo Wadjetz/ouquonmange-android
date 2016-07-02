@@ -27,7 +27,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
     private static final String LOG_TAG = "CreateCommunityActivity";
 
     private Button saveAction;
-    private TextInputLayout titleLayout;
+    private TextInputLayout titleLayout ,descriptionLayout;
     private EditText titleInput, descriptionInput;
 
     private OuquonmangeApi api;
@@ -43,6 +43,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
 
         titleLayout = (TextInputLayout) findViewById(R.id.layout_community_title);
         titleInput = (EditText) findViewById(R.id.input_community_title);
+        descriptionLayout = (TextInputLayout) findViewById(R.id.layout_community_description);
         descriptionInput = (EditText) findViewById(R.id.input_community_description);
         saveAction = (Button) findViewById(R.id.action_create_community);
 
@@ -72,8 +73,8 @@ public class CreateCommunityActivity extends AppCompatActivity {
     private void submitCommunity() {
         String name = titleInput.getText().toString().trim();
         String description = descriptionInput.getText().toString().trim();
-        if (validateName(name)) {
-            hiddenVirtualKeyboard();
+        hiddenVirtualKeyboard();
+        if (validateForm(name, description)) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 api.createCommunity(name, description, new Callback<JSONObject>() {
                     @Override
@@ -112,27 +113,42 @@ public class CreateCommunityActivity extends AppCompatActivity {
 
     }
 
-    private boolean validateName(String name) {
+    private boolean validateForm(String name, String description) {
+        boolean flag = true;
+
         if (name.isEmpty()) {
             titleLayout.setError(getString(R.string.error_field_required));
-            requestFocus(titleInput);
-            return false;
-        } else if (name.length() > maxLengthName || name.length() < minLengthName) {
-            titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity) + " ( beetween " + minLengthName + " and " + maxLengthName + " caracters )");
-            requestFocus(titleInput);
-            return false;
+            if(flag){
+                //requestFocus(titleInput);
+            }
+            flag = false;
+        }
+        else if (name.length()>maxLengthName || name.length()<minLengthName ){
+            titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity) +" ( beetween "+minLengthName+" and "+maxLengthName+" caracters )");
+            if(flag){
+                //requestFocus(titleInput);
+            }
+            flag = false;
         } else {
             titleLayout.setErrorEnabled(false);
         }
-        return true;
+
+        if(description.isEmpty()){
+            descriptionLayout.setError(getString(R.string.error_field_required));
+            if(flag) {
+                //requestFocus(descriptionInput);
+            }
+            flag = false;
+        }
+        return flag;
 
     }
 
-    private void requestFocus(View view) {
+    /*private void requestFocus(View view) {
         if (view.requestFocus()) {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
-    }
+    }*/
 
     protected void hiddenVirtualKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
