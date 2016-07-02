@@ -14,10 +14,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.json.JSONException;
 
+import fr.oqom.ouquonmange.dialogs.DatePickerDialogs;
 import fr.oqom.ouquonmange.dialogs.DateTimePickerDialog;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
@@ -28,6 +31,8 @@ import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import fr.oqom.ouquonmange.utils.TimeUtils;
 import retrofit2.adapter.rxjava.HttpException;
+import fr.oqom.ouquonmange.utils.Callback3;
+import fr.oqom.ouquonmange.utils.DateTimeUtils;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -40,9 +45,9 @@ public class CreateEventActivity extends AppCompatActivity {
     private Button saveEventAction;
     private CoordinatorLayout coordinatorLayout;
 
-    private DateTime day = TimeUtils.now();
-    private DateTime dateStart = TimeUtils.now();
-    private DateTime dateEnd = TimeUtils.now();
+    private DateTime day = DateTimeUtils.now();
+    private DateTime dateStart = DateTimeUtils.now();
+    private DateTime dateEnd = DateTimeUtils.now();
 
     private OuQuOnMangeService ouQuOnMangeService;
 
@@ -72,15 +77,15 @@ public class CreateEventActivity extends AppCompatActivity {
         initView();
         Intent intent = getIntent();
         communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
-        day = TimeUtils.getDateTime(intent.getLongExtra(Constants.EVENT_DATE, TimeUtils.now().getMillis()));
+        day = DateTimeUtils.getDateTime(intent.getLongExtra(Constants.EVENT_DATE, DateTimeUtils.now().getMillis()));
 
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
         this.dateStart = day.toDateTime();
         this.dateEnd = day.toDateTime();
 
-        this.dayStartInput.setText(TimeUtils.printDate(day, getApplicationContext()));
-        this.dayEndInput.setText(TimeUtils.printDate(day, getApplicationContext()));
+        this.dayStartInput.setText(DateTimeUtils.printDate(day, getApplicationContext()));
+        this.dayEndInput.setText(DateTimeUtils.printDate(day, getApplicationContext()));
 
         snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
@@ -95,12 +100,31 @@ public class CreateEventActivity extends AppCompatActivity {
                     @Override
                     public void apply(Integer hours, Integer minutes) {
                         dateStart = dateStart.withHourOfDay(hours).withMinuteOfHour(minutes);
-                        dateStartInput.setText(TimeUtils.printTime(dateStart, getApplicationContext()));
+                        dateStartInput.setText(DateTimeUtils.printTime(dateStart, getApplicationContext()));
                     }
                 });
                 dateTimePickerDialog.show(getFragmentManager(), "date_time_start_picker");
             }
         });
+
+        showDialogWhenHasFocus(dateStartInput);
+
+        dayStartInput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final DatePickerDialogs datePickerDialogs = new DatePickerDialogs();
+                datePickerDialogs.setCallback(new Callback3<Integer, Integer, Integer>() {
+                    @Override
+                    public void apply(Integer year, Integer month, Integer day) {
+                        dateStart = dateStart.withYear(year).withMonthOfYear(month+1).withDayOfMonth(day);
+                        dayStartInput.setText(DateTimeUtils.printDate(dateStart,getApplicationContext()));
+                    }
+                });
+                datePickerDialogs.show(getFragmentManager(), "day_start_picker");
+            }
+        });
+
+        showDialogWhenHasFocus(dayStartInput);
 
         dateEndInput.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,29 +134,65 @@ public class CreateEventActivity extends AppCompatActivity {
                     @Override
                     public void apply(Integer hours, Integer minutes) {
                         dateEnd = dateEnd.withHourOfDay(hours).withMinuteOfHour(minutes);
-                        dateEndInput.setText(TimeUtils.printTime(dateEnd, getApplicationContext()));
+                        dateEndInput.setText(DateTimeUtils.printTime(dateEnd, getApplicationContext()));
                     }
                 });
                 dateTimePickerDialog.show(getFragmentManager(), "date_time_end_picker");
             }
         });
+
+        showDialogWhenHasFocus(dateEndInput);
+
+        dayEndInput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final DatePickerDialogs datePickerDialogs = new DatePickerDialogs();
+                datePickerDialogs.setCallback(new Callback3<Integer, Integer, Integer>() {
+                    @Override
+                    public void apply(Integer year, Integer month, Integer day) {
+                        dateEnd = dateEnd.withYear(year).withMonthOfYear(month+1).withDayOfMonth(day);
+                        dayEndInput.setText(DateTimeUtils.printDate(dateEnd,getApplicationContext()));
+                    }
+                });
+                datePickerDialogs.show(getFragmentManager(), "day_end_picker");
+            }
+        });
+
+        showDialogWhenHasFocus(dayEndInput);
+
+        snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
+
+        snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
+
     }
 
     private void initView() {
+    private void showDialogWhenHasFocus(final EditText input) {
+        input.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus && input.getText().length() == 0){
+                    input.callOnClick();
+                }
+            }
+        });
+    }
+
+    private void initLayoutWidgets() {
         titleLayout = (TextInputLayout) findViewById(R.id.layout_event_title);
         layoutDateStart = (TextInputLayout) findViewById(R.id.layout_event_date_start);
         layoutDateEnd = (TextInputLayout) findViewById(R.id.layout_event_date_end);
 
-        layoutDayEnd = (TextInputLayout) findViewById(R.id.layout_event_day_date_end);
-        layoutDayStart = (TextInputLayout) findViewById(R.id.layout_event_day_date_start);
+        layoutDayEnd = (TextInputLayout) findViewById(R.id.layout_event_day_end);
+        layoutDayStart = (TextInputLayout) findViewById(R.id.layout_event_day_start);
 
         titleInput = (EditText) findViewById(R.id.input_event_title);
         descriptionInput = (EditText) findViewById(R.id.input_event_description);
         dateStartInput = (EditText) findViewById(R.id.input_event_date_start);
         dateEndInput = (EditText) findViewById(R.id.input_event_date_end);
 
-        dayStartInput = (EditText) findViewById(R.id.input_event_day_date_end);
-        dayEndInput = (EditText) findViewById(R.id.input_event_day_date_start);
+        dayStartInput = (EditText) findViewById(R.id.input_event_day_date_start);
+        dayEndInput = (EditText) findViewById(R.id.input_event_day_date_end);
 
         saveEventAction = (Button) findViewById(R.id.action_create_event);
 
@@ -195,13 +255,16 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private boolean validateFormCreateEvent() {
-        boolean flag = true, dayStartIsEmpty = false , dayEndIsEmpty = false;
+        boolean flag = true, timeStartIsEmpty = false , timeEndIsEmpty = false,
+        dayStartIsEmpty = false , dayEndIsEmpty = false;
 
         String title = titleInput.getText().toString();
-        String dayStart = dateStartInput.getText().toString();
-        String dayEnd = dateEndInput.getText().toString();
+        String timeStart = dateStartInput.getText().toString();
+        String timeEnd = dateEndInput.getText().toString();
+        String dayStart = dayStartInput.getText().toString();
+        String dayEnd = dayEndInput.getText().toString();
 
-        DateTime dateNow = TimeUtils.now();
+        DateTime dateNow = DateTimeUtils.now();
 
         int minLengthName = Constants.MIN_LENGTH_NAME_COMMUNITY;
         int maxLengthName = Constants.MAX_LENGTH_NAME_COMMUNITY;
@@ -212,7 +275,7 @@ public class CreateEventActivity extends AppCompatActivity {
             }
             flag = false;
         } else if (title.length() > maxLengthName || title.length() < minLengthName) {
-            titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity) + " ( between " + minLengthName + " and " + maxLengthName + " characters )");
+            titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity_length));
             if (flag) {
                 requestFocus(titleInput);
             }
@@ -221,61 +284,90 @@ public class CreateEventActivity extends AppCompatActivity {
             titleLayout.setErrorEnabled(false);
         }
 
-        if (dayStart.isEmpty()) {
+        if(dayStart.isEmpty()){
+            layoutDayStart.setError(getString(R.string.error_field_required));
+            /*if(flag){
+                requestFocus(dayStartInput);
+            }*/
+            dayStartIsEmpty = false;
+            flag = false;
+        }
+
+        if (timeStart.isEmpty()) {
             layoutDateStart.setError(getString(R.string.error_field_required));
-            if (flag) {
+            /*if (flag) {
                 requestFocus(dateStartInput);
-            }
-            dayStartIsEmpty = true;
+            }*/
+            timeStartIsEmpty = true;
             flag = false;
         } else {
             layoutDateStart.setErrorEnabled(false);
         }
 
-        if (dayEnd.isEmpty()) {
+        if(dayEnd.isEmpty()){
+            layoutDayEnd.setError(getString(R.string.error_field_required));
+            /*if(flag){
+                requestFocus(dayEndInput);
+            }*/
+            timeEndIsEmpty = true;
+            flag = false;
+        }
+
+        if (timeEnd.isEmpty()) {
             layoutDateEnd.setError(getString(R.string.error_field_required));
-            if (flag) {
+            /*if (flag) {
                 requestFocus(dateEndInput);
-            }
-            dayEndIsEmpty = true;
+            }*/
+            timeEndIsEmpty = true;
             flag = false;
         } else {
             layoutDateEnd.setErrorEnabled(false);
         }
 
-        if (!dayStartIsEmpty) {
+        if (!dayStartIsEmpty && !timeStartIsEmpty) {
             if (this.dateStart.isBefore(dateNow)) {
                 layoutDateStart.setError(getString(R.string.error_start_date_in_the_past));
-                if (flag) {
+                /*if (flag) {
                     requestFocus(layoutDateStart);
-                }
+                }*/
                 flag = false;
             } else {
                 layoutDateStart.setErrorEnabled(false);
             }
         }
 
-        if (!dayEndIsEmpty) {
+        if (!dayEndIsEmpty && !timeEndIsEmpty) {
             if (this.dateEnd.isBefore(dateNow)) {
                 layoutDateEnd.setError(getString(R.string.error_end_date_in_the_past));
-                if (flag) {
+                /*if (flag) {
                     requestFocus(layoutDateEnd);
-                }
+                }*/
+                flag = false;
+            } else {
+                layoutDateEnd.setErrorEnabled(false);
+            }
+        }
+        boolean allTrue = !dayEndIsEmpty && !dayStartIsEmpty && !timeEndIsEmpty && !timeStartIsEmpty;
+        if (allTrue) {
+            if (this.dateStart.isAfter(this.dateEnd)) {
+                layoutDateEnd.setError(getString(R.string.error_end_date_prior_start));
+                /*if (flag) {
+                    requestFocus(layoutDateEnd);
+                }*/
                 flag = false;
             } else {
                 layoutDateEnd.setErrorEnabled(false);
             }
         }
 
-        if (!dayEndIsEmpty && !dayStartIsEmpty) {
-            if (this.dateStart.isAfter(this.dateEnd)) {
-                layoutDateEnd.setError(getString(R.string.error_end_date_prior_start));
-                if (flag) {
-                    requestFocus(layoutDateEnd);
-                }
-                flag = false;
-            } else {
-                layoutDateEnd.setErrorEnabled(false);
+        if(allTrue){
+            Period period = new Period(dateStart,dateEnd);
+            long diff = Constants.DIFFERENT_HOURS;
+            long per  = period.toStandardSeconds().getSeconds();
+            if( diff <= per ){
+                layoutDateEnd.setError(getString(R.string.error_different_number_of_hours_between_dates));
+            }else{
+                Log.e(LOG_TAG,diff+" - "+per);
             }
         }
 

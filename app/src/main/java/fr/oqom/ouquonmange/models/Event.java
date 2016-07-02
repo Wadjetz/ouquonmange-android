@@ -8,7 +8,7 @@ import com.google.gson.annotations.Expose;
 
 import org.joda.time.DateTime;
 
-import fr.oqom.ouquonmange.utils.TimeUtils;
+import fr.oqom.ouquonmange.utils.DateTimeUtils;
 
 public class Event implements Parcelable, Categorizable {
     @Expose(serialize = false)

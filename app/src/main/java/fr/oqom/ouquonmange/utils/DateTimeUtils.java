@@ -7,7 +7,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-public class TimeUtils {
+public class DateTimeUtils {
 
     public static final DateTimeFormatter timeFormatter = DateTimeFormat.forPattern("HH:mm");
     public static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");

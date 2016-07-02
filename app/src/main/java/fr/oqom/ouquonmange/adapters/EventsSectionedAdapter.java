@@ -15,7 +15,7 @@ import java.util.List;
 import fr.oqom.ouquonmange.R;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.utils.Callback;
-import fr.oqom.ouquonmange.utils.TimeUtils;
+import fr.oqom.ouquonmange.utils.DateTimeUtils;
 
 public class EventsSectionedAdapter extends SectionedAdapter<Event> {
 

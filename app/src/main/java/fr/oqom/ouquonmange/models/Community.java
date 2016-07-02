@@ -9,6 +9,10 @@ import com.google.gson.annotations.Expose;
 import org.joda.time.DateTime;
 
 import fr.oqom.ouquonmange.R;
+import java.util.ArrayList;
+import java.util.List;
+
+import fr.oqom.ouquonmange.utils.DateTimeUtils;
 
 public class Community implements Parcelable {
 
@@ -25,7 +29,7 @@ public class Community implements Parcelable {
     public String typ;
 
     @Expose(serialize = false)
-    public DateTime created;
+    public DateTime created = null;
 
     @Expose(serialize = false, deserialize = false)
     public boolean isDefault = false;
@@ -36,7 +40,6 @@ public class Community implements Parcelable {
         this.name = name;
         this.description = description;
         this.typ = typ;
-        this.created = null;
     }
 
     protected Community(Parcel in) {

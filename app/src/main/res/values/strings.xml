@@ -96,6 +96,8 @@
     <string name="accept">Accept</string>
     <string name="groups">Groups</string>
     <string name="votes">Votes</string>
+    <string name="error_different_number_of_hours_between_dates">The period between the two dates shall not exceed 12 hours.</string>
+    <string name="error_invalid_titleOfCommunity_length">This Title is invalid (between 2 and 30 characters)</string>
 
     <string-array name="community_types">
         <item>Public</item>
