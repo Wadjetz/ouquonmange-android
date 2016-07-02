@@ -1,15 +1,12 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
@@ -17,7 +14,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -42,8 +38,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +46,7 @@ import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -77,6 +72,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private Location location;
     private GoogleMap map;
     private Snackbar snackbar;
+    private CoordinatorLayout coordinatorLayout;
 
     private Button containerCollapseAction;
     private View interestPointItem;
@@ -87,6 +83,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     int interestPointItemHeight = 0;
 
     private boolean isCollapsed = false;
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
@@ -134,9 +131,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
         interestPointName.setText(interestPoint.name);
         interestPointAddress.setText(interestPoint.address);
-        String buttonText = (interestPoint.isJoin ? getApplicationContext().getString(R.string.quit_group) : getApplicationContext().getString(R.string.join_group))+" ("+interestPoint.members+")";
+        String buttonText = (interestPoint.isJoin ? getApplicationContext().getString(R.string.quit_group) : getApplicationContext().getString(R.string.join_group)) + " (" + interestPoint.members + ")";
         joinAction.setText(buttonText);
-        String buttonVote = (interestPoint.isVote ? getApplicationContext().getString(R.string.unvote_group) : getApplicationContext().getString(R.string.vote_group))+" ("+interestPoint.votes+")";
+        String buttonVote = (interestPoint.isVote ? getApplicationContext().getString(R.string.unvote_group) : getApplicationContext().getString(R.string.vote_group)) + " (" + interestPoint.votes + ")";
         voteAction.setText(buttonVote);
 
         joinAction.setOnClickListener(new View.OnClickListener() {
@@ -269,7 +266,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public boolean onMarkerClick(Marker marker) {
                 int position = 1;
-                for (InterestPoint interestPoint: interestPoints) {
+                for (InterestPoint interestPoint : interestPoints) {
                     if (interestPoint.name.equals(marker.getTitle())) {
                         Log.d(LOG_TAG, marker.getTitle() + " position=" + position);
                         interestPointsRecyclerView.scrollToPosition(position);
@@ -296,9 +293,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         //progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
 
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close),closeSnackBarInterestPoints);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsLayout);
+        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarInterestPoints);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -338,7 +335,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     }
 
-    private View.OnClickListener closeSnackBarInterestPoints = new View.OnClickListener(){
+    private View.OnClickListener closeSnackBarInterestPoints = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             snackbar.dismiss();
@@ -368,7 +365,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private void updateListAfterJoinGroup(final InterestPoint joinedInterestPoint) {
         for (InterestPoint ip : interestPoints) {
-            if (ip.isJoin){
+            if (ip.isJoin) {
                 Log.i(LOG_TAG, "Group unjoined = " + ip.name);
                 ip.members = (ip.members > 0) ? (ip.members - 1) : ip.members;
             }
@@ -387,7 +384,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private void updateListAfterQuitGroup(final InterestPoint quitedInterestPoint) {
         for (InterestPoint ip : interestPoints) {
-            if(ip.isJoin){
+            if (ip.isJoin) {
                 Log.i(LOG_TAG, "Group joined = " + ip.name);
                 ip.members = (ip.members > 0) ? (ip.members - 1) : ip.members;
             }
@@ -459,7 +456,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         interestPointsAdapter = new InterestPointsAdapter(getApplicationContext(), interestPoints, new Callback<InterestPoint>() {
             @Override
             public void apply(final InterestPoint interestPoint) {
-                if(checkConnection(getApplicationContext())) {
+                if (NetConnectionUtils.isConnected(getApplicationContext())) {
                     if (interestPoint.isJoin) {
                         api.quitGroup(communityUuid, eventUuid, interestPoint)
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -479,8 +476,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                                     }
                                 }, errorCallback);
                     }
-                }else{
-                    refreshSnackBar();
+                } else {
+                    showNoConnexionSnackBar(coordinatorLayout);
                 }
             }
         }, new Callback<InterestPoint>() {
@@ -491,7 +488,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }, new Callback<InterestPoint>() {
             @Override
             public void apply(final InterestPoint interestPoint) {
-                if(checkConnection(getApplicationContext())) {
+                if (NetConnectionUtils.isConnected(getApplicationContext())) {
                     if (interestPoint.isVote) {
                         api.unvoteGroup(communityUuid, eventUuid, interestPoint)
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -511,8 +508,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                                     }
                                 }, errorCallback);
                     }
-                }else{
-                    refreshSnackBar();
+                } else {
+                    showNoConnexionSnackBar(coordinatorLayout);
                 }
             }
         });
@@ -547,22 +544,22 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     };
 
     private void fetchInterestPoints() {
-        if(checkConnection(getApplicationContext())) {
+        if (NetConnectionUtils.isConnected(getApplicationContext())) {
             api.getInterestPoints(eventUuid, communityUuid)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(apiSuccessCallback, apiErrorCallback);
-        }else{
-            refreshSnackBar();
+        } else {
+            NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
         }
     }
 
     private void fetchInterestPoints(Location location) {
-        if(checkConnection(getApplicationContext())) {
+        if (NetConnectionUtils.isConnected(getApplicationContext())) {
             api.getInterestPointsByLocation(location, eventUuid, communityUuid)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(apiSuccessCallback, apiErrorCallback);
-        }else{
-            refreshSnackBar();
+        } else {
+            NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
         }
     }
 
@@ -617,7 +614,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(LOG_TAG, "Location Changed GPS_PROVIDER : " + " provider = " + location.getProvider() +  "  " + ((this.location != null) ? location.distanceTo(this.location) : "null") + " loc = " + location.getLatitude() + " " + location.getLongitude());
+        Log.d(LOG_TAG, "Location Changed GPS_PROVIDER : " + " provider = " + location.getProvider() + "  " + ((this.location != null) ? location.distanceTo(this.location) : "null") + " loc = " + location.getLatitude() + " " + location.getLongitude());
         this.location = location;
 
         if (this.map != null) {
@@ -658,22 +655,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         super.onStop();
     }
 
-    public void refreshSnackBar(){
-        snackbar.setText(R.string.no_internet)
-                .setActionTextColor(Color.parseColor("#D32F2F"))
-                .setDuration(Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.activate, activateSnackBarInterestPoints)
-                .show();
-        //progressBar.setVisibility(View.GONE);
-
-    }
-    private View.OnClickListener activateSnackBarInterestPoints = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            CreateAlertSetting();
-        }
-    };
-
     private void showMarkers() {
         if (map != null) {
             boolean setCamera = false;
@@ -694,70 +675,14 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
     }
 
-    private void CreateAlertSetting() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.setting_info)
-                .setMessage(R.string.message_internet_not_available)
-                .setCancelable(false)
-                .setPositiveButton(R.string.activate_wifi_message, new DialogInterface.OnClickListener() {
+    public void showNoConnexionSnackBar(final CoordinatorLayout coordinatorLayout) {
+        Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG)
+                .setAction(R.string.activate, new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        final WifiManager wifi =(WifiManager)getSystemService(getApplicationContext().WIFI_SERVICE);
-                        wifi.setWifiEnabled(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
+                    public void onClick(View v) {
+                        NetConnectionUtils.createAlertSetting(getApplicationContext());
                     }
                 })
-                .setNegativeButton(R.string.activate_data_mobile_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setEnableDataMobile(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNeutralButton(R.string.cancel_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        refreshSnackBar();
-                        dialog.cancel();
-                    }
-                })
-                .create()
                 .show();
-    }
-
-    private void reloadActivity() {
-        Intent intent = getIntent();
-        intent.putExtra(Constants.EVENT_UUID,eventUuid);
-        intent.putExtra(Constants.COMMUNITY_UUID,communityUuid);
-        finish();
-        startActivity(intent);
-    }
-
-    public void setEnableDataMobile(boolean enable){
-        // Enable data
-        ConnectivityManager dataManager;
-        dataManager  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        Method dataMtd = null;
-        try {
-            dataMtd = ConnectivityManager.class.getDeclaredMethod("setMobileDataEnabled", boolean.class);
-            dataMtd.setAccessible(true);
-            dataMtd.invoke(dataManager, enable);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
     }
 }

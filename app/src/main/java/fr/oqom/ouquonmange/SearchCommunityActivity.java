@@ -33,6 +33,7 @@ public class SearchCommunityActivity extends BaseActivity {
     private ProgressBar progressBar;
     private SearchView searchView;
     private Snackbar snackbar;
+    private CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

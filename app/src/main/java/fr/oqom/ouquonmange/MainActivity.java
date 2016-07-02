@@ -1,11 +1,7 @@
 package fr.oqom.ouquonmange;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
@@ -14,7 +10,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -30,8 +25,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
@@ -40,6 +33,7 @@ import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 
 public class MainActivity extends BaseActivity {
 
@@ -54,6 +48,7 @@ public class MainActivity extends BaseActivity {
 
     private ArrayList<Community> communities = new ArrayList<>();
     private Snackbar snackbar;
+    private CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +63,8 @@ public class MainActivity extends BaseActivity {
         Log.d(LOG_TAG, "fromMenu = " + fromMenu + " defaultCommunityUuid = " + defaultCommunityUuid);
 
 
-
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
+        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarMain);
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
@@ -101,12 +95,12 @@ public class MainActivity extends BaseActivity {
 
         if (savedInstanceState == null) {
             checkAuth();
-            if(checkConnection(getApplicationContext())) {
+            if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 fetchCommunities();
                 checkGcm();
-            }else {
+            } else {
                 Log.e(LOG_TAG, "NOT INTERNET");
-                refreshSnackBar();
+                NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
         } else {
             this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
@@ -118,7 +112,7 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    private View.OnClickListener closeSnackBarMain = new View.OnClickListener(){
+    private View.OnClickListener closeSnackBarMain = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             snackbar.dismiss();
@@ -159,7 +153,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void fetchCommunities() {
-        if (checkConnection(getApplicationContext())) {
+        if (NetConnectionUtils.isConnected(getApplicationContext())) {
             api.getCommunities(new Callback<JSONArray>() {
                 @Override
                 public void apply(JSONArray value) {
@@ -205,8 +199,8 @@ public class MainActivity extends BaseActivity {
                     swipeRefreshLayout.setRefreshing(false);
                 }
             });
-        }else{
-            refreshSnackBar();
+        } else {
+            NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
         }
     }
 
@@ -229,7 +223,7 @@ public class MainActivity extends BaseActivity {
                 final Runnable r = new Runnable() {
                     public void run() {
                         String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
-                        for(Community c: communities) {
+                        for (Community c : communities) {
                             if (c.uuid.equals(communityFinal.uuid)) {
                                 c.isDefault = isCheckedFinal;
                                 if (isCheckedFinal) {
@@ -280,7 +274,7 @@ public class MainActivity extends BaseActivity {
     private void checkGcm() {
         String gcmToken = FirebaseInstanceId.getInstance().getToken();
         if (gcmToken != null) {
-            if(checkConnection(getApplicationContext())) {
+            if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 api.addGcmToken(gcmToken, new Callback<JSONObject>() {
                     @Override
                     public void apply(JSONObject jsonObject) {
@@ -297,94 +291,12 @@ public class MainActivity extends BaseActivity {
                         Log.e(LOG_TAG, throwable.getMessage());
                     }
                 });
-            }else{
-              refreshSnackBar();
+            } else {
+                NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
         }
 
         Log.d(LOG_TAG, "GCM Token " + gcmToken);
-    }
-
-    public void refreshSnackBar(){
-        snackbar.setText(R.string.no_internet)
-                .setActionTextColor(Color.parseColor("#D32F2F"))
-                .setDuration(Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.activate, activateSnackBarMain)
-                .show();
-        progressBar.setVisibility(View.GONE);
-
-    }
-    private View.OnClickListener activateSnackBarMain = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            CreateAlertSetting();
-        }
-    };
-
-    private void CreateAlertSetting() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.setting_info)
-                .setMessage(R.string.message_internet_not_available)
-                .setCancelable(false)
-                .setPositiveButton(R.string.activate_wifi_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        final WifiManager wifi =(WifiManager)getSystemService(getApplicationContext().WIFI_SERVICE);
-                        wifi.setWifiEnabled(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.activate_data_mobile_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setEnableDataMobile(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNeutralButton(R.string.cancel_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        refreshSnackBar();
-                        dialog.cancel();
-                    }
-                })
-                .create()
-                .show();
-    }
-
-    private void reloadActivity() {
-        Intent intent = getIntent();
-        intent.putExtra(Constants.FROM_MENU, Constants.FROM_MENU);
-        finish();
-        startActivity(intent);
-    }
-
-    public void setEnableDataMobile(boolean enable){
-        // Enable data
-        ConnectivityManager dataManager;
-        dataManager  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        Method dataMtd = null;
-        try {
-            dataMtd = ConnectivityManager.class.getDeclaredMethod("setMobileDataEnabled", boolean.class);
-            dataMtd.setAccessible(true);
-            dataMtd.invoke(dataManager, enable);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
     }
 }
 

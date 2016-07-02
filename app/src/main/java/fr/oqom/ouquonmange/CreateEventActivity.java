@@ -1,19 +1,12 @@
 package fr.oqom.ouquonmange;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -21,11 +14,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
-import org.json.JSONObject;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Calendar;
 import org.joda.time.DateTime;
 import org.json.JSONException;
 
@@ -35,6 +23,7 @@ import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import fr.oqom.ouquonmange.utils.TimeUtils;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -77,9 +66,9 @@ public class CreateEventActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
-        initLayoutWidgets();
+        initView();
         Intent intent = getIntent();
-        communityUuid =  intent.getStringExtra(Constants.COMMUNITY_UUID);
+        communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
         day = TimeUtils.getDateTime(intent.getLongExtra(Constants.EVENT_DATE, TimeUtils.now().getMillis()));
 
         this.dateStart = day.toDateTime();
@@ -88,12 +77,9 @@ public class CreateEventActivity extends AppCompatActivity {
         this.dayStartInput.setText(TimeUtils.printDate(day, getApplicationContext()));
         this.dayEndInput.setText(TimeUtils.printDate(day, getApplicationContext()));
 
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
 
-
-        progressBar = (ProgressBar) findViewById(R.id.progress);
         api = new OuquonmangeApi(getApplicationContext());
         progressBar.setVisibility(View.GONE);
 
@@ -128,7 +114,7 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-    private void initLayoutWidgets() {
+    private void initView() {
         titleLayout = (TextInputLayout) findViewById(R.id.layout_event_title);
         layoutDateStart = (TextInputLayout) findViewById(R.id.layout_event_date_start);
         layoutDateEnd = (TextInputLayout) findViewById(R.id.layout_event_date_end);
@@ -147,6 +133,7 @@ public class CreateEventActivity extends AppCompatActivity {
         saveEventAction = (Button) findViewById(R.id.action_create_event);
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
 
         saveEventAction.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,10 +154,10 @@ public class CreateEventActivity extends AppCompatActivity {
         final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
 
-        if(validateFormCreateEvent()) {
+        if (validateFormCreateEvent()) {
             hiddenVirtualKeyboard();
             progressBar.setVisibility(View.VISIBLE);
-            if(checkConnection(getApplicationContext())) {
+            if (NetConnectionUtils.isConnected(getApplicationContext())) {
 
                 api.createEvent(communityUuid, name, description, dateStart, dateEnd)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -191,8 +178,8 @@ public class CreateEventActivity extends AppCompatActivity {
                                 progressBar.setVisibility(View.GONE);
                             }
                         });
-            }else{
-                refreshSnackBar();
+            } else {
+                NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
 
         } else {
@@ -201,7 +188,7 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private boolean validateFormCreateEvent() {
-        boolean flag = true, dateStartIsEmpty = true , dateEndIsEmpty = true;
+        boolean flag = true, dateStartIsEmpty = true, dateEndIsEmpty = true;
 
         String title = titleInput.getText().toString();
         String dateStart = dateStartInput.getText().toString();
@@ -304,8 +291,8 @@ public class CreateEventActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    protected void hiddenVirtualKeyboard(){
-        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+    protected void hiddenVirtualKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
 
@@ -321,112 +308,5 @@ public class CreateEventActivity extends AppCompatActivity {
         } else {
             snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
-    }
-
-    public void refreshSnackBar(){
-        snackbar.setText(R.string.no_internet)
-                .setActionTextColor(Color.parseColor("#D32F2F"))
-                .setDuration(Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.activate, activateSnackBarCreateEvent)
-                .show();
-        progressBar.setVisibility(View.GONE);
-
-    }
-    private View.OnClickListener activateSnackBarCreateEvent = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            CreateAlertSetting();
-        }
-    };
-
-    private void CreateAlertSetting() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.setting_info)
-                .setMessage(R.string.message_internet_not_available)
-                .setCancelable(false)
-                .setPositiveButton(R.string.activate_wifi_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        final WifiManager wifi =(WifiManager)getSystemService(getApplicationContext().WIFI_SERVICE);
-                        wifi.setWifiEnabled(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.activate_data_mobile_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setEnableDataMobile(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNeutralButton(R.string.cancel_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        refreshSnackBar();
-                        dialog.cancel();
-                    }
-                })
-                .create()
-                .show();
-    }
-
-    private void reloadActivity() {
-        Intent intent = getIntent();
-        intent.putExtra(Constants.EVENT_DATE, day.getMillis());
-        intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-        finish();
-        startActivity(intent);
-    }
-
-    public void setEnableDataMobile(boolean enable){
-        // Enable data
-        ConnectivityManager dataManager;
-        dataManager  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        Method dataMtd = null;
-        try {
-            dataMtd = ConnectivityManager.class.getDeclaredMethod("setMobileDataEnabled", boolean.class);
-            dataMtd.setAccessible(true);
-            dataMtd.invoke(dataManager, enable);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean checkConnection(Context context) {
-        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
-
-        if (activeNetworkInfo != null) { // connected to the internet
-            if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI ) {
-                // connected to wifi
-                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
-                    Log.i(LOG_TAG,"type wifi");
-                    return true;
-                }
-
-            } else if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-                // connected to the mobile provider's data plan
-                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
-                    Log.i(LOG_TAG, "type data");
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

@@ -1,17 +1,12 @@
 package fr.oqom.ouquonmange;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -22,8 +17,6 @@ import android.widget.ProgressBar;
 
 import org.json.JSONException;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -35,6 +28,7 @@ import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback3;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -53,21 +47,22 @@ public class CalendarActivity extends BaseActivity {
     private String communityUuid;
     private Calendar day = Calendar.getInstance();
     private Snackbar snackbar;
+    private CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
         Intent intent = getIntent();
-        communityUuid =  intent.getStringExtra(Constants.COMMUNITY_UUID);
+        communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
 
         Log.d(LOG_TAG, "onCreate = " + communityUuid);
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
 
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
+        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarCalendar);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -129,7 +124,7 @@ public class CalendarActivity extends BaseActivity {
         eventsRecyclerView.setAdapter(eventsSectionedAdapter);
     }
 
-    private View.OnClickListener closeSnackBarCalendar = new View.OnClickListener(){
+    private View.OnClickListener closeSnackBarCalendar = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             snackbar.dismiss();
@@ -216,10 +211,8 @@ public class CalendarActivity extends BaseActivity {
     }
 
     private void fetchEvents(final String communityUuid, final Calendar calendar) {
-
         Log.d(LOG_TAG, "fetchEvents communityUuid=" + communityUuid + " calendar" + calendar);
-        if(checkConnection(getApplicationContext())) {
-
+        if (NetConnectionUtils.isConnected(getApplicationContext())) {
             api.getEvents(communityUuid, calendar)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<Event>>() {
@@ -242,91 +235,10 @@ public class CalendarActivity extends BaseActivity {
                             swipeRefreshLayout.setRefreshing(false);
                         }
                     });
-        }else {
-            refreshSnackBar();
-        }
-
-    }
-    public void refreshSnackBar(){
-        snackbar.setText(R.string.no_internet)
-                .setActionTextColor(Color.parseColor("#D32F2F"))
-                .setDuration(Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.activate, activateSnackBarCalendar)
-                .show();
-
-        progressBar.setVisibility(View.GONE);
-
-    }
-    private View.OnClickListener activateSnackBarCalendar = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            CreateAlertSetting();
-        }
-    };
-
-    private void CreateAlertSetting() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.setting_info)
-                .setMessage(R.string.message_internet_not_available)
-                .setCancelable(false)
-                .setPositiveButton(R.string.activate_wifi_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        final WifiManager wifi =(WifiManager)getSystemService(getApplicationContext().WIFI_SERVICE);
-                        wifi.setWifiEnabled(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.activate_data_mobile_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setEnableDataMobile(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNeutralButton(R.string.cancel_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        refreshSnackBar();
-                        dialog.cancel();
-                    }
-                })
-                .create()
-                .show();
-    }
-
-    private void reloadActivity() {
-        Intent intent = getIntent();
-        intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-        finish();
-        startActivity(intent);
-    }
-
-    public void setEnableDataMobile(boolean enable){
-        // Enable data
-        ConnectivityManager dataManager;
-        dataManager  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        Method dataMtd = null;
-        try {
-            dataMtd = ConnectivityManager.class.getDeclaredMethod("setMobileDataEnabled", boolean.class);
-            dataMtd.setAccessible(true);
-            dataMtd.invoke(dataManager, enable);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } else {
+            progressBar.setVisibility(View.GONE);
+            swipeRefreshLayout.setRefreshing(false);
+            NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
         }
     }
 }

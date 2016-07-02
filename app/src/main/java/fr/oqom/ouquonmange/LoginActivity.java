@@ -1,17 +1,11 @@
 package fr.oqom.ouquonmange;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -26,13 +20,11 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String LOG_TAG = "LoginActivity";
@@ -45,6 +37,7 @@ public class LoginActivity extends AppCompatActivity {
     private AuthRepository authRepository;
     private Snackbar snackbar;
     private ProgressBar progressBar;
+    private CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,9 +54,9 @@ public class LoginActivity extends AppCompatActivity {
         api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
 
-        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
+        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close), closeSnackBarLogin);
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,7 +77,7 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.GONE);
     }
 
-    private View.OnClickListener closeSnackBarLogin = new View.OnClickListener(){
+    private View.OnClickListener closeSnackBarLogin = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             snackbar.dismiss();
@@ -95,7 +88,7 @@ public class LoginActivity extends AppCompatActivity {
         if (validateEmail() && validatePassword()) {
             progressBar.setVisibility(View.VISIBLE);
             hiddenVirtualKeyboard();
-            if(checkConnection(getApplicationContext())) {
+            if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
                     @Override
                     public void apply(final JSONObject value) {
@@ -146,10 +139,10 @@ public class LoginActivity extends AppCompatActivity {
 
                     }
                 });
-            }else{
-                refreshSnackBar();
+            } else {
+                NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
-        }else{
+        } else {
             snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
     }
@@ -192,117 +185,9 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    protected void hiddenVirtualKeyboard(){
-        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+    protected void hiddenVirtualKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
     }
-
-    public void refreshSnackBar(){
-        snackbar.setText(R.string.no_internet)
-                .setActionTextColor(Color.parseColor("#D32F2F"))
-                .setDuration(Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.activate, activateSnackBarLogin)
-                .show();
-        progressBar.setVisibility(View.GONE);
-
-    }
-    private View.OnClickListener activateSnackBarLogin = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            CreateAlertSetting();
-        }
-    };
-
-    private void CreateAlertSetting() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.setting_info)
-                .setMessage(R.string.message_internet_not_available)
-                .setCancelable(false)
-                .setPositiveButton(R.string.activate_wifi_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        final WifiManager wifi =(WifiManager)getSystemService(getApplicationContext().WIFI_SERVICE);
-                        wifi.setWifiEnabled(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.activate_data_mobile_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        setEnableDataMobile(true);
-                        if(checkConnection(getApplicationContext())) {
-                            reloadActivity();
-                        }else {
-                            refreshSnackBar();
-                            dialog.dismiss();
-                        }
-                    }
-                })
-                .setNeutralButton(R.string.cancel_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        refreshSnackBar();
-                        dialog.cancel();
-                    }
-                })
-                .create()
-                .show();
-    }
-
-    private void reloadActivity() {
-        Intent intent = getIntent();
-        finish();
-        startActivity(intent);
-    }
-
-    public void setEnableDataMobile(boolean enable){
-        // Enable data
-        ConnectivityManager dataManager;
-        dataManager  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        Method dataMtd = null;
-        try {
-            dataMtd = ConnectivityManager.class.getDeclaredMethod("setMobileDataEnabled", boolean.class);
-            dataMtd.setAccessible(true);
-            dataMtd.invoke(dataManager, enable);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean checkConnection(Context context) {
-        final ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
-
-        if (activeNetworkInfo != null) { // connected to the internet
-            if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI ) {
-                // connected to wifi
-                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
-                    Log.i(LOG_TAG,"type wifi");
-                    return true;
-                }
-
-            } else if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-                // connected to the mobile provider's data plan
-                if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {
-                    Log.i(LOG_TAG, "type data");
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
-
 }
