@@ -120,7 +120,7 @@ public class CreateEventActivity extends AppCompatActivity {
         layoutDateEnd = (TextInputLayout) findViewById(R.id.layout_event_date_end);
 
         layoutDayEnd = (TextInputLayout) findViewById(R.id.layout_event_day_date_end);
-        layoutDateEnd = (TextInputLayout) findViewById(R.id.layout_event_day_date_start);
+        layoutDayStart = (TextInputLayout) findViewById(R.id.layout_event_day_date_start);
 
         titleInput = (EditText) findViewById(R.id.input_event_title);
         descriptionInput = (EditText) findViewById(R.id.input_event_description);
@@ -154,7 +154,7 @@ public class CreateEventActivity extends AppCompatActivity {
         final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
         hiddenVirtualKeyboard();
-        if(validateFormCreateEvent()) {
+        if (validateFormCreateEvent()) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 progressBar.setVisibility(View.VISIBLE);
                 api.createEvent(communityUuid, name, description, dateStart, dateEnd)
@@ -186,7 +186,7 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private boolean validateFormCreateEvent() {
-        boolean flag = true, dateStartIsEmpty = true, dateEndIsEmpty = true;
+        boolean flag = true, dateStartIsEmpty = false, dateEndIsEmpty = false;
 
         String title = titleInput.getText().toString();
         String dateStart = dateStartInput.getText().toString();
@@ -217,7 +217,7 @@ public class CreateEventActivity extends AppCompatActivity {
             if (flag) {
                 requestFocus(dateStartInput);
             }
-            dateStartIsEmpty = false;
+            dateStartIsEmpty = true;
             flag = false;
         } else {
             layoutDateStart.setErrorEnabled(false);
@@ -228,13 +228,13 @@ public class CreateEventActivity extends AppCompatActivity {
             if (flag) {
                 requestFocus(dateEndInput);
             }
-            dateEndIsEmpty = false;
+            dateEndIsEmpty = true;
             flag = false;
         } else {
             layoutDateEnd.setErrorEnabled(false);
         }
 
-        if (dateStartIsEmpty) {
+        if (!dateStartIsEmpty) {
             if (this.dateStart.isBefore(dateNow)) {
                 layoutDateStart.setError(getString(R.string.error_start_date_in_the_past));
                 if (flag) {
@@ -246,7 +246,7 @@ public class CreateEventActivity extends AppCompatActivity {
             }
         }
 
-        if (dateEndIsEmpty) {
+        if (!dateEndIsEmpty) {
             if (this.dateEnd.isBefore(dateNow)) {
                 layoutDateEnd.setError(getString(R.string.error_end_date_in_the_past));
                 if (flag) {
@@ -258,7 +258,7 @@ public class CreateEventActivity extends AppCompatActivity {
             }
         }
 
-        if (dateEndIsEmpty && dateStartIsEmpty) {
+        if (!dateEndIsEmpty && !dateStartIsEmpty) {
             if (this.dateStart.isAfter(this.dateEnd)) {
                 layoutDateEnd.setError(getString(R.string.error_end_date_prior_start));
                 if (flag) {
