@@ -9,7 +9,6 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,7 +26,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
     private static final String LOG_TAG = "CreateCommunityActivity";
 
     private Button saveAction;
-    private TextInputLayout titleLayout ,descriptionLayout;
+    private TextInputLayout titleLayout, descriptionLayout;
     private EditText titleInput, descriptionInput;
 
     private OuquonmangeApi api;
@@ -118,14 +117,13 @@ public class CreateCommunityActivity extends AppCompatActivity {
 
         if (name.isEmpty()) {
             titleLayout.setError(getString(R.string.error_field_required));
-            if(flag){
+            if (flag) {
                 //requestFocus(titleInput);
             }
             flag = false;
-        }
-        else if (name.length()>maxLengthName || name.length()<minLengthName ){
-            titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity) +" ( beetween "+minLengthName+" and "+maxLengthName+" caracters )");
-            if(flag){
+        } else if (name.length() > maxLengthName || name.length() < minLengthName) {
+            titleLayout.setError(getString(R.string.error_invalid_titleOfCommunity) + " ( beetween " + minLengthName + " and " + maxLengthName + " caracters )");
+            if (flag) {
                 //requestFocus(titleInput);
             }
             flag = false;
@@ -133,9 +131,9 @@ public class CreateCommunityActivity extends AppCompatActivity {
             titleLayout.setErrorEnabled(false);
         }
 
-        if(description.isEmpty()){
+        if (description.isEmpty()) {
             descriptionLayout.setError(getString(R.string.error_field_required));
-            if(flag) {
+            if (flag) {
                 //requestFocus(descriptionInput);
             }
             flag = false;
