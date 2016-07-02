@@ -198,7 +198,7 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private boolean validateFormCreateEvent() {
-        boolean flag = true, dateStartIsEmpty = false, dateEndIsEmpty = false;
+        boolean flag = true, dateStartIsEmpty = false , dateEndIsEmpty = false;
 
         String title = titleInput.getText().toString();
         String dateStart = dateStartInput.getText().toString();
