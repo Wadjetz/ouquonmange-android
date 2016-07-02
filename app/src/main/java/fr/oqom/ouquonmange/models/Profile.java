@@ -4,10 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import org.joda.time.DateTime;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import fr.oqom.ouquonmange.utils.TimeUtils;
 
 public class Profile implements Parcelable {
     public String uuid;
@@ -15,14 +11,6 @@ public class Profile implements Parcelable {
     public String email;
     public int gsmTokens;
     public DateTime created;
-
-    public Profile(String uuid, String username, String email, int gsmTokens, long created) {
-        this.uuid = uuid;
-        this.username = username;
-        this.email = email;
-        this.gsmTokens = gsmTokens;
-        this.created = TimeUtils.getDateTime(created);
-    }
 
     protected Profile(Parcel in) {
         uuid = in.readString();
@@ -58,12 +46,13 @@ public class Profile implements Parcelable {
         }
     };
 
-    public static Profile fromJson(JSONObject json) throws JSONException {
-        String uuid = json.getString("uuid");
-        String username = json.getString("username");
-        String email = json.getString("email");
-        int gsmTokens = json.getInt("gsmTokens");
-        long created = json.getLong("created");
-        return new Profile(uuid, username, email, gsmTokens, created);
+    @Override
+    public String toString() {
+        return "Profile{" +
+                "uuid='" + uuid + '\'' +
+                ", username='" + username + '\'' +
+                ", gsmTokens=" + gsmTokens +
+                ", created=" + created +
+                '}';
     }
 }

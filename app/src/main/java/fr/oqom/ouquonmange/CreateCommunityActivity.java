@@ -13,13 +13,14 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
-import fr.oqom.ouquonmange.utils.Callback;
-import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.services.Service;
+import retrofit2.adapter.rxjava.HttpException;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 
 public class CreateCommunityActivity extends AppCompatActivity {
@@ -35,6 +36,8 @@ public class CreateCommunityActivity extends AppCompatActivity {
     private Snackbar snackbar;
     private CoordinatorLayout coordinatorLayout;
 
+    private OuQuOnMangeService ouQuOnMangeService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +50,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
         saveAction = (Button) findViewById(R.id.action_create_community);
 
         api = new OuquonmangeApi(getApplicationContext());
+        ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCreateCommunityLayout);
         snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
@@ -62,7 +66,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
 
     }
 
-    private View.OnClickListener closeSnackBarCreateCommunity = new View.OnClickListener() {
+    private View.OnClickListener closeSnackBarCreateCommunity = new View.OnClickListener(){
         @Override
         public void onClick(View v) {
             snackbar.dismiss();
@@ -75,41 +79,43 @@ public class CreateCommunityActivity extends AppCompatActivity {
         hiddenVirtualKeyboard();
         if (validateForm(name, description)) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                api.createCommunity(name, description, new Callback<JSONObject>() {
-                    @Override
-                    public void apply(JSONObject value) {
-                        if (value != null) {
-                            Log.i(LOG_TAG, value.toString());
-                            snackbar.setText(R.string.community_created).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                            finish();
-                        } else {
-                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        }
-                    }
-                }, new Callback2<Throwable, JSONObject>() {
-                    @Override
-                    public void apply(Throwable throwable, JSONObject error) {
-                        String err = "";
-                        if (error != null) {
-                            try {
-                                err = error.getString("error");
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                ouQuOnMangeService.createCommunity(new Community(name, description))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Community>() {
+                            @Override
+                            public void call(Community community) {
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                intent.putExtra(Constants.CREATED_COMMUNITY, community);
+                                startActivity(intent);
+                                finish();
                             }
-                            snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        } else {
-                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        }
-                    }
-                });
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                throwable.printStackTrace();
+                                if (throwable instanceof HttpException) {
+                                    HttpException response = (HttpException) throwable;
+                                    switch (response.code()) {
+                                        case 400:
+                                            Log.e(LOG_TAG, "Login 400 Bad Request");
+                                            snackbar.setText(R.string.error_invalid_fields).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            break;
+                                        case 409:
+                                            Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
+                                            snackbar.setText(R.string.create_community_error_already_exist).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                    }
+                                    //progressBar.setVisibility(View.GONE);
+                                } else {
+                                    snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                }
+                            }
+                        });
             } else {
                 NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
         } else {
             snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
-
     }
 
     private boolean validateForm(String name, String description) {
@@ -151,6 +157,5 @@ public class CreateCommunityActivity extends AppCompatActivity {
     protected void hiddenVirtualKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-
     }
 }

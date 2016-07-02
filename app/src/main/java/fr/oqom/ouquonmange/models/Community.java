@@ -3,6 +3,8 @@ package fr.oqom.ouquonmange.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
+
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,14 +16,30 @@ import java.util.List;
 import fr.oqom.ouquonmange.utils.TimeUtils;
 
 public class Community implements Parcelable {
-    public long id;
-    public String uuid;
+
+    @Expose(serialize = false)
+    public long id = 0;
+
+    @Expose(serialize = false)
+    public String uuid = "";
+
     public String name;
+
     public String description;
+
+    @Expose(serialize = false)
     public DateTime created;
+
+    @Expose(serialize = false, deserialize = false)
     public boolean isDefault = false;
 
     public Community() {}
+
+    public Community(String name, String description) {
+        this.name = name;
+        this.description = description;
+        this.created = null;
+    }
 
     public Community(long id, String uuid, String name, String description, long created, boolean isDefault) {
         this.id = id;
@@ -41,6 +59,16 @@ public class Community implements Parcelable {
         isDefault = 1 == in.readInt();
     }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(uuid);
+        dest.writeString(name);
+        dest.writeString(description);
+        dest.writeLong(created.getMillis());
+        dest.writeInt(isDefault ? 1 : 0);
+    }
+
     public static final Creator<Community> CREATOR = new Creator<Community>() {
         @Override
         public Community createFromParcel(Parcel in) {
@@ -53,33 +81,8 @@ public class Community implements Parcelable {
         }
     };
 
-    public static List<Community> fromJson(JSONArray jsonArray) throws JSONException {
-        List<Community> communities = new ArrayList<>();
-        int total = jsonArray.length();
-        for (int i=0; i<total; i++) {
-            JSONObject jsonCommunity = jsonArray.getJSONObject(i);
-            long id = jsonCommunity.getLong("id");
-            String uuid = jsonCommunity.getString("uuid");
-            String name = jsonCommunity.getString("name");
-            String description = jsonCommunity.getString("description");
-            int created = jsonCommunity.getInt("created");
-            communities.add(new Community(id, uuid, name, description, created, false));
-        }
-        return communities;
-    }
-
     @Override
     public int describeContents() {
         return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(id);
-        dest.writeString(uuid);
-        dest.writeString(name);
-        dest.writeString(description);
-        dest.writeLong(created.getMillis());
-        dest.writeInt(isDefault ? 1 : 0);
     }
 }

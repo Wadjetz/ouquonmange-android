@@ -5,7 +5,8 @@
     android:id="@+id/coordinatorSigninLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fr.oqom.ouquonmange.CreateAccountUserActivity">
+    tools:context=".SignUpActivity">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -21,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/signup_input_username"
                 android:hint="@string/prompt_username"
                 android:inputType="textEmailAddress"
@@ -36,7 +37,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/signup_input_email"
                 android:hint="@string/prompt_email"
                 android:inputType="textEmailAddress"
@@ -51,7 +52,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/signup_input_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -66,22 +67,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/signup_input_confirm_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/confirm_password"
-                android:inputType="textPassword" />
-
+                android:inputType="textPassword"/>
 
         </android.support.design.widget.TextInputLayout>
-
-        <ProgressBar
-            android:id="@+id/progressCreateAccountUser"
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_centerHorizontal="true" />
 
         <Button
             android:id="@+id/signup_button"
@@ -89,7 +82,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:indeterminate="true" />
 
     </LinearLayout>
 

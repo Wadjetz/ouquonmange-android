@@ -13,9 +13,6 @@ import fr.oqom.ouquonmange.R;
 import fr.oqom.ouquonmange.models.User;
 import fr.oqom.ouquonmange.utils.Callback;
 
-/**
- * Created by hedhili on 24/06/2016.
- */
 public class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.ViewHolder> {
 
     private List<User> membersOfCommunityByEvent;

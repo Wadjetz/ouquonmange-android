@@ -25,9 +25,12 @@ import fr.oqom.ouquonmange.adapters.EventsSectionedAdapter;
 import fr.oqom.ouquonmange.dialogs.DatePickerDialogs;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
+import fr.oqom.ouquonmange.services.OuQuOnMangeService;
+import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback3;
+import retrofit2.adapter.rxjava.HttpException;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -41,6 +44,8 @@ public class CalendarActivity extends BaseActivity {
     private RecyclerView eventsRecyclerView;
     private EventsSectionedAdapter eventsSectionedAdapter;
     private RecyclerView.LayoutManager eventsLayoutManager;
+
+    private OuQuOnMangeService ouQuOnMangeService;
 
     private ArrayList<Event> events = new ArrayList<>();
 
@@ -60,6 +65,8 @@ public class CalendarActivity extends BaseActivity {
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
+        ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
         snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
@@ -213,14 +220,14 @@ public class CalendarActivity extends BaseActivity {
     private void fetchEvents(final String communityUuid, final Calendar calendar) {
         Log.d(LOG_TAG, "fetchEvents communityUuid=" + communityUuid + " calendar" + calendar);
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            api.getEvents(communityUuid, calendar)
+            ouQuOnMangeService.getEvents(communityUuid, calendar.getTimeInMillis() + "")
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<Event>>() {
                         @Override
                         public void call(List<Event> eventsList) {
                             events.clear();
                             events.addAll(eventsList);
-                            Log.e(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.getTime().toString() + " = " + events.size());
+                            Log.d(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.getTime().toString() + " = " + events.size());
                             progressBar.setVisibility(View.GONE);
                             swipeRefreshLayout.setRefreshing(false);
                             eventsSectionedAdapter.setItemList(events);
@@ -229,10 +236,15 @@ public class CalendarActivity extends BaseActivity {
                     }, new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
-                            showApiError(throwableWithJson);
-                            progressBar.setVisibility(View.GONE);
-                            swipeRefreshLayout.setRefreshing(false);
+                            throwable.printStackTrace();
+                            if (throwable instanceof HttpException) {
+                                HttpException response = (HttpException) throwable;
+                                int code = response.code();
+                                Log.e(LOG_TAG, "RETROFIT ERROR code = " + code);
+
+                                progressBar.setVisibility(View.GONE);
+                                swipeRefreshLayout.setRefreshing(false);
+                            }
                         }
                     });
         } else {

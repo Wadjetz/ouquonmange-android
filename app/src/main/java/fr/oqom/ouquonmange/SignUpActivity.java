@@ -5,33 +5,35 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ProgressBar;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.regex.Pattern;
 
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.SignUpUser;
+import fr.oqom.ouquonmange.models.Token;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
-import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import retrofit2.adapter.rxjava.HttpException;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
-public class CreateAccountUserActivity extends BaseActivity {
+public class SignUpActivity extends BaseActivity {
     private static final String LOG_TAG = "SignUnActivity";
 
     private TextInputLayout usernameLayoutSignup, emailLayoutSignup, passwordLayoutSignup, passwordConfirmLayoutSignup;
-    private EditText usernameInputSignup, emailInputSignup, passwordInputSignup, passwordCofirmInputSignup;
+    private TextInputEditText usernameInputSignup, emailInputSignup, passwordInputSignup, passwordCofirmInputSignup;
     private Button signUpButton;
+
     private String regexPassword = Constants.REGEX_PASSWORD;
     private OuquonmangeApi api;
     private AuthRepository authRepository;
@@ -42,33 +44,36 @@ public class CreateAccountUserActivity extends BaseActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.create_account_user_activity);
-        usernameInputSignup = (EditText) findViewById(R.id.signup_input_username);
-        usernameLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_username);
-        emailInputSignup = (EditText) findViewById(R.id.signup_input_email);
-        emailLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_email);
-        passwordInputSignup = (EditText) findViewById(R.id.signup_input_password);
-        passwordLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_password);
-        passwordCofirmInputSignup = (EditText) findViewById(R.id.signup_input_confirm_password);
-        passwordConfirmLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_confirm_password);
-
-        signUpButton = (Button) findViewById(R.id.signup_button);
+        setContentView(R.layout.activity_signup);
+        initView();
 
         api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
 
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSigninLayout);
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarSignin);
+    }
 
-        progressBar = (ProgressBar) findViewById(R.id.progressCreateAccountUser);
-        progressBar.setVisibility(View.GONE);
+    private void initView() {
+        usernameInputSignup = (TextInputEditText) findViewById(R.id.signup_input_username);
+        usernameLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_username);
+        emailInputSignup = (TextInputEditText) findViewById(R.id.signup_input_email);
+        emailLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_email);
+        passwordInputSignup = (TextInputEditText) findViewById(R.id.signup_input_password);
+        passwordLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_password);
+        passwordCofirmInputSignup = (TextInputEditText) findViewById(R.id.signup_input_confirm_password);
+        passwordConfirmLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_confirm_password);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSigninLayout);
+        signUpButton = (Button) findViewById(R.id.signup_button);
 
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 signUp();
             }
+
+
         });
     }
 
@@ -88,13 +93,12 @@ public class CreateAccountUserActivity extends BaseActivity {
             String password = passwordInputSignup.getText().toString().trim();
 
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                api.createAccountUser(username, email, password, new Callback<JSONObject>() {
-                    @Override
-                    public void apply(final JSONObject value) {
-                        if (value != null) {
-                            try {
-                                String token = value.getString("token");
-                                authRepository.save(token, new Callback<Void>() {
+                ouQuOnMangeService.signUp(new SignUpUser(username, email, password))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Token>() {
+                            @Override
+                            public void call(Token token) {
+                                authRepository.save(token.getToken(), new Callback<Void>() {
                                     @Override
                                     public void apply(Void value) {
                                         startActivity(new Intent(getApplicationContext(), MainActivity.class));
@@ -104,32 +108,31 @@ public class CreateAccountUserActivity extends BaseActivity {
                                     @Override
                                     public void apply(Throwable error) {
                                         Log.e(LOG_TAG, error.getMessage());
-                                        snackbar.setText(R.string.error_Signin);
+                                        snackbar.setText(R.string.error_signin);
                                     }
                                 });
-                            } catch (JSONException e) {
-                                e.printStackTrace();
                             }
-                        } else {
-                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        }
-                    }
-                }, new Callback2<Throwable, JSONObject>() {
-                    @Override
-                    public void apply(Throwable throwable, JSONObject error) {
-                        String err = "";
-                        if (error != null) {
-                            try {
-                                err = error.getString("error");
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                throwable.printStackTrace();
+                                if (throwable instanceof HttpException) {
+                                    HttpException response = (HttpException) throwable;
+                                    switch (response.code()) {
+                                        case 400:
+                                            Log.e(LOG_TAG, "signUp 400 Bad Request");
+                                            snackbar.setText(R.string.error_signin).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            break;
+                                        case 409:
+                                            Log.e(LOG_TAG, "signUp 409 Conflict Community Already Exist");
+                                            snackbar.setText(R.string.signup_error_already_exist).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                    }
+                                } else {
+                                    snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                }
+                                progressBar.setVisibility(View.INVISIBLE);
                             }
-                            snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        } else {
-                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        }
-                    }
-                });
+                        });
             } else {
                 NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }

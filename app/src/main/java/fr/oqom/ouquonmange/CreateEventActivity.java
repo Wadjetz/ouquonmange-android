@@ -7,6 +7,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -20,11 +21,14 @@ import org.json.JSONException;
 import fr.oqom.ouquonmange.dialogs.DateTimePickerDialog;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
+import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
+import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import fr.oqom.ouquonmange.utils.TimeUtils;
+import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -42,6 +46,7 @@ public class CreateEventActivity extends AppCompatActivity {
     private DateTime dateEnd = TimeUtils.now();
 
     private OuquonmangeApi api;
+    private OuQuOnMangeService ouQuOnMangeService;
 
     private String communityUuid;
 
@@ -70,6 +75,8 @@ public class CreateEventActivity extends AppCompatActivity {
         Intent intent = getIntent();
         communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
         day = TimeUtils.getDateTime(intent.getLongExtra(Constants.EVENT_DATE, TimeUtils.now().getMillis()));
+
+        ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
         this.dateStart = day.toDateTime();
         this.dateEnd = day.toDateTime();
@@ -157,7 +164,7 @@ public class CreateEventActivity extends AppCompatActivity {
         if (validateFormCreateEvent()) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 progressBar.setVisibility(View.VISIBLE);
-                api.createEvent(communityUuid, name, description, dateStart, dateEnd)
+                ouQuOnMangeService.createEvent(communityUuid, new Event(name, description, dateStart, dateEnd))
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Event>() {
                             @Override
@@ -171,9 +178,14 @@ public class CreateEventActivity extends AppCompatActivity {
                         }, new Action1<Throwable>() {
                             @Override
                             public void call(Throwable throwable) {
-                                ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
-                                showApiError(throwableWithJson);
-                                progressBar.setVisibility(View.GONE);
+                                throwable.printStackTrace();
+                                if (throwable instanceof HttpException) {
+                                    HttpException response = (HttpException) throwable;
+                                    int code = response.code();
+                                    Log.e(LOG_TAG, "RETROFIT ERROR code = " + response.response().errorBody().toString());
+
+                                    progressBar.setVisibility(View.GONE);
+                                }
                             }
                         });
             } else {

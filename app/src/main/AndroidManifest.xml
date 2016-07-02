@@ -56,7 +56,7 @@
             android:parentActivityName=".SettingsActivity" />
 
         <activity
-            android:name=".CreateAccountUserActivity"
+            android:name=".SignUpActivity"
             android:label="@string/signup"
             android:parentActivityName=".LoginActivity" />
 

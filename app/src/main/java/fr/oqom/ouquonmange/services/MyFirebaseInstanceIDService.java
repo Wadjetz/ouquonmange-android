@@ -5,11 +5,11 @@ import android.util.Log;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
-import org.json.JSONObject;
-
 import fr.oqom.ouquonmange.models.AuthRepository;
-import fr.oqom.ouquonmange.utils.Callback;
-import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.models.GSMToken;
+import fr.oqom.ouquonmange.models.Message;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
     private static final String TAG = "FirebaseIDService";
@@ -18,8 +18,6 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
     public void onTokenRefresh() {
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
         Log.d(TAG, "Refreshed token: " + refreshedToken);
-
-        // TODO: Implement this method to send any registration to your app's servers.
         sendRegistrationToServer(refreshedToken);
     }
 
@@ -27,22 +25,20 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
         Log.d(TAG, "Send token to server: " + token);
         Config.saveGcmToken(token, getApplicationContext());
         String authToken = new AuthRepository(getApplicationContext()).getToken();
-        final String gcmToken = token;
-
         if (authToken != null) {
-            new OuquonmangeApi(getApplicationContext()).addGcmToken(token, new Callback<JSONObject>() {
-                @Override
-                public void apply(JSONObject jsonObject) {
-                    Log.d(TAG, "Send token to server: Ok " + gcmToken);
-                }
-            }, new Callback2<Throwable, JSONObject>() {
-                @Override
-                public void apply(Throwable throwable, JSONObject jsonObject) {
-                    Log.d(TAG, "Send token to server: Error " + gcmToken);
-                    Log.d(TAG, "Send token to server: Error " + throwable.getMessage());
-                    Log.d(TAG, "Send token to server: Error " + jsonObject.toString());
-                }
-            });
+            Service.getInstance(getApplicationContext()).addGcmToken(new GSMToken(token))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Message>() {
+                        @Override
+                        public void call(Message message) {
+                            Log.d(TAG, "Send token to server: Ok " + message);
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            Log.d(TAG, "Send token to server: Error " + throwable.getMessage());
+                        }
+                    });
         }
     }
 

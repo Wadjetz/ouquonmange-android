@@ -25,7 +25,9 @@ import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Profile;
 import fr.oqom.ouquonmange.services.Config;
+import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.OuquonmangeApi;
+import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.utils.Callback;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -34,6 +36,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     private static final String LOG_TAG = "BaseActivity";
 
     protected OuquonmangeApi api;
+    protected OuQuOnMangeService ouQuOnMangeService;
     protected AuthRepository authRepository;
 
     protected NavigationView navigationView;
@@ -48,6 +51,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
+        ouQuOnMangeService = Service.getInstance(getApplicationContext());
     }
 
     @Override
@@ -140,11 +144,12 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void initProfile() {
-        api.getProfile()
+        ouQuOnMangeService.getProfile()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Profile>() {
                     @Override
                     public void call(Profile profile) {
+                        Log.d(LOG_TAG, "Fetch profile = " + profile);
                         navigationViewHeaderUserName.setText(profile.username);
                         navigationViewHeaderEmail.setText(profile.email);
                     }
@@ -164,23 +169,8 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    protected void initNavSearch() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar_search);
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout_search);
-        navigationView = (NavigationView) findViewById(R.id.nav_view_search);
-
-        setSupportActionBar(toolbar);
-
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        navigationView.setNavigationItemSelectedListener(this);
-    }
-
-    protected void hiddenVirtualKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+    protected void hiddenVirtualKeyboard(){
+        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
     }

@@ -3,6 +3,7 @@ package fr.oqom.ouquonmange.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,27 +14,24 @@ import java.util.List;
 public class User implements Parcelable {
     public String uuid;
     public String username;
+    public DateTime created;
 
-    public User(String uuid,String username){
+    public User(String uuid, String username){
         this.uuid = uuid;
         this.username = username;
     }
 
     protected User(Parcel in) {
-        this.uuid = in.readString();
-        this.username = in.readString();
+        uuid = in.readString();
+        username = in.readString();
+        created = new DateTime(in.readLong());
     }
-
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(uuid);
         dest.writeString(username);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
+        dest.writeLong(created.getMillis());
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
@@ -43,6 +41,11 @@ public class User implements Parcelable {
         @Override
         public User[] newArray(int size) { return new User[size]; }
     };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
     public static List<User> fromJson(JSONArray jsonArray) throws JSONException {
         List<User> eventList = new ArrayList<>();
@@ -56,4 +59,12 @@ public class User implements Parcelable {
         return eventList;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "uuid='" + uuid + '\'' +
+                ", username='" + username + '\'' +
+                ", created=" + created +
+                '}';
+    }
 }

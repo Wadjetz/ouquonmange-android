@@ -66,7 +66,7 @@
     <string name="event_created">L\'événement a créé</string>
     <string name="error_login">Erreur lors de la connexion</string>
     <string name="login_error_connect">Erreur! Essayez à nouveau</string>
-    <string name="error_Signin">Erreur lors de l\'inscription</string>
+    <string name="error_signin">Erreur lors de l\'inscription</string>
     <string name="community_created">La communauté a créé</string>
     <string name="error_invalid_fields">Les champs sont invalides</string>
     <string name="error_exception">Erreur! Essayez à nouveau</string>
@@ -95,4 +95,8 @@
 
     <string name="key_notifications_enabled">KEY_NOTIFICATIONS_ENABLED</string>
 
+    <string name="login_error">Email or password invalid</string>
+    <string name="create_community_error_already_exist">Community Already Exist</string>
+    <string name="error_already_join">You have already join this community</string>
+    <string name="signup_error_already_exist">Already exist</string>
 </resources>

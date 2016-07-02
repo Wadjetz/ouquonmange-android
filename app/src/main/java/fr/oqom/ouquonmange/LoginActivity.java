@@ -9,22 +9,25 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import fr.oqom.ouquonmange.models.AuthRepository;
-import fr.oqom.ouquonmange.services.OuquonmangeApi;
+import fr.oqom.ouquonmange.models.Login;
+import fr.oqom.ouquonmange.models.Token;
+import fr.oqom.ouquonmange.services.OuQuOnMangeService;
+import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.utils.Callback;
-import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import retrofit2.adapter.rxjava.HttpException;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String LOG_TAG = "LoginActivity";
@@ -32,27 +35,34 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputLayout emailLayout, passwordLayout;
     private EditText emailInput, passwordInput;
     private Button loginButton;
-    private TextView signUpTextView;
-    private OuquonmangeApi api;
-    private AuthRepository authRepository;
     private Snackbar snackbar;
     private ProgressBar progressBar;
+    private OuQuOnMangeService ouQuOnMangeService;
+    private AuthRepository authRepository;
     private CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        initView();
+        getSupportActionBar().setSubtitle(R.string.login_action);
 
+        ouQuOnMangeService = Service.getInstance(getApplicationContext());
+        authRepository = new AuthRepository(getApplicationContext());
+
+        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
+        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
+    }
+
+    private void initView() {
         emailInput = (EditText) findViewById(R.id.login_input_email);
         emailLayout = (TextInputLayout) findViewById(R.id.login_layout_email);
         passwordInput = (EditText) findViewById(R.id.login_input_password);
         passwordLayout = (TextInputLayout) findViewById(R.id.login_layout_password);
         loginButton = (Button) findViewById(R.id.login_button);
-        signUpTextView = (TextView) findViewById(R.id.signUpTextView);
-
-        api = new OuquonmangeApi(getApplicationContext());
-        authRepository = new AuthRepository(getApplicationContext());
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
         snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
@@ -64,17 +74,23 @@ public class LoginActivity extends AppCompatActivity {
                 submitForm();
             }
         });
-        signUpTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displayCreateAccountView();
-            }
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_login_menu, menu);
+        return true;
+    }
 
-        });
-
-        progressBar = (ProgressBar) findViewById(R.id.progressLogin);
-        progressBar.setVisibility(View.GONE);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_action_signup:
+                startActivity(new Intent(getApplicationContext(), SignUpActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private View.OnClickListener closeSnackBarLogin = new View.OnClickListener() {
@@ -88,15 +104,20 @@ public class LoginActivity extends AppCompatActivity {
 
         hiddenVirtualKeyboard();
         if (validateEmail() && validatePassword()) {
-            progressBar.setVisibility(View.VISIBLE);
+
+
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                api.login(emailInput.getText().toString().trim().toLowerCase(), passwordInput.getText().toString().trim(), new Callback<JSONObject>() {
-                    @Override
-                    public void apply(final JSONObject value) {
-                        if (value != null) {
-                            try {
-                                String token = value.getString("token");
-                                authRepository.save(token, new Callback<Void>() {
+                progressBar.setVisibility(View.VISIBLE);
+
+                String email = emailInput.getText().toString().trim().toLowerCase();
+                String password = passwordInput.getText().toString().trim();
+
+                ouQuOnMangeService.login(new Login(email, password))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Token>() {
+                            @Override
+                            public void call(Token token) {
+                                authRepository.save(token.getToken(), new Callback<Void>() {
                                     @Override
                                     public void apply(Void value) {
                                         startActivity(new Intent(getApplicationContext(), MainActivity.class));
@@ -109,37 +130,25 @@ public class LoginActivity extends AppCompatActivity {
                                         snackbar.setText(R.string.error_login).setActionTextColor(Color.parseColor("#D32F2F")).show();
                                     }
                                 });
-                            } catch (JSONException e) {
-                                e.printStackTrace();
                             }
-
-                        } else {
-                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        }
-
-                        progressBar.setVisibility(View.GONE);
-
-                    }
-                }, new Callback2<Throwable, JSONObject>() {
-                    @Override
-                    public void apply(Throwable throwable, JSONObject error) {
-                        if (error != null) {
-                            String err = "";
-                            try {
-                                err = error.getString("error");
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                throwable.printStackTrace();
+                                if (throwable instanceof HttpException) {
+                                    HttpException response = (HttpException) throwable;
+                                    switch (response.code()) {
+                                        case 400:
+                                            Log.e(LOG_TAG, "Login 400 Bad Request");
+                                            snackbar.setText(R.string.login_error).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            break;
+                                    }
+                                    progressBar.setVisibility(View.INVISIBLE);
+                                } else {
+                                    snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                }
                             }
-                            snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        } else {
-                            Log.e(LOG_TAG, throwable.getMessage());
-                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                        }
-
-                        progressBar.setVisibility(View.GONE);
-
-                    }
-                });
+                        });
             } else {
                 NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
@@ -181,13 +190,8 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void displayCreateAccountView() {
-        Intent intent = new Intent(getApplicationContext(), CreateAccountUserActivity.class);
-        startActivity(intent);
-    }
-
-    protected void hiddenVirtualKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+    protected void hiddenVirtualKeyboard(){
+        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
     }

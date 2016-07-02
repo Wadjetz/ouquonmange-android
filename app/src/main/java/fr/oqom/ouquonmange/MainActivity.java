@@ -26,13 +26,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.GSMToken;
+import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
+import retrofit2.adapter.rxjava.HttpException;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 
 public class MainActivity extends BaseActivity {
@@ -154,12 +160,12 @@ public class MainActivity extends BaseActivity {
 
     private void fetchCommunities() {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            api.getCommunities(new Callback<JSONArray>() {
-                @Override
-                public void apply(JSONArray value) {
-                    if (value != null) {
-                        try {
-                            communities.addAll(Community.fromJson(value));
+            ouQuOnMangeService.getMyCommunities()
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<List<Community>>() {
+                        @Override
+                        public void call(List<Community> communityList) {
+                            communities.addAll(communityList);
 
                             for (Community c : communities) {
                                 String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
@@ -169,36 +175,20 @@ public class MainActivity extends BaseActivity {
                             }
 
                             communitiesAdapter.notifyDataSetChanged();
-                            Log.i(LOG_TAG, "Fetch Communities = " + communities.size());
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Log.e(LOG_TAG, "Fetch Communities = " + e.getMessage());
-                            snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                            Log.i(LOG_TAG, "Fetch Communities = " + communityList.size());
+                            progressBar.setVisibility(View.GONE);
+                            swipeRefreshLayout.setRefreshing(false);
                         }
-                    } else {
-                        snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    }
-                    progressBar.setVisibility(View.GONE);
-                    swipeRefreshLayout.setRefreshing(false);
-                }
-            }, new Callback2<Throwable, JSONObject>() {
-                @Override
-                public void apply(Throwable throwable, JSONObject jsonObject) {
-                    if (jsonObject != null) {
-                        Log.e(LOG_TAG, "Fetch Communities = " + jsonObject.toString());
-                        String err = "";
-                        try {
-                            err = jsonObject.getString("error");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            throwable.printStackTrace();
+                            Log.e(LOG_TAG, "Fetch Communities error" + throwable.getMessage());
+                            progressBar.setVisibility(View.GONE);
+                            swipeRefreshLayout.setRefreshing(false);
+                            snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
                         }
-                        snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                    }
-                    Log.e(LOG_TAG, "Fetch Communities = " + throwable.getMessage());
-                    progressBar.setVisibility(View.GONE);
-                    swipeRefreshLayout.setRefreshing(false);
-                }
-            });
+                    });
         } else {
             NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
         }
@@ -275,27 +265,23 @@ public class MainActivity extends BaseActivity {
         String gcmToken = FirebaseInstanceId.getInstance().getToken();
         if (gcmToken != null) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                api.addGcmToken(gcmToken, new Callback<JSONObject>() {
-                    @Override
-                    public void apply(JSONObject jsonObject) {
-                        if (jsonObject != null) {
-                            Log.e(LOG_TAG, jsonObject.toString());
-                        }
-                    }
-                }, new Callback2<Throwable, JSONObject>() {
-                    @Override
-                    public void apply(Throwable throwable, JSONObject jsonObject) {
-                        if (jsonObject != null) {
-                            Log.e(LOG_TAG, jsonObject.toString());
-                        }
-                        Log.e(LOG_TAG, throwable.getMessage());
-                    }
-                });
+                ouQuOnMangeService.addGcmToken(new GSMToken(gcmToken))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Message>() {
+                            @Override
+                            public void call(Message message) {
+                                Log.d(LOG_TAG, "addGcmToken ok = " +  message);
+                            }
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                Log.e(LOG_TAG, "addGcmToken error = " + throwable.getMessage());
+                            }
+                        });
             } else {
                 NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
         }
-
         Log.d(LOG_TAG, "GCM Token " + gcmToken);
     }
 }
