@@ -28,5 +28,4 @@ public class Constants {
     public static final String NAME_MEMBERS = "Members" ;
     public static final String DEFAULT_NUMBERS_OF_MEMBERS = "0";
     public static final String MEMBERS_LIST = "MEMBERS_LIST";
-    public static final long DURATION_PROGRESS_BAR = 2000 ;
 }

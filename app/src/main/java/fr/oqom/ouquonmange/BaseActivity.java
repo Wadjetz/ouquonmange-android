@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -24,6 +25,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
@@ -197,8 +201,6 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
 
         if (activeNetworkInfo != null) { // connected to the internet
-            Toast.makeText(context, activeNetworkInfo.getTypeName(), Toast.LENGTH_SHORT).show();
-
             if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI ) {
                 // connected to wifi
                 if(activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()) {

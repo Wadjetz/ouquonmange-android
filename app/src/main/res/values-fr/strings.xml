@@ -77,6 +77,13 @@
     <string name="no_message">Non</string>
     <string name="not_connection">Aucun réseau disponible!</string>
     <string name="refresh">Actualiser</string>
+    <string name="activate">Activer</string>
+    <string name="setting_info">Info</string>
+    <string name="message_internet_not_available">Internet pas disponible, Activez votre connexion et essayez à nouveau</string>
+    <string name="activate_wifi_message">Wifi</string>
+    <string name="activate_data_mobile_message">Données mobiles</string>
+    <string name="cancel_message">Annuler</string>
+
     <string name="setting_connection_confirm_message">Internet not available, Cross check your internet connectivity and try again</string>
     <string name="setting_wifi_confirm_title">Wifi Settings</string>
     <string name="setting_mobile_data_confirm_title">Data Mobile Settings</string>

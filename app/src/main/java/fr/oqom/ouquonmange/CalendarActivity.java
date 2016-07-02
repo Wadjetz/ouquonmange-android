@@ -1,12 +1,17 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -17,6 +22,8 @@ import android.widget.ProgressBar;
 
 import org.json.JSONException;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -244,19 +251,82 @@ public class CalendarActivity extends BaseActivity {
         snackbar.setText(R.string.no_internet)
                 .setActionTextColor(Color.parseColor("#D32F2F"))
                 .setDuration(Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.refresh, refreshSnackBarCalendar)
+                .setAction(R.string.activate, activateSnackBarCalendar)
                 .show();
 
         progressBar.setVisibility(View.GONE);
 
     }
-    private View.OnClickListener refreshSnackBarCalendar = new View.OnClickListener(){
+    private View.OnClickListener activateSnackBarCalendar = new View.OnClickListener(){
         @Override
         public void onClick(View v) {
-            Intent intent = getIntent();
-            intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-            finish();
-            startActivity(intent);
+            CreateAlertSetting();
         }
     };
+
+    private void CreateAlertSetting() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.setting_info)
+                .setMessage(R.string.message_internet_not_available)
+                .setCancelable(false)
+                .setPositiveButton(R.string.activate_wifi_message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final WifiManager wifi =(WifiManager)getSystemService(getApplicationContext().WIFI_SERVICE);
+                        wifi.setWifiEnabled(true);
+                        if(checkConnection(getApplicationContext())) {
+                            reloadActivity();
+                        }else {
+                            refreshSnackBar();
+                            dialog.dismiss();
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.activate_data_mobile_message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setEnableDataMobile(true);
+                        if(checkConnection(getApplicationContext())) {
+                            reloadActivity();
+                        }else {
+                            refreshSnackBar();
+                            dialog.dismiss();
+                        }
+                    }
+                })
+                .setNeutralButton(R.string.cancel_message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        refreshSnackBar();
+                        dialog.cancel();
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void reloadActivity() {
+        Intent intent = getIntent();
+        intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
+        finish();
+        startActivity(intent);
+    }
+
+    public void setEnableDataMobile(boolean enable){
+        // Enable data
+        ConnectivityManager dataManager;
+        dataManager  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        Method dataMtd = null;
+        try {
+            dataMtd = ConnectivityManager.class.getDeclaredMethod("setMobileDataEnabled", boolean.class);
+            dataMtd.setAccessible(true);
+            dataMtd.invoke(dataManager, enable);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
 }
