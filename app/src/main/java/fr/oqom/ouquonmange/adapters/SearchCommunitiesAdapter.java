@@ -27,7 +27,7 @@ public class SearchCommunitiesAdapter extends RecyclerView.Adapter<SearchCommuni
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.community_item, parent, false);
+                .inflate(R.layout.community_item_search, parent, false);
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
@@ -57,7 +57,7 @@ public class SearchCommunitiesAdapter extends RecyclerView.Adapter<SearchCommuni
             communityCardView = (CardView) v.findViewById(R.id.community_card);
             communityNameTextView = (TextView) v.findViewById(R.id.community_name);
             communityDescriptionTextView = (TextView) v.findViewById(R.id.community_description);
-            joinButton = (Button) v.findViewById(R.id.community_calendar);
+            joinButton = (Button) v.findViewById(R.id.community_join);
             joinButton.setText(R.string.community_join);
             joinButton.setOnClickListener(new View.OnClickListener() {
                 @Override
