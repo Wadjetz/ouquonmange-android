@@ -550,6 +550,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                     .subscribe(apiSuccessCallback, apiErrorCallback);
         } else {
             NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 
@@ -560,6 +561,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                     .subscribe(apiSuccessCallback, apiErrorCallback);
         } else {
             NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 
