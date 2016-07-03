@@ -63,7 +63,7 @@ public class CalendarActivity extends BaseActivity {
 
         Log.d(LOG_TAG, "onCreate = " + communityUuid);
 
-        progressBar = (ProgressBar) findViewById(R.id.progress);
+        progressBar = (ProgressBar) findViewById(R.id.progress_calendar);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
 
         ouQuOnMangeService = Service.getInstance(getApplicationContext());

@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
@@ -34,6 +35,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
     private int minLengthName = Constants.MIN_LENGTH_NAME_COMMUNITY;
     private int maxLengthName = Constants.MAX_LENGTH_NAME_COMMUNITY;
     private Snackbar snackbar;
+    private ProgressBar progressBar;
     private CoordinatorLayout coordinatorLayout;
 
     private OuQuOnMangeService ouQuOnMangeService;
@@ -63,7 +65,8 @@ public class CreateCommunityActivity extends AppCompatActivity {
             }
         });
 
-
+        progressBar = (ProgressBar) findViewById(R.id.progress_create_community);
+        progressBar.setVisibility(View.GONE);
     }
 
     private View.OnClickListener closeSnackBarCreateCommunity = new View.OnClickListener(){
@@ -104,7 +107,7 @@ public class CreateCommunityActivity extends AppCompatActivity {
                                             Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
                                             snackbar.setText(R.string.create_community_error_already_exist).setActionTextColor(Color.parseColor("#D32F2F")).show();
                                     }
-                                    //progressBar.setVisibility(View.GONE);
+                                    progressBar.setVisibility(View.GONE);
                                 } else {
                                     snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
                                 }

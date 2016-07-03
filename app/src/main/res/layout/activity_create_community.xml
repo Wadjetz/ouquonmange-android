@@ -44,11 +44,20 @@
 
         </android.support.design.widget.TextInputLayout>
 
+        <ProgressBar
+            android:id="@+id/progress_create_community"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_gravity="center"
+            android:layout_centerHorizontal="true" />
+
         <Button
             android:id="@+id/action_create_community"
             android:text="@string/save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
     </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

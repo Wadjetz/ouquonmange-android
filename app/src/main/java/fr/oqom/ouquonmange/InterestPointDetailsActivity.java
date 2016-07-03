@@ -112,7 +112,7 @@ public class InterestPointDetailsActivity extends BaseActivity {
     };
 
     private void initView() {
-        progressBar = (ProgressBar) findViewById(R.id.progress);
+        progressBar = (ProgressBar) findViewById(R.id.progress_interest_point_detail);
         interestPointName = (TextView) findViewById(R.id.interest_point_detail_name);
         interestPointAddress = (TextView) findViewById(R.id.interest_point_detail_address);
     }
