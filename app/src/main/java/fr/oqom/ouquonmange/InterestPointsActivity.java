@@ -55,7 +55,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private static final String LOG_TAG = "InterestPointsActivity";
     private static final String IS_COLLAPSED = "IS_COLLAPSED";
     private static final String INTEREST_POINT_ITEM_HEIGHT = "INTEREST_POINT_ITEM_HEIGHT";
-    final private int REQUEST_LOCATION_ASK_PERMISSIONS = 123;
+    private final int REQUEST_LOCATION_ASK_PERMISSIONS = 123;
 
 
     private RecyclerView interestPointsRecyclerView;

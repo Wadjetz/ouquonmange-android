@@ -8,6 +8,8 @@ import com.google.gson.annotations.Expose;
 
 import org.joda.time.DateTime;
 
+import fr.oqom.ouquonmange.utils.TimeUtils;
+
 public class Event implements Parcelable, Categorizable {
     @Expose(serialize = false)
     public long id;
@@ -22,15 +24,15 @@ public class Event implements Parcelable, Categorizable {
     @Expose(serialize = false)
     public DateTime created;
 
-    public Event(String name, String description, DateTime dateStart, DateTime dateEnd) {
-        this.id = 0;
-        this.uuid = "";
+    public Event(long id, String uuid, String name, String description, long dateStart, long dateEnd, long idCommunity, long created) {
+        this.id = id;
+        this.uuid = uuid;
         this.name = name;
         this.description = description;
-        this.dateStart = dateStart;
-        this.dateEnd = dateEnd;
-        this.communityId = 0;
-        this.created = null;
+        this.dateStart = TimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateStart),TimeUtils.getDefaultDateTimeZoneId());
+        this.dateEnd = TimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateEnd),TimeUtils.getDefaultDateTimeZoneId());
+        this.idCommunity = 0;
+        this.created = TimeUtils.getDateTime(created);
     }
 
     protected Event(Parcel in) {

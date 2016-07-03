@@ -198,11 +198,11 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private boolean validateFormCreateEvent() {
-        boolean flag = true, dateStartIsEmpty = false , dateEndIsEmpty = false;
+        boolean flag = true, dayStartIsEmpty = false , dayEndIsEmpty = false;
 
         String title = titleInput.getText().toString();
-        String dateStart = dateStartInput.getText().toString();
-        String dateEnd = dateEndInput.getText().toString();
+        String dayStart = dateStartInput.getText().toString();
+        String dayEnd = dateEndInput.getText().toString();
 
         DateTime dateNow = TimeUtils.now();
 
@@ -224,29 +224,29 @@ public class CreateEventActivity extends AppCompatActivity {
             titleLayout.setErrorEnabled(false);
         }
 
-        if (dateStart.isEmpty()) {
+        if (dayStart.isEmpty()) {
             layoutDateStart.setError(getString(R.string.error_field_required));
             if (flag) {
                 requestFocus(dateStartInput);
             }
-            dateStartIsEmpty = true;
+            dayStartIsEmpty = true;
             flag = false;
         } else {
             layoutDateStart.setErrorEnabled(false);
         }
 
-        if (dateEnd.isEmpty()) {
+        if (dayEnd.isEmpty()) {
             layoutDateEnd.setError(getString(R.string.error_field_required));
             if (flag) {
                 requestFocus(dateEndInput);
             }
-            dateEndIsEmpty = true;
+            dayEndIsEmpty = true;
             flag = false;
         } else {
             layoutDateEnd.setErrorEnabled(false);
         }
 
-        if (!dateStartIsEmpty) {
+        if (!dayStartIsEmpty) {
             if (this.dateStart.isBefore(dateNow)) {
                 layoutDateStart.setError(getString(R.string.error_start_date_in_the_past));
                 if (flag) {
@@ -258,7 +258,7 @@ public class CreateEventActivity extends AppCompatActivity {
             }
         }
 
-        if (!dateEndIsEmpty) {
+        if (!dayEndIsEmpty) {
             if (this.dateEnd.isBefore(dateNow)) {
                 layoutDateEnd.setError(getString(R.string.error_end_date_in_the_past));
                 if (flag) {
@@ -270,7 +270,7 @@ public class CreateEventActivity extends AppCompatActivity {
             }
         }
 
-        if (!dateEndIsEmpty && !dateStartIsEmpty) {
+        if (!dayEndIsEmpty && !dayStartIsEmpty) {
             if (this.dateStart.isAfter(this.dateEnd)) {
                 layoutDateEnd.setError(getString(R.string.error_end_date_prior_start));
                 if (flag) {
