@@ -10,17 +10,18 @@ import android.widget.TextView;
 import java.util.List;
 
 import fr.oqom.ouquonmange.R;
+import fr.oqom.ouquonmange.models.CommunityMember;
 import fr.oqom.ouquonmange.models.User;
 import fr.oqom.ouquonmange.utils.Callback;
 
 public class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.ViewHolder> {
 
-    private List<User> membersOfCommunityByEvent;
+    private List<CommunityMember> membersOfCommunityByEvent;
     private Context context;
 
 
 
-    public MembersAdapter(Context context, List<User> members) {
+    public MembersAdapter(Context context, List<CommunityMember> members) {
         this.context = context;
         this.membersOfCommunityByEvent = members;
     }
@@ -34,7 +35,7 @@ public class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        User user = membersOfCommunityByEvent.get(position);
+        CommunityMember user = membersOfCommunityByEvent.get(position);
         holder.memberNameTextView.setText(user.username);
         holder.user = user;
     }
@@ -47,7 +48,7 @@ public class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.ViewHold
     public class ViewHolder extends RecyclerView.ViewHolder {
         public CardView memberCardView;
         public TextView memberNameTextView;
-        public User user;
+        public CommunityMember user;
         public ViewHolder(View v) {
             super(v);
             //memberCardView = (CardView) v.findViewById(R.id.member_cardView);

@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange.services;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,12 +28,9 @@ public class Service {
         final AuthRepository authRepository = new AuthRepository(context);
         final String token = authRepository.getToken();
 
-        Log.d("Service", "token = " + token);
-
         Interceptor interceptor = new Interceptor() {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
-                Log.d("Service interceptor", "token = " + token);
                 Request newRequest = chain.request().newBuilder().addHeader("Authorization", "Bearer " + token).build();
                 return chain.proceed(newRequest);
             }

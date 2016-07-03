@@ -36,17 +36,22 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.InterestPointsAdapter;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.Group;
 import fr.oqom.ouquonmange.models.InterestPoint;
+import fr.oqom.ouquonmange.models.JoinGroup;
+import fr.oqom.ouquonmange.models.Message;
+import fr.oqom.ouquonmange.models.Vote;
+import fr.oqom.ouquonmange.models.VoteGroup;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -140,23 +145,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void onClick(View v) {
                 if (interestPoint.isJoin) {
-                    api.quitGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject response) {
-                                    updateListAfterQuitGroup(interestPoint);
-                                }
-                            }, errorCallback);
+                    quitGroup(interestPoint);
                 } else {
-                    api.joinGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject response) {
-                                    updateListAfterJoinGroup(interestPoint);
-                                }
-                            }, errorCallback);
+                    joinGroup(interestPoint);
                 }
             }
         });
@@ -171,26 +162,152 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             @Override
             public void onClick(View v) {
                 if (interestPoint.isVote) {
-                    api.unvoteGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject jsonObject) {
-                                    updateListAfterUnvote(interestPoint);
-                                }
-                            }, errorCallback);
+                    unvoteGroup(interestPoint);
                 } else {
-                    api.voteGroup(communityUuid, eventUuid, interestPoint)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<JSONObject>() {
-                                @Override
-                                public void call(JSONObject jsonObject) {
-                                    updateListAfterVote(interestPoint);
-                                }
-                            }, errorCallback);
+                    voteGroup(interestPoint);
                 }
             }
         });
+    }
+
+    private void voteGroup(final InterestPoint interestPointToVote) {
+        ouQuOnMangeService.voteGroup(communityUuid, new VoteGroup(eventUuid, interestPointToVote.apiId, interestPointToVote.type))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Vote>() {
+                    @Override
+                    public void call(Vote message) {
+                        updateListAfterVote(interestPointToVote);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                        if (throwable instanceof HttpException) {
+                            HttpException response = (HttpException) throwable;
+                            switch (response.code()) {
+                                case 400:
+                                    Log.e(LOG_TAG, "Login 400 Bad Request");
+                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
+                                    break;
+                                case 409:
+                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
+                                    showErrorSnackBar(getText(R.string.error_already_join));
+                                case 401:
+                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
+                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                            }
+                        } else {
+                            showErrorSnackBar(throwable.getMessage());
+                        }
+                    }
+                });
+    }
+
+    private void unvoteGroup(final InterestPoint interestPointToUnVote) {
+        ouQuOnMangeService.unvoteGroup(communityUuid, eventUuid, interestPointToUnVote.apiId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Message>() {
+                    @Override
+                    public void call(Message message) {
+                        updateListAfterUnvote(interestPointToUnVote);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                        if (throwable instanceof HttpException) {
+                            HttpException response = (HttpException) throwable;
+                            switch (response.code()) {
+                                case 400:
+                                    Log.e(LOG_TAG, "Login 400 Bad Request");
+                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
+                                    break;
+                                case 409:
+                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
+                                    showErrorSnackBar(getText(R.string.error_already_join));
+                                case 401:
+                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
+                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                            }
+                        } else {
+                            showErrorSnackBar(throwable.getMessage());
+                        }
+                    }
+                });
+    }
+
+    private void joinGroup(final InterestPoint interestPointToJoin) {
+        ouQuOnMangeService.joinGroup(communityUuid, new JoinGroup(eventUuid, interestPointToJoin.apiId, interestPointToJoin.type))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Group>() {
+                    @Override
+                    public void call(Group group) {
+                        updateListAfterJoinGroup(interestPointToJoin);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                        if (throwable instanceof HttpException) {
+                            HttpException response = (HttpException) throwable;
+                            switch (response.code()) {
+                                case 400:
+                                    Log.e(LOG_TAG, "Login 400 Bad Request");
+                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
+                                    break;
+                                case 409:
+                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
+                                    showErrorSnackBar(getText(R.string.error_already_join));
+                                case 401:
+                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
+                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                            }
+                        } else {
+                            showErrorSnackBar(throwable.getMessage());
+                        }
+                    }
+                });
+    }
+
+    private void quitGroup(final InterestPoint interestPointToQuit) {
+        ouQuOnMangeService.quitGroup(communityUuid, eventUuid, interestPointToQuit.apiId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Message>() {
+                    @Override
+                    public void call(Message message) {
+                        updateListAfterQuitGroup(interestPointToQuit);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                        if (throwable instanceof HttpException) {
+                            HttpException response = (HttpException) throwable;
+                            switch (response.code()) {
+                                case 400:
+                                    Log.e(LOG_TAG, "Login 400 Bad Request");
+                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
+                                    break;
+                                case 409:
+                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
+                                    showErrorSnackBar(getText(R.string.error_already_join));
+                                case 401:
+                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
+                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                            }
+                        } else {
+                            showErrorSnackBar(throwable.getMessage());
+                        }
+                    }
+                });
     }
 
     private void initView() {
@@ -451,6 +568,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
     };
 
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
+    }
 
     private void initInterestPointList() {
         interestPointsAdapter = new InterestPointsAdapter(getApplicationContext(), interestPoints, new Callback<InterestPoint>() {
@@ -458,23 +578,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             public void apply(final InterestPoint interestPoint) {
                 if (NetConnectionUtils.isConnected(getApplicationContext())) {
                     if (interestPoint.isJoin) {
-                        api.quitGroup(communityUuid, eventUuid, interestPoint)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Action1<JSONObject>() {
-                                    @Override
-                                    public void call(JSONObject jsonObject) {
-                                        updateListAfterQuitGroup(interestPoint);
-                                    }
-                                }, errorCallback);
+                        quitGroup(interestPoint);
                     } else {
-                        api.joinGroup(communityUuid, eventUuid, interestPoint)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Action1<JSONObject>() {
-                                    @Override
-                                    public void call(JSONObject response) {
-                                        updateListAfterJoinGroup(interestPoint);
-                                    }
-                                }, errorCallback);
+                        joinGroup(interestPoint);
                     }
                 } else {
                     showNoConnexionSnackBar(coordinatorLayout);
@@ -490,23 +596,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             public void apply(final InterestPoint interestPoint) {
                 if (NetConnectionUtils.isConnected(getApplicationContext())) {
                     if (interestPoint.isVote) {
-                        api.unvoteGroup(communityUuid, eventUuid, interestPoint)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Action1<JSONObject>() {
-                                    @Override
-                                    public void call(JSONObject jsonObject) {
-                                        updateListAfterUnvote(interestPoint);
-                                    }
-                                }, errorCallback);
+                        unvoteGroup(interestPoint);
                     } else {
-                        api.voteGroup(communityUuid, eventUuid, interestPoint)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Action1<JSONObject>() {
-                                    @Override
-                                    public void call(JSONObject jsonObject) {
-                                        updateListAfterVote(interestPoint);
-                                    }
-                                }, errorCallback);
+                        voteGroup(interestPoint);
                     }
                 } else {
                     showNoConnexionSnackBar(coordinatorLayout);
@@ -526,7 +618,25 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         public void call(Throwable throwable) {
             throwable.printStackTrace();
             Log.e(LOG_TAG, "Fetch InterestPoint = " + throwable.getMessage());
-            snackbar.setText(getText(R.string.error_exception)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            if (throwable instanceof HttpException) {
+                HttpException response = (HttpException) throwable;
+                switch (response.code()) {
+                    case 400:
+                        Log.e(LOG_TAG, "Login 400 Bad Request");
+                        showErrorSnackBar(getText(R.string.error_invalid_fields));
+                        break;
+                    case 409:
+                        Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
+                        showErrorSnackBar(getText(R.string.error_already_join));
+                    case 401:
+                        Log.e(LOG_TAG, "Login 401 Unauthorized");
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+                }
+            } else {
+                showErrorSnackBar(throwable.getMessage());
+            }
             swipeRefreshLayout.setRefreshing(false);
         }
     };
@@ -545,7 +655,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private void fetchInterestPoints() {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            api.getInterestPoints(eventUuid, communityUuid)
+            ouQuOnMangeService.getInterestPoints(communityUuid, eventUuid)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(apiSuccessCallback, apiErrorCallback);
         } else {
@@ -556,7 +666,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private void fetchInterestPoints(Location location) {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            api.getInterestPointsByLocation(location, eventUuid, communityUuid)
+            ouQuOnMangeService.getInterestPointsByLocation(communityUuid, eventUuid, location.getLatitude(), location.getLongitude())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(apiSuccessCallback, apiErrorCallback);
         } else {

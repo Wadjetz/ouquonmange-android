@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
@@ -21,10 +20,6 @@ import android.widget.ProgressBar;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,10 +31,10 @@ import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
-import retrofit2.adapter.rxjava.HttpException;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 
 public class MainActivity extends BaseActivity {
 
@@ -47,19 +42,21 @@ public class MainActivity extends BaseActivity {
 
     private ProgressBar progressBar;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private CoordinatorLayout coordinatorLayout;
 
     private RecyclerView communitiesRecyclerView;
     private RecyclerView.Adapter communitiesAdapter;
     private RecyclerView.LayoutManager communitiesLayoutManager;
 
     private ArrayList<Community> communities = new ArrayList<>();
-    private Snackbar snackbar;
-    private CoordinatorLayout coordinatorLayout;
+
+    private Subscription fetchCommunitiesSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initView();
 
         Intent intent = getIntent();
         String fromMenu = intent.getStringExtra(Constants.FROM_MENU);
@@ -67,14 +64,6 @@ public class MainActivity extends BaseActivity {
         String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
 
         Log.d(LOG_TAG, "fromMenu = " + fromMenu + " defaultCommunityUuid = " + defaultCommunityUuid);
-
-
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarMain);
-
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
 
         if (defaultCommunityUuid != null && !defaultCommunityUuid.isEmpty() && !Constants.FROM_MENU.equals(fromMenu)) {
             if (Config.isNotificationEnabled(getApplicationContext())) {
@@ -117,13 +106,12 @@ public class MainActivity extends BaseActivity {
 
     }
 
+    private void initView() {
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+    }
 
-    private View.OnClickListener closeSnackBarMain = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
-        }
-    };
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -160,7 +148,7 @@ public class MainActivity extends BaseActivity {
 
     private void fetchCommunities() {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            ouQuOnMangeService.getMyCommunities()
+            fetchCommunitiesSubscription = ouQuOnMangeService.getMyCommunities()
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<Community>>() {
                         @Override
@@ -186,7 +174,7 @@ public class MainActivity extends BaseActivity {
                             Log.e(LOG_TAG, "Fetch Communities error" + throwable.getMessage());
                             progressBar.setVisibility(View.GONE);
                             swipeRefreshLayout.setRefreshing(false);
-                            snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                            showErrorSnackBar(throwable.getMessage());
                         }
                     });
         } else {
@@ -196,13 +184,20 @@ public class MainActivity extends BaseActivity {
 
     private void initCommunityList() {
         // Creating list view
-        communitiesAdapter = new CommunitiesAdapter(communities, getApplicationContext(), new Callback<Community>() {
+        communitiesAdapter = new CommunitiesAdapter(communities, new Callback<Community>() {
             @Override
             public void apply(Community community) {
                 Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
                 intent.putExtra(Constants.COMMUNITY_UUID, community.uuid);
                 startActivity(intent);
                 finish();
+            }
+        }, new Callback<Community>() {
+            @Override
+            public void apply(Community community) {
+                Intent intent = new Intent(getApplicationContext(), CommunityDetailsActivity.class);
+                intent.putExtra(Constants.COMMUNITY, community);
+                startActivity(intent);
             }
         }, new Callback2<Community, Boolean>() {
             @Override
@@ -283,6 +278,18 @@ public class MainActivity extends BaseActivity {
             }
         }
         Log.d(LOG_TAG, "GCM Token " + gcmToken);
+    }
+
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onStop() {
+        if (fetchCommunitiesSubscription != null) {
+            fetchCommunitiesSubscription.unsubscribe();
+        }
+        super.onStop();
     }
 }
 

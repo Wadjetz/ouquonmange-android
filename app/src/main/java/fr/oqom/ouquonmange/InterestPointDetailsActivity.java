@@ -13,20 +13,23 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.MembersAdapter;
+import fr.oqom.ouquonmange.models.CommunityMember;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.InterestPoint;
-import fr.oqom.ouquonmange.models.User;
-import fr.oqom.ouquonmange.utils.Callback;
+import fr.oqom.ouquonmange.models.InterestPointDetails;
+import fr.oqom.ouquonmange.services.OuQuOnMangeService;
+import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import retrofit2.adapter.rxjava.HttpException;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class InterestPointDetailsActivity extends BaseActivity {
 
@@ -41,7 +44,7 @@ public class InterestPointDetailsActivity extends BaseActivity {
     private String eventUuid;
     private String communityUuid;
     private String interestPointId;
-    private ArrayList<User> members = new ArrayList<>();
+    private ArrayList<CommunityMember> members = new ArrayList<>();
 
     private ProgressBar progressBar;
     private InterestPoint interestPoint;
@@ -49,6 +52,10 @@ public class InterestPointDetailsActivity extends BaseActivity {
     private RecyclerView.Adapter membersAdapter;
     private Snackbar snackbar;
     private CoordinatorLayout coordinatorLayout;
+
+    private OuQuOnMangeService ouQuOnMangeService;
+
+    private InterestPointDetails interestPointDetails;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,6 +70,8 @@ public class InterestPointDetailsActivity extends BaseActivity {
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsDetailsLayout);
         snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarLogin);
+
+        ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
         initView();
         initNav();
@@ -117,9 +126,58 @@ public class InterestPointDetailsActivity extends BaseActivity {
         interestPointAddress = (TextView) findViewById(R.id.interest_point_detail_address);
     }
 
+    private Callback2<Throwable, JSONObject> apiErrorCallback = new Callback2<Throwable, JSONObject>() {
+        @Override
+        public void apply(Throwable throwable, JSONObject jsonObject) {
+            Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
+            String err = "";
+            if (jsonObject != null) {
+                try {
+                    err = jsonObject.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            } else {
+                snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            }
+        }
+    };
+
     private void fetchInterestPointDetails(String communityUuid, String eventUuid, InterestPoint interestPoint) {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            api.getInterestPointDetails(interestPoint, eventUuid, communityUuid, apiSuccessCallback, apiErrorCallback);
+            ouQuOnMangeService.getInterestPointDetails(communityUuid, eventUuid, interestPoint.apiId, interestPoint.type)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<InterestPointDetails>() {
+                        @Override
+                        public void call(InterestPointDetails ipd) {
+                            Log.i(LOG_TAG, "Fetch InterestPointDetails = ipd=" + ipd);
+                            interestPointDetails = ipd;
+                            members.clear();
+                            members.addAll(ipd.members);
+                            membersAdapter.notifyDataSetChanged();
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            throwable.printStackTrace();
+                            if (throwable instanceof HttpException) {
+                                HttpException response = (HttpException) throwable;
+                                switch (response.code()) {
+                                    case 400:
+                                        Log.e(LOG_TAG, "Login 400 Bad Request");
+                                        snackbar.setText(R.string.login_error).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                        break;
+                                }
+                                progressBar.setVisibility(View.INVISIBLE);
+                            } else {
+                                snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                            }
+                        }
+                    });
+
+
         } else {
             NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
         }
@@ -144,45 +202,4 @@ public class InterestPointDetailsActivity extends BaseActivity {
         interestPointId = savedInstanceState.getString(Constants.INTEREST_POINT_ID);
         interestPoint = savedInstanceState.getParcelable(Constants.INTEREST_POINT);
     }
-
-    private Callback<JSONObject> apiSuccessCallback = new Callback<JSONObject>() {
-        @Override
-        public void apply(JSONObject jsonObject) {
-            if (jsonObject != null) {
-                try {
-                    JSONArray membersJson = jsonObject.getJSONArray("members");
-                    List<User> membersList = User.fromJson(membersJson);
-                    members.clear();
-                    members.addAll(membersList);
-                    membersAdapter.notifyDataSetChanged();
-                    Log.i(LOG_TAG, "Fetch members = " + members.size() + " members list :" + membersList.size());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, "Fetch members error : " + e.getMessage());
-                    snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                }
-            } else {
-                snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            }
-            progressBar.setVisibility(View.GONE);
-        }
-    };
-
-    private Callback2<Throwable, JSONObject> apiErrorCallback = new Callback2<Throwable, JSONObject>() {
-        @Override
-        public void apply(Throwable throwable, JSONObject jsonObject) {
-            Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
-            String err = "";
-            if (jsonObject != null) {
-                try {
-                    err = jsonObject.getString("error");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            } else {
-                snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            }
-        }
-    };
 }

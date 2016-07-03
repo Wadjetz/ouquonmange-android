@@ -22,7 +22,6 @@ import fr.oqom.ouquonmange.dialogs.DateTimePickerDialog;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
-import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback2;

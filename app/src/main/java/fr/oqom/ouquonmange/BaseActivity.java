@@ -26,7 +26,6 @@ import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Profile;
 import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
-import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.utils.Callback;
 import rx.android.schedulers.AndroidSchedulers;
@@ -35,7 +34,6 @@ import rx.functions.Action1;
 public class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String LOG_TAG = "BaseActivity";
 
-    protected OuquonmangeApi api;
     protected OuQuOnMangeService ouQuOnMangeService;
     protected AuthRepository authRepository;
 
@@ -49,7 +47,6 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
     }

@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -10,71 +9,94 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
-import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.services.Service;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 
 public class CreateCommunityActivity extends AppCompatActivity {
     private static final String LOG_TAG = "CreateCommunityActivity";
 
-    private Button saveAction;
+    private OuQuOnMangeService ouQuOnMangeService;
+
     private TextInputLayout titleLayout, descriptionLayout;
     private EditText titleInput, descriptionInput;
 
-    private OuquonmangeApi api;
-    private int minLengthName = Constants.MIN_LENGTH_NAME_COMMUNITY;
-    private int maxLengthName = Constants.MAX_LENGTH_NAME_COMMUNITY;
-    private Snackbar snackbar;
-    private ProgressBar progressBar;
     private CoordinatorLayout coordinatorLayout;
+    private ProgressBar progressBar;
 
-    private OuQuOnMangeService ouQuOnMangeService;
+    private int communityType = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_community);
+        initView();
 
+        ouQuOnMangeService = Service.getInstance(getApplicationContext());
+    }
+
+    private void initView() {
         titleLayout = (TextInputLayout) findViewById(R.id.layout_community_title);
         titleInput = (EditText) findViewById(R.id.input_community_title);
         descriptionLayout = (TextInputLayout) findViewById(R.id.layout_community_description);
         descriptionInput = (EditText) findViewById(R.id.input_community_description);
-        saveAction = (Button) findViewById(R.id.action_create_community);
-
-        api = new OuquonmangeApi(getApplicationContext());
-        ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCreateCommunityLayout);
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarCreateCommunity);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
 
+        // Init Community Type Spinner
+        Spinner typeInput = (Spinner) findViewById(R.id.input_community_typ);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.community_types, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        typeInput.setAdapter(adapter);
+        typeInput.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(LOG_TAG, "typeInput onItemSelected " + position);
+                communityType = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                communityType = 0;
+            }
+        });
+
+        // Init Save Button
+        Button saveAction = (Button) findViewById(R.id.action_create_community);
         saveAction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 submitCommunity();
             }
         });
-
-        progressBar = (ProgressBar) findViewById(R.id.progress_create_community);
-        progressBar.setVisibility(View.GONE);
     }
 
-    private View.OnClickListener closeSnackBarCreateCommunity = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
+    }
+
+    private String getCommunityType(int position) {
+        switch (position) {
+            case 0: return "public";
+            case 1: return "private";
+            case 2: return "closed";
+            default: throw new ArrayIndexOutOfBoundsException("Unknown Community Type");
         }
-    };
+    }
 
     private void submitCommunity() {
         String name = titleInput.getText().toString().trim();
@@ -82,13 +104,15 @@ public class CreateCommunityActivity extends AppCompatActivity {
         hiddenVirtualKeyboard();
         if (validateForm(name, description)) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                ouQuOnMangeService.createCommunity(new Community(name, description))
+                progressBar.setVisibility(View.VISIBLE);
+                ouQuOnMangeService.createCommunity(new Community(name, description, getCommunityType(communityType)))
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Community>() {
                             @Override
                             public void call(Community community) {
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 intent.putExtra(Constants.CREATED_COMMUNITY, community);
+                                intent.putExtra(Constants.FROM_MENU, Constants.FROM_MENU);
                                 startActivity(intent);
                                 finish();
                             }
@@ -101,28 +125,36 @@ public class CreateCommunityActivity extends AppCompatActivity {
                                     switch (response.code()) {
                                         case 400:
                                             Log.e(LOG_TAG, "Login 400 Bad Request");
-                                            snackbar.setText(R.string.error_invalid_fields).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            showErrorSnackBar(getText(R.string.error_invalid_fields));
                                             break;
                                         case 409:
                                             Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
-                                            snackbar.setText(R.string.create_community_error_already_exist).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            showErrorSnackBar(getText(R.string.create_community_error_already_exist));
+                                        case 401:
+                                            Log.e(LOG_TAG, "Login 401 Unauthorized");
+                                            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                            startActivity(intent);
+                                            finish();
                                     }
-                                    progressBar.setVisibility(View.GONE);
                                 } else {
-                                    snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                    showErrorSnackBar(throwable.getMessage());
                                 }
+                                progressBar.setVisibility(View.INVISIBLE);
                             }
                         });
             } else {
                 NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
         } else {
-            snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            showErrorSnackBar(getText(R.string.error_invalid_fields));
         }
     }
 
     private boolean validateForm(String name, String description) {
         boolean flag = true;
+
+        int minLengthName = Constants.MIN_LENGTH_NAME_COMMUNITY;
+        int maxLengthName = Constants.MAX_LENGTH_NAME_COMMUNITY;
 
         if (name.isEmpty()) {
             titleLayout.setError(getString(R.string.error_field_required));

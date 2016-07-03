@@ -1,19 +1,14 @@
 package fr.oqom.ouquonmange.models;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 
 import org.joda.time.DateTime;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import fr.oqom.ouquonmange.utils.TimeUtils;
+import fr.oqom.ouquonmange.R;
 
 public class Community implements Parcelable {
 
@@ -27,6 +22,8 @@ public class Community implements Parcelable {
 
     public String description;
 
+    public String typ;
+
     @Expose(serialize = false)
     public DateTime created;
 
@@ -35,19 +32,11 @@ public class Community implements Parcelable {
 
     public Community() {}
 
-    public Community(String name, String description) {
+    public Community(String name, String description, String typ) {
         this.name = name;
         this.description = description;
+        this.typ = typ;
         this.created = null;
-    }
-
-    public Community(long id, String uuid, String name, String description, long created, boolean isDefault) {
-        this.id = id;
-        this.uuid = uuid;
-        this.name = name;
-        this.description = description;
-        this.created = TimeUtils.getDateTime(created);
-        this.isDefault = isDefault;
     }
 
     protected Community(Parcel in) {
@@ -55,6 +44,7 @@ public class Community implements Parcelable {
         uuid = in.readString();
         name = in.readString();
         description = in.readString();
+        typ = in.readString();
         created = new DateTime(in.readLong());
         isDefault = 1 == in.readInt();
     }
@@ -65,6 +55,7 @@ public class Community implements Parcelable {
         dest.writeString(uuid);
         dest.writeString(name);
         dest.writeString(description);
+        dest.writeString(typ);
         dest.writeLong(created.getMillis());
         dest.writeInt(isDefault ? 1 : 0);
     }
@@ -84,5 +75,27 @@ public class Community implements Parcelable {
     @Override
     public int describeContents() {
         return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "Community{" +
+                "id=" + id +
+                ", uuid='" + uuid + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", typ='" + typ + '\'' +
+                ", created=" + created +
+                ", isDefault=" + isDefault +
+                '}';
+    }
+
+    public String getCommunityType(Context context) {
+        switch (typ) {
+            case "public": return context.getResources().getStringArray(R.array.community_types)[0];
+            case "private": return context.getResources().getStringArray(R.array.community_types)[1];
+            case "closed": return context.getResources().getStringArray(R.array.community_types)[2];
+            default: throw new ArrayIndexOutOfBoundsException("Unknown Community Type");
+        }
     }
 }

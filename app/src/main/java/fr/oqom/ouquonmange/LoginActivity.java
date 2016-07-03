@@ -50,7 +50,10 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         initView();
-        getSupportActionBar().setSubtitle(R.string.login_action);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setSubtitle(R.string.login_action);
+        }
 
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());

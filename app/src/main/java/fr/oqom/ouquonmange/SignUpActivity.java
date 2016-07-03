@@ -20,7 +20,6 @@ import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.SignUpUser;
 import fr.oqom.ouquonmange.models.Token;
-import fr.oqom.ouquonmange.services.OuquonmangeApi;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import retrofit2.adapter.rxjava.HttpException;
@@ -35,7 +34,6 @@ public class SignUpActivity extends BaseActivity {
     private Button signUpButton;
 
     private String regexPassword = Constants.REGEX_PASSWORD;
-    private OuquonmangeApi api;
     private AuthRepository authRepository;
     private Snackbar snackbar;
     private ProgressBar progressBar;
@@ -47,7 +45,6 @@ public class SignUpActivity extends BaseActivity {
         setContentView(R.layout.activity_signup);
         initView();
 
-        api = new OuquonmangeApi(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
 
         snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);

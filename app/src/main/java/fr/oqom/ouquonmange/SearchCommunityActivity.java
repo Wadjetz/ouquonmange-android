@@ -1,5 +1,6 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
@@ -19,6 +20,7 @@ import java.util.List;
 
 import fr.oqom.ouquonmange.adapters.SearchCommunitiesAdapter;
 import fr.oqom.ouquonmange.models.Community;
+import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.User;
 import fr.oqom.ouquonmange.utils.Callback;
 import retrofit2.adapter.rxjava.HttpException;
@@ -177,19 +179,19 @@ public class SearchCommunityActivity extends BaseActivity {
     }
 
     private void initCommunitySearchList() {
-        searchCommunitiesAdapter = new SearchCommunitiesAdapter(communitiesSearch, new Callback<Community>() {
+        searchCommunitiesAdapter = new SearchCommunitiesAdapter(communitiesSearch, getApplicationContext(), new Callback<Community>() {
             @Override
             public void apply(final Community community) {
                 Log.i(LOG_TAG, "Community uuid = " + community.uuid);
 
-                ouQuOnMangeService.joinCommunity(community.uuid, "member")
+                ouQuOnMangeService.joinCommunity(community.uuid)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<User>() {
                             @Override
                             public void call(User user) {
                                 Log.i(LOG_TAG, "Community Join ok : " + user);
                                 snackbar.setText(R.string.member_join_community).setActionTextColor(Color.parseColor("#D32F2F")).show();
-                                for (Community c: communitiesSearch) {
+                                for (Community c : communitiesSearch) {
                                     if (c.uuid.equals(community.uuid)) {
                                         communitiesSearch.remove(c);
                                     }
@@ -217,6 +219,13 @@ public class SearchCommunityActivity extends BaseActivity {
                                 }
                             }
                         });
+            }
+        }, new Callback<Community>() {
+            @Override
+            public void apply(Community community) {
+                Intent intent = new Intent(getApplicationContext(), CommunityDetailsActivity.class);
+                intent.putExtra(Constants.COMMUNITY, community);
+                startActivity(intent);
             }
         });
         communitiesRecyclerView = (RecyclerView) findViewById(R.id.community_searched_list);

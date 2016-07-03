@@ -91,4 +91,13 @@
     <string name="create_community_error_already_exist">Community Already Exist</string>
     <string name="error_already_join">You have already join this community</string>
     <string name="signup_error_already_exist">Already exist</string>
+    <string name="community_type">Type</string>
+    <string name="community_members">Membres</string>
+    <string name="accept">Accept</string>
+
+    <string-array name="community_types">
+        <item>Public</item>
+        <item>Privé</item>
+        <item>Fermé</item>
+    </string-array>
 </resources>
