@@ -13,9 +13,6 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 import fr.oqom.ouquonmange.adapters.MembersAdapter;
@@ -25,7 +22,6 @@ import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.models.InterestPointDetails;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
-import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
@@ -38,9 +34,7 @@ public class InterestPointDetailsActivity extends BaseActivity {
     private TextView interestPointName;
     private TextView interestPointAddress;
     private TextView interestPointNameMembers;
-    //private TextView interestPointNameMembersNumbers;
     private RecyclerView.LayoutManager membersLayoutManager;
-    //private ImageView interestPointPhoto;
     private String eventUuid;
     private String communityUuid;
     private String interestPointId;
@@ -67,6 +61,8 @@ public class InterestPointDetailsActivity extends BaseActivity {
         interestPointId = intent.getStringExtra(Constants.INTEREST_POINT_ID);
         interestPoint = intent.getParcelableExtra(Constants.INTEREST_POINT);
 
+        Log.d(LOG_TAG, "onCreate communityUuid=" + communityUuid + " eventUuid=" + eventUuid + " interestPointId=" + interestPointId + " interestPoint=" + interestPoint);
+
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsDetailsLayout);
         snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarLogin);
@@ -87,7 +83,6 @@ public class InterestPointDetailsActivity extends BaseActivity {
         }
 
         InitMembersList();
-
     }
 
     private void initText() {
@@ -97,8 +92,6 @@ public class InterestPointDetailsActivity extends BaseActivity {
         interestPointAddress.setText(interestPoint.address);
         interestPointNameMembers = (TextView) findViewById(R.id.interest_point_members_name);
         interestPointNameMembers.setText(Constants.NAME_MEMBERS);
-        //interestPointNameMembersNumbers = (TextView) findViewById(R.id.interest_point_members_numbers);
-        //interestPointNameMembersNumbers.setText(Constants.DEFAULT_NUMBERS_OF_MEMBERS);
     }
 
     private void InitMembersList() {
@@ -125,24 +118,6 @@ public class InterestPointDetailsActivity extends BaseActivity {
         interestPointName = (TextView) findViewById(R.id.interest_point_detail_name);
         interestPointAddress = (TextView) findViewById(R.id.interest_point_detail_address);
     }
-
-    private Callback2<Throwable, JSONObject> apiErrorCallback = new Callback2<Throwable, JSONObject>() {
-        @Override
-        public void apply(Throwable throwable, JSONObject jsonObject) {
-            Log.e(LOG_TAG, "fetch Interest PointDetails Error " + jsonObject.toString());
-            String err = "";
-            if (jsonObject != null) {
-                try {
-                    err = jsonObject.getString("error");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                snackbar.setText(err).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            } else {
-                snackbar.setText(R.string.error_exception).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            }
-        }
-    };
 
     private void fetchInterestPointDetails(String communityUuid, String eventUuid, InterestPoint interestPoint) {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {

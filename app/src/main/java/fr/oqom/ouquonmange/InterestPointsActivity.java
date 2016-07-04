@@ -35,8 +35,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +46,6 @@ import fr.oqom.ouquonmange.models.JoinGroup;
 import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.models.Vote;
 import fr.oqom.ouquonmange.models.VoteGroup;
-import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import retrofit2.adapter.rxjava.HttpException;
@@ -545,28 +542,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         intent.putExtra(Constants.INTEREST_POINT, interestPoint);
         startActivity(intent);
     }
-
-    private void showApiError(ThrowableWithJson throwableWithJson) {
-        if (throwableWithJson.getJson() != null) {
-            try {
-                String serverError = throwableWithJson.getJson().getString("error");
-                snackbar.setText(serverError).setActionTextColor(Color.parseColor("#D32F2F")).show();
-
-            } catch (JSONException e) {
-                snackbar.setText(e.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            }
-        } else {
-            snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
-        }
-    }
-
-    private final Action1<Throwable> errorCallback = new Action1<Throwable>() {
-        @Override
-        public void call(Throwable throwable) {
-            ThrowableWithJson throwableWithJson = (ThrowableWithJson) throwable;
-            showApiError(throwableWithJson);
-        }
-    };
 
     private void showErrorSnackBar(CharSequence message) {
         Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();

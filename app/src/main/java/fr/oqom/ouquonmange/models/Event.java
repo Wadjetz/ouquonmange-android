@@ -75,4 +75,18 @@ public class Event implements Parcelable, Categorizable {
     public String getCategory() {
         return dateStart.getHourOfDay() + "h";
     }
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "id=" + id +
+                ", uuid='" + uuid + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", dateStart=" + dateStart +
+                ", dateEnd=" + dateEnd +
+                ", communityId=" + communityId +
+                ", created=" + created +
+                '}';
+    }
 }
