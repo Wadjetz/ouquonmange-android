@@ -94,6 +94,8 @@
     <string name="community_type">Type</string>
     <string name="community_members">Membres</string>
     <string name="accept">Accept</string>
+    <string name="groups">Groups</string>
+    <string name="votes">Votes</string>
 
     <string-array name="community_types">
         <item>Public</item>

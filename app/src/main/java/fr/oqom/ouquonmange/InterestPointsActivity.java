@@ -127,16 +127,32 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         CardView interestPointCardView = (CardView) interestPointItem.findViewById(R.id.interest_point_cardView);
         TextView interestPointName = (TextView) interestPointItem.findViewById(R.id.interest_point_name);
         TextView interestPointAddress = (TextView) interestPointItem.findViewById(R.id.interest_point_address);
+        TextView interestPointGroupsNumber = (TextView) interestPointItem.findViewById(R.id.interest_point_groups_number);
+        TextView interestPointVotesNumber = (TextView) interestPointItem.findViewById(R.id.interest_point_votes_number);
         final Button joinAction = (Button) interestPointItem.findViewById(R.id.action_join_group);
         Button detailsAction = (Button) interestPointItem.findViewById(R.id.action_details);
         Button voteAction = (Button) interestPointItem.findViewById(R.id.action_vote_group);
 
         interestPointName.setText(interestPoint.name);
         interestPointAddress.setText(interestPoint.address);
-        String buttonText = (interestPoint.isJoin ? getApplicationContext().getString(R.string.quit_group) : getApplicationContext().getString(R.string.join_group)) + " (" + interestPoint.members + ")";
-        joinAction.setText(buttonText);
-        String buttonVote = (interestPoint.isVote ? getApplicationContext().getString(R.string.unvote_group) : getApplicationContext().getString(R.string.vote_group)) + " (" + interestPoint.votes + ")";
-        voteAction.setText(buttonVote);
+        interestPointGroupsNumber.setText(interestPoint.members + " " + getString(R.string.groups));
+        interestPointVotesNumber.setText(interestPoint.votes + " " + getString(R.string.votes));
+
+        if (interestPoint.isJoin) {
+            joinAction.setText(getString(R.string.quit_group));
+            joinAction.setTextColor(Color.parseColor("#B71C1C"));
+        } else {
+            joinAction.setText(getString(R.string.join_group));
+            joinAction.setTextColor(Color.parseColor("#388E3C"));
+        }
+
+        if (interestPoint.isVote) {
+            voteAction.setText(getString(R.string.unvote_group));
+            voteAction.setTextColor(Color.parseColor("#B71C1C"));
+        } else {
+            voteAction.setText(getString(R.string.vote_group));
+            voteAction.setTextColor(Color.parseColor("#388E3C"));
+        }
 
         joinAction.setOnClickListener(new View.OnClickListener() {
             @Override

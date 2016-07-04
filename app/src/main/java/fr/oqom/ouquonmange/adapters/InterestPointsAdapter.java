@@ -1,6 +1,7 @@
 package fr.oqom.ouquonmange.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -44,11 +45,25 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
         holder.interestPointName.setText(interestPoint.name);
         holder.interestPointAddress.setText(interestPoint.address);
         holder.interestPoint = interestPoint;
-        String buttonText = (interestPoint.isJoin ? context.getString(R.string.quit_group) : context.getString(R.string.join_group))+" ("+interestPoint.members+")";
-        holder.joinAction.setText(buttonText);
-        String buttonVote = (interestPoint.isVote ? context.getString(R.string.unvote_group) : context.getString(R.string.vote_group))+" ("+interestPoint.votes+")";
-        holder.voteAction.setText(buttonVote);
 
+        holder.interestPointGroupsNumber.setText(interestPoint.members + " " + context.getString(R.string.groups));
+        holder.interestPointVotesNumber.setText(interestPoint.votes + " " + context.getString(R.string.votes));
+
+        if (interestPoint.isJoin) {
+            holder.joinAction.setText(context.getString(R.string.quit_group));
+            holder.joinAction.setTextColor(Color.parseColor("#B71C1C"));
+        } else {
+            holder.joinAction.setText(context.getString(R.string.join_group));
+            holder.joinAction.setTextColor(Color.parseColor("#388E3C"));
+        }
+
+        if (interestPoint.isVote) {
+            holder.voteAction.setText(context.getString(R.string.unvote_group));
+            holder.voteAction.setTextColor(Color.parseColor("#B71C1C"));
+        } else {
+            holder.voteAction.setText(context.getString(R.string.vote_group));
+            holder.voteAction.setTextColor(Color.parseColor("#388E3C"));
+        }
     }
 
     @Override
@@ -61,6 +76,8 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
         public CardView interestPointCardView;
         public TextView interestPointName;
         public TextView interestPointAddress;
+        public TextView interestPointGroupsNumber;
+        public TextView interestPointVotesNumber;
         public Button joinAction;
         public Button detailsAction;
         public Button voteAction;
@@ -70,6 +87,8 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
             interestPointCardView = (CardView) v.findViewById(R.id.interest_point_cardView);
             interestPointName = (TextView) v.findViewById(R.id.interest_point_name);
             interestPointAddress = (TextView) v.findViewById(R.id.interest_point_address);
+            interestPointGroupsNumber = (TextView) v.findViewById(R.id.interest_point_groups_number);
+            interestPointVotesNumber = (TextView) v.findViewById(R.id.interest_point_votes_number);
             joinAction = (Button) v.findViewById(R.id.action_join_group);
             detailsAction = (Button) v.findViewById(R.id.action_details);
             voteAction = (Button) v.findViewById(R.id.action_vote_group);
