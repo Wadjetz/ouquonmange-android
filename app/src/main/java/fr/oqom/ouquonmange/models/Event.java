@@ -12,27 +12,23 @@ import fr.oqom.ouquonmange.utils.TimeUtils;
 
 public class Event implements Parcelable, Categorizable {
     @Expose(serialize = false)
-    public long id;
+    public long id = 0;
     @Expose(serialize = false)
-    public String uuid;
+    public String uuid = "";
     public String name;
     public String description;
     public DateTime dateStart;
     public DateTime dateEnd;
     @Expose(serialize = false)
-    public long communityId;
+    public long communityId = 0;
     @Expose(serialize = false)
-    public DateTime created;
+    public DateTime created = null;
 
-    public Event(long id, String uuid, String name, String description, long dateStart, long dateEnd, long idCommunity, long created) {
-        this.id = id;
-        this.uuid = uuid;
+    public Event(String name, String description, long dateStart, long dateEnd) {
         this.name = name;
         this.description = description;
         this.dateStart = TimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateStart),TimeUtils.getDefaultDateTimeZoneId());
         this.dateEnd = TimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateEnd),TimeUtils.getDefaultDateTimeZoneId());
-        this.idCommunity = 0;
-        this.created = TimeUtils.getDateTime(created);
     }
 
     protected Event(Parcel in) {

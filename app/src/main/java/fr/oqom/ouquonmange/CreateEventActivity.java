@@ -45,7 +45,6 @@ public class CreateEventActivity extends AppCompatActivity {
     private DateTime dateStart = TimeUtils.now();
     private DateTime dateEnd = TimeUtils.now();
 
-    private OuquonmangeApi api;
     private OuQuOnMangeService ouQuOnMangeService;
 
     private String communityUuid;
@@ -87,7 +86,6 @@ public class CreateEventActivity extends AppCompatActivity {
         snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
         snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
 
-        api = new OuquonmangeApi(getApplicationContext());
         progressBar.setVisibility(View.GONE);
 
         dateStartInput.setOnClickListener(new View.OnClickListener() {
@@ -164,7 +162,7 @@ public class CreateEventActivity extends AppCompatActivity {
         if (validateFormCreateEvent()) {
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 progressBar.setVisibility(View.VISIBLE);
-                ouQuOnMangeService.createEvent(communityUuid, new Event(name, description, dateStart, dateEnd))
+                ouQuOnMangeService.createEvent(communityUuid, new Event(name, description, dateStart.getMillis(), dateEnd.getMillis()))
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Event>() {
                             @Override

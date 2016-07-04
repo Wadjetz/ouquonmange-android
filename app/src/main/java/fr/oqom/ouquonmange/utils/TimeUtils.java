@@ -34,9 +34,15 @@ public class TimeUtils {
         return print(dateTime, timeFormatter, context);
     }
 
-    public static String printDateTime(DateTime dateTime,DateTimeZone dtz) {
+    public static String printDateTime(DateTime dateTime, DateTimeZone dtz) {
         return dateTimeFormatter
                 .withZone(dtz)
+                .print(dateTime);
+    };
+
+    public static String printDateTime(DateTime dateTime) {
+        return dateTimeFormatter
+                .withZone(DateTimeZone.UTC)
                 .print(dateTime);
     };
 
