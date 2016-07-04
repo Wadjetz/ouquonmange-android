@@ -13,7 +13,6 @@ import com.cardinalsolutions.sectioned_adapter.SectionedAdapter;
 import java.util.List;
 
 import fr.oqom.ouquonmange.R;
-import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.TimeUtils;
@@ -34,12 +33,9 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
     public void onBindItemViewHolder(RecyclerView.ViewHolder holder, Event event, int viewType) {
         EventsViewHolder h = (EventsViewHolder) holder;
         h.eventNameTextView.setText(event.name);
-        h.eventNameTextView.setText(event.name);
         h.eventDescriptionTextView.setText(event.description);
-        h.dateStart.setText(TimeUtils.printTime(event.dateStart, context));
-        h.dateEnd.setText(TimeUtils.printTime(event.dateEnd, context));
+        h.date.setText(TimeUtils.printTime(event.dateStart, context) + " - " + TimeUtils.printTime(event.dateEnd, context) );
         h.event = event;
-
     }
 
     @Override
@@ -52,8 +48,7 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
         public CardView eventCardView;
         public TextView eventNameTextView;
         public TextView eventDescriptionTextView;
-        public TextView dateStart;
-        public TextView dateEnd;
+        public TextView date;
         public Event event;
 
         public EventsViewHolder(View v) {
@@ -61,9 +56,7 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
             eventCardView = (CardView) v.findViewById(R.id.event_cardView);
             eventNameTextView = (TextView) v.findViewById(R.id.event_name);
             eventDescriptionTextView = (TextView) v.findViewById(R.id.event_description);
-            dateStart = (TextView) v.findViewById(R.id.event_date_start);
-            dateEnd = (TextView) v.findViewById(R.id.event_date_end);
-
+            date = (TextView) v.findViewById(R.id.event_date);
             eventCardView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
