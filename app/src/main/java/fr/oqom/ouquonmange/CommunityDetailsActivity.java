@@ -12,8 +12,11 @@ import android.view.View;
 
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.utils.OnCalendarSelected;
+import fr.oqom.ouquonmange.utils.OnRedirectFragmentWithCommunity;
+import fr.oqom.ouquonmange.utils.OnRedirectFragmentWithString;
 
-public class CommunityDetailsActivity extends AppCompatActivity {
+public class CommunityDetailsActivity extends AppCompatActivity implements OnCalendarSelected, OnRedirectFragmentWithString, OnRedirectFragmentWithCommunity {
 
     private static final String LOG_TAG = "CommunityDetailsActy";
 
@@ -48,6 +51,7 @@ public class CommunityDetailsActivity extends AppCompatActivity {
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, CommunityDetailsFragment.newInstance(community));
+        //transaction.replace(R.id.fragment_container, MyCommunitiesFragment.newInstance());
         transaction.addToBackStack(null);
         transaction.commit();
     }
@@ -89,5 +93,35 @@ public class CommunityDetailsActivity extends AppCompatActivity {
         intent.putExtra(Constants.FROM_MENU, Constants.FROM_MENU);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public void onRedirectFragmentWithString(String name, String arg) {
+        Log.d(LOG_TAG, "onRedirectFragment = " + name + " arg = " + arg);
+        //Intent intent = new Intent(getContext(), CalendarActivity.class);
+        //intent.putExtra(Constants.COMMUNITY_UUID, community.uuid);
+        //startActivity(intent);
+        //finish();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, CommunityDetailsFragment.newInstance(community));
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    @Override
+    public void onRedirectFragmentWithCommunity(String name, Community community) {
+        Log.d(LOG_TAG, "onRedirectFragment = " + name + " arg = " + community);
+        //Intent intent = new Intent(getApplicationContext(), CommunityDetailsActivity.class);
+        //intent.putExtra(Constants.COMMUNITY, community);
+        //startActivity(intent);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, CommunityDetailsFragment.newInstance(community));
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    @Override
+    public void onCalendarSelected(Community community) {
+        Log.d(LOG_TAG, "onCalendarSelected community = " + community);
     }
 }

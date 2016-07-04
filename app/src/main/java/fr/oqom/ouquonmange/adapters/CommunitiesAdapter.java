@@ -15,6 +15,7 @@ import fr.oqom.ouquonmange.R;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
+import fr.oqom.ouquonmange.utils.OnCalendarSelected;
 
 public class CommunitiesAdapter extends RecyclerView.Adapter<CommunitiesAdapter.ViewHolder> {
 
