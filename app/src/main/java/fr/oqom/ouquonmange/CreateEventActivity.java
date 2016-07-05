@@ -14,7 +14,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -28,11 +27,10 @@ import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback2;
-import fr.oqom.ouquonmange.utils.NetConnectionUtils;
-import fr.oqom.ouquonmange.utils.TimeUtils;
-import retrofit2.adapter.rxjava.HttpException;
 import fr.oqom.ouquonmange.utils.Callback3;
 import fr.oqom.ouquonmange.utils.DateTimeUtils;
+import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -166,7 +164,6 @@ public class CreateEventActivity extends AppCompatActivity {
 
     }
 
-    private void initView() {
     private void showDialogWhenHasFocus(final EditText input) {
         input.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -178,7 +175,7 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-    private void initLayoutWidgets() {
+    private void initView() {
         titleLayout = (TextInputLayout) findViewById(R.id.layout_event_title);
         layoutDateStart = (TextInputLayout) findViewById(R.id.layout_event_date_start);
         layoutDateEnd = (TextInputLayout) findViewById(R.id.layout_event_date_end);
@@ -407,5 +404,9 @@ public class CreateEventActivity extends AppCompatActivity {
         } else {
             snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
         }
+    }
+
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
     }
 }

@@ -34,7 +34,7 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
         EventsViewHolder h = (EventsViewHolder) holder;
         h.eventNameTextView.setText(event.name);
         h.eventDescriptionTextView.setText(event.description);
-        h.date.setText(TimeUtils.printTime(event.dateStart, context) + " - " + TimeUtils.printTime(event.dateEnd, context) );
+        h.date.setText(DateTimeUtils.printTime(event.dateStart, context) + " - " + DateTimeUtils.printTime(event.dateEnd, context) );
         h.event = event;
     }
 

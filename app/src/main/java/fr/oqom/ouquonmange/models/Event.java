@@ -27,8 +27,8 @@ public class Event implements Parcelable, Categorizable {
     public Event(String name, String description, long dateStart, long dateEnd) {
         this.name = name;
         this.description = description;
-        this.dateStart = TimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateStart),TimeUtils.getDefaultDateTimeZoneId());
-        this.dateEnd = TimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateEnd),TimeUtils.getDefaultDateTimeZoneId());
+        this.dateStart = DateTimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateStart),DateTimeUtils.getDefaultDateTimeZoneId());
+        this.dateEnd = DateTimeUtils.getDateTimeWithDefaultTZ(new DateTime(dateEnd),DateTimeUtils.getDefaultDateTimeZoneId());
     }
 
     protected Event(Parcel in) {

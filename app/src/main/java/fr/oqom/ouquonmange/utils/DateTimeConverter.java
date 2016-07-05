@@ -15,11 +15,11 @@ import java.lang.reflect.Type;
 public class DateTimeConverter implements JsonSerializer<DateTime>, JsonDeserializer<DateTime> {
     @Override
     public DateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        return TimeUtils.getDateTime(json.getAsLong());
+        return DateTimeUtils.getDateTime(json.getAsLong());
     }
 
     @Override
     public JsonElement serialize(DateTime src, Type typeOfSrc, JsonSerializationContext context) {
-        return new JsonPrimitive(TimeUtils.printDateTime(src));
+        return new JsonPrimitive(DateTimeUtils.printDateTime(src));
     }
 }
