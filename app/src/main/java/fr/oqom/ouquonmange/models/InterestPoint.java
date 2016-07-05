@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
 
-public class InterestPoint implements Parcelable {
+public class InterestPoint implements Parcelable, Comparable {
 
     @SerializedName("api_id")
     public String apiId;
@@ -75,5 +75,17 @@ public class InterestPoint implements Parcelable {
                 ", isJoin=" + isJoin +
                 ", isVote=" + isVote +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Object another) {
+        InterestPoint ip = (InterestPoint) another;
+        if ( (ip.members + ip.votes) > (members + votes) ) {
+            return 1;
+        } else if ( (ip.members + ip.votes) == (members + votes) ) {
+            return 0;
+        } else {
+            return -1;
+        }
     }
 }

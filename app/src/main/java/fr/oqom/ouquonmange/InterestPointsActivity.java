@@ -3,7 +3,6 @@ package fr.oqom.ouquonmange;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -14,9 +13,9 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -36,8 +34,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fr.oqom.ouquonmange.adapters.InterestPointsAdapter;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Group;
@@ -59,32 +61,33 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private static final String INTEREST_POINT_ITEM_HEIGHT = "INTEREST_POINT_ITEM_HEIGHT";
     private final int REQUEST_LOCATION_ASK_PERMISSIONS = 123;
 
-
     private RecyclerView interestPointsRecyclerView;
-    private RecyclerView.Adapter interestPointsAdapter;
-
-    //private ProgressBar progressBar;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView.Adapter<InterestPointsAdapter.InterestPointViewHolder> interestPointsAdapter;
 
     private ArrayList<InterestPoint> interestPoints = new ArrayList<>();
     private String eventUuid;
     private String communityUuid;
+    private String searchQuery = "";
 
     private LocationManager locationManager;
     private Location location;
     private GoogleMap map;
-    private Snackbar snackbar;
-    private CoordinatorLayout coordinatorLayout;
 
-    private Button containerCollapseAction;
-    private View interestPointItem;
-    private View mapContainer;
-    private LinearLayout rootContainer;
-    private View listContainer;
+    @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.coordinatorInterestPointsLayout) CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.container_collapse_action) Button containerCollapseAction;
+    @BindView(R.id.interest_point_item) View interestPointItem;
+    @BindView(R.id.map_container) View mapContainer;
+    @BindView(R.id.root_container) LinearLayout rootContainer;
+    @BindView(R.id.list_container) View listContainer;
+
     private SupportMapFragment mapFragment;
     int interestPointItemHeight = 0;
 
     private boolean isCollapsed = false;
+
+    private SearchView searchView = null;
+    private SearchView.OnQueryTextListener queryTextListener;
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -124,63 +127,14 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     }
 
     private void showInterestPointItem(final InterestPoint interestPoint) {
-        CardView interestPointCardView = (CardView) interestPointItem.findViewById(R.id.interest_point_cardView);
-        TextView interestPointName = (TextView) interestPointItem.findViewById(R.id.interest_point_name);
-        TextView interestPointAddress = (TextView) interestPointItem.findViewById(R.id.interest_point_address);
-        TextView interestPointGroupsNumber = (TextView) interestPointItem.findViewById(R.id.interest_point_groups_number);
-        TextView interestPointVotesNumber = (TextView) interestPointItem.findViewById(R.id.interest_point_votes_number);
-        final Button joinAction = (Button) interestPointItem.findViewById(R.id.action_join_group);
-        Button detailsAction = (Button) interestPointItem.findViewById(R.id.action_details);
-        Button voteAction = (Button) interestPointItem.findViewById(R.id.action_vote_group);
-
-        interestPointName.setText(interestPoint.name);
-        interestPointAddress.setText(interestPoint.address);
-        interestPointGroupsNumber.setText(interestPoint.members + " " + getString(R.string.groups));
-        interestPointVotesNumber.setText(interestPoint.votes + " " + getString(R.string.votes));
-
-        if (interestPoint.isJoin) {
-            joinAction.setText(getString(R.string.quit_group));
-            joinAction.setTextColor(Color.parseColor("#B71C1C"));
-        } else {
-            joinAction.setText(getString(R.string.join_group));
-            joinAction.setTextColor(Color.parseColor("#388E3C"));
-        }
-
-        if (interestPoint.isVote) {
-            voteAction.setText(getString(R.string.unvote_group));
-            voteAction.setTextColor(Color.parseColor("#B71C1C"));
-        } else {
-            voteAction.setText(getString(R.string.vote_group));
-            voteAction.setTextColor(Color.parseColor("#388E3C"));
-        }
-
-        joinAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (interestPoint.isJoin) {
-                    quitGroup(interestPoint);
-                } else {
-                    joinGroup(interestPoint);
-                }
-            }
-        });
-
-        detailsAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startInterestPointDetailsActivity(interestPoint);
-            }
-        });
-        voteAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (interestPoint.isVote) {
-                    unvoteGroup(interestPoint);
-                } else {
-                    voteGroup(interestPoint);
-                }
-            }
-        });
+        InterestPointsAdapter.InterestPointViewHolder holder = new InterestPointsAdapter.InterestPointViewHolder(
+                interestPointItem,
+                callbackGroup,
+                callbackDetails,
+                callbackVote,
+                callbackCardAction
+        );
+        InterestPointsAdapter.InterestPointViewHolder.setView(getApplicationContext(), holder, interestPoint);
     }
 
     private void voteGroup(final InterestPoint interestPointToVote) {
@@ -323,61 +277,24 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 });
     }
 
-    private void initView() {
-        containerCollapseAction = (Button) findViewById(R.id.container_collapse_action);
-        interestPointItem = findViewById(R.id.interest_point_item);
-        mapContainer = findViewById(R.id.map_container);
-        rootContainer = (LinearLayout) findViewById(R.id.root_container);
-        listContainer = findViewById(R.id.list_container);
+    @OnClick(R.id.container_collapse_action) void collapseContainer() {
+        int height = rootContainer.getHeight();
+        int interestPointItemHeight = interestPointItem.getHeight();
 
-        containerCollapseAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        Log.d(LOG_TAG, "height = " + height + " ipItemHeight = " + interestPointItemHeight + " isCollapsed = " + isCollapsed);
 
-                int height = rootContainer.getHeight();
-                int interestPointItemHeight = interestPointItem.getHeight();
+        if (isCollapsed) {
+            isCollapsed = false;
+            collapseEnable(height);
 
-                Log.d(LOG_TAG, "height = " + height + " ipItemHeight = " + interestPointItemHeight + " isCollapsed = " + isCollapsed);
-
-                if (isCollapsed) {
-                    isCollapsed = false;
-                    collapseEnable(height);
-
-                } else {
-                    isCollapsed = true;
-                    collapseDisable(height);
-
-                    /*
-                    Animation animation = new Animation() {
-                        @Override
-                        public boolean willChangeBounds() {
-                            return true;
-                        }
-
-                        @Override
-                        protected void applyTransformation(float interpolatedTime, Transformation t) {
-                            final int initialHeight = listContainer.getMeasuredHeight();
-
-                            if(interpolatedTime == 1){
-                                listContainer.setVisibility(View.GONE);
-                            } else {
-                                listContainer.getLayoutParams().height = initialHeight - (int)(initialHeight * interpolatedTime);
-                                listContainer.requestLayout();
-                            }
-                        }
-                    };
-                    animation.setDuration(1000);
-                    listContainer.startAnimation(animation);*/
-
-
-                }
-            }
-        });
-
+        } else {
+            isCollapsed = true;
+            collapseDisable(height);
+        }
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         this.map = googleMap;
         this.map.getUiSettings().setZoomControlsEnabled(false);
 
@@ -409,6 +326,18 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             }
         });
 
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+                fetchInterestPoints(latLng.latitude, latLng.longitude);
+            }
+        });
+
+        if (location != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+        }
+
         showMarkers();
 
         Log.d(LOG_TAG, "onMapReady interestPoints = " + interestPoints);
@@ -418,14 +347,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_interest_points);
+        ButterKnife.bind(this);
         Log.d(LOG_TAG, "onCreate");
-
-        //progressBar = (ProgressBar) findViewById(R.id.progress);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsLayout);
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarInterestPoints);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -433,20 +356,36 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 Log.d(LOG_TAG, "onRefresh");
                 interestPoints.clear();
                 if (location != null) {
-                    fetchInterestPoints(location);
+                    fetchInterestPoints(location.getLatitude(), location.getLongitude());
                 } else {
                     fetchInterestPoints();
                 }
-
             }
         });
+
+        queryTextListener = new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d(LOG_TAG, "onQueryTextSubmit query=" + query);
+                searchQuery = query;
+                searchView.clearFocus();
+                fetchInterestPoints(searchQuery);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String q) {
+                Log.d(LOG_TAG, "onQueryTextChange q=" + q);
+                searchQuery = q;
+                return true;
+            }
+        };
 
         eventUuid = getIntent().getStringExtra(Constants.EVENT_UUID);
         communityUuid = getIntent().getStringExtra(Constants.COMMUNITY_UUID);
 
         initNav();
         checkAuth();
-        initView();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -457,20 +396,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             fetchInterestPoints();
         } else {
             this.interestPoints = savedInstanceState.getParcelableArrayList(Constants.INTEREST_POINTS_LIST);
-            //progressBar.setVisibility(View.GONE);
             Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.interestPoints.size());
         }
 
         initInterestPointList();
-
     }
-
-    private View.OnClickListener closeSnackBarInterestPoints = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
-        }
-    };
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -509,6 +439,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 ip.isJoin = false;
             }
         }
+        Collections.sort(interestPoints);
         interestPointsAdapter.notifyDataSetChanged();
     }
 
@@ -520,10 +451,12 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             }
             if (ip.apiId.equals(quitedInterestPoint.apiId)) {
                 ip.isJoin = false;
+                Collections.sort(interestPoints);
                 interestPointsAdapter.notifyDataSetChanged();
                 showInterestPointItem(ip);
             }
         }
+
     }
 
     private void updateListAfterVote(final InterestPoint interestPoint) {
@@ -535,6 +468,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 showInterestPointItem(ip);
             }
         }
+        Collections.sort(interestPoints);
         interestPointsAdapter.notifyDataSetChanged();
     }
 
@@ -545,6 +479,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 Log.i(LOG_TAG, "Group unvoting = " + ip.name);
                 ip.votes--;
                 showInterestPointItem(ip);
+                Collections.sort(interestPoints);
                 interestPointsAdapter.notifyDataSetChanged();
             }
         }
@@ -563,41 +498,57 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
     }
 
+    private Callback<InterestPoint> callbackGroup = new Callback<InterestPoint>() {
+        @Override
+        public void apply(final InterestPoint interestPoint) {
+            if (NetConnectionUtils.isConnected(getApplicationContext())) {
+                if (interestPoint.isJoin) {
+                    quitGroup(interestPoint);
+                } else {
+                    joinGroup(interestPoint);
+                }
+            } else {
+                showNoConnexionSnackBar(coordinatorLayout);
+            }
+        }
+    };
+
+    private Callback<InterestPoint> callbackDetails = new Callback<InterestPoint>() {
+        @Override
+        public void apply(InterestPoint interestPoint) {
+            startInterestPointDetailsActivity(interestPoint);
+        }
+    };
+
+    private Callback<InterestPoint> callbackVote = new Callback<InterestPoint>() {
+        @Override
+        public void apply(final InterestPoint interestPoint) {
+            if (NetConnectionUtils.isConnected(getApplicationContext())) {
+                if (interestPoint.isVote) {
+                    unvoteGroup(interestPoint);
+                } else {
+                    voteGroup(interestPoint);
+                }
+            } else {
+                showNoConnexionSnackBar(coordinatorLayout);
+            }
+        }
+    };
+
+
+    private Callback<InterestPoint> callbackCardAction = new Callback<InterestPoint>() {
+        @Override
+        public void apply(InterestPoint interestPoint) {
+            LatLng position = new LatLng(Double.valueOf(interestPoint.lat), Double.valueOf(interestPoint.lng));
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 15.5f));
+        }
+    };
+
     private void initInterestPointList() {
-        interestPointsAdapter = new InterestPointsAdapter(getApplicationContext(), interestPoints, new Callback<InterestPoint>() {
-            @Override
-            public void apply(final InterestPoint interestPoint) {
-                if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                    if (interestPoint.isJoin) {
-                        quitGroup(interestPoint);
-                    } else {
-                        joinGroup(interestPoint);
-                    }
-                } else {
-                    showNoConnexionSnackBar(coordinatorLayout);
-                }
-            }
-        }, new Callback<InterestPoint>() {
-            @Override
-            public void apply(InterestPoint interestPoint) {
-                startInterestPointDetailsActivity(interestPoint);
-            }
-        }, new Callback<InterestPoint>() {
-            @Override
-            public void apply(final InterestPoint interestPoint) {
-                if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                    if (interestPoint.isVote) {
-                        unvoteGroup(interestPoint);
-                    } else {
-                        voteGroup(interestPoint);
-                    }
-                } else {
-                    showNoConnexionSnackBar(coordinatorLayout);
-                }
-            }
-        });
+        interestPointsAdapter = new InterestPointsAdapter(getApplicationContext(), interestPoints, callbackGroup, callbackDetails, callbackVote, callbackCardAction);
 
         interestPointsRecyclerView = (RecyclerView) findViewById(R.id.interest_points_list);
+        interestPointsRecyclerView.getItemAnimator().setAddDuration(2000);
         RecyclerView.LayoutManager interestPointsLayoutManager = new LinearLayoutManager(this);
         interestPointsRecyclerView.setHasFixedSize(true);
         interestPointsRecyclerView.setLayoutManager(interestPointsLayoutManager);
@@ -644,32 +595,27 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
     };
 
+    private void fetchInterestPoints(String address) {
+        fetchInterestPoints(null, null, address);
+    }
+
     private void fetchInterestPoints() {
+        fetchInterestPoints(null, null, null);
+    }
+
+    private void fetchInterestPoints(double latitude, double longitude) {
+        fetchInterestPoints(latitude + "", longitude + "", null);
+    }
+
+    private void fetchInterestPoints(String latitude, String longitude, String address) {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            ouQuOnMangeService.getInterestPoints(communityUuid, eventUuid)
+            ouQuOnMangeService._getInterestPoints(communityUuid, eventUuid, latitude, longitude, address)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(apiSuccessCallback, apiErrorCallback);
         } else {
             NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             swipeRefreshLayout.setRefreshing(false);
         }
-    }
-
-    private void fetchInterestPoints(Location location) {
-        if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            ouQuOnMangeService.getInterestPointsByLocation(communityUuid, eventUuid, location.getLatitude(), location.getLongitude())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(apiSuccessCallback, apiErrorCallback);
-        } else {
-            NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
-            swipeRefreshLayout.setRefreshing(false);
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_interest_point_menu, menu);
-        return true;
     }
 
     private boolean getLocation() {
@@ -702,17 +648,34 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_interest_point_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_action_search);
+
+        if (searchItem != null) {
+            searchView = (SearchView) searchItem.getActionView();
+        }
+
+        if (searchView != null) {
+            searchView.setOnQueryTextListener(queryTextListener);
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_action_location:
                 getLocation();
                 return true;
             case R.id.menu_action_search:
-                Toast.makeText(getApplicationContext(), "TODO Search Interest Points", Toast.LENGTH_SHORT).show();
-                return true;
+                return false;
             default:
-                return super.onOptionsItemSelected(item);
+                break;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -725,11 +688,11 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
 
         Toast.makeText(getApplicationContext(), "GPS : " + location.getLatitude() + " " + location.getLongitude(), Toast.LENGTH_LONG).show();
-        fetchInterestPoints(location);
+        fetchInterestPoints(location.getLatitude(), location.getLongitude());
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d(LOG_TAG, "Location Changed GPS_PROVIDER checkSelfPermission");
         }
-        //locationManager.removeUpdates(this);
+        locationManager.removeUpdates(this);
     }
 
     @Override
@@ -761,10 +724,10 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private void showMarkers() {
         if (map != null) {
             boolean setCamera = false;
+            map.clear();
             for (InterestPoint interestPoint : interestPoints) {
                 LatLng position = new LatLng(Double.valueOf(interestPoint.lat), Double.valueOf(interestPoint.lng));
                 if (!setCamera) {
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 13));
                     setCamera = true;
                     showInterestPointItem(interestPoint);
                 }
@@ -773,8 +736,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         .title(interestPoint.name));
             }
         } else {
-            snackbar.setText(R.string.map_not_ready).setActionTextColor(Color.parseColor("#D32F2F")).show();
             Log.e(LOG_TAG, "Map not ready");
+            showErrorSnackBar(getText(R.string.map_not_ready));
         }
     }
 

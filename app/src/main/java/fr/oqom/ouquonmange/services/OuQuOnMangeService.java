@@ -97,17 +97,11 @@ public interface OuQuOnMangeService {
     );
 
     @GET("/api/interest/point/{communityUuid}/{eventUuid}")
-    Observable<List<InterestPoint>> getInterestPointsByLocation(
+    Observable<List<InterestPoint>> _getInterestPoints(
             @Path("communityUuid") String communityUuid,
             @Path("eventUuid") String eventUuid,
-            @Query("lat") double latitude,
-            @Query("lng") double longitude
+            @Query("lat") String latitude,
+            @Query("lng") String longitude,
+            @Query("address") String address
     );
-
-    @GET("/api/interest/point/{communityUuid}/{eventUuid}")
-    Observable<List<InterestPoint>> getInterestPoints(
-            @Path("communityUuid") String communityUuid,
-            @Path("eventUuid") String eventUuid
-    );
-
 }

@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -15,62 +14,55 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import org.json.JSONException;
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import fr.oqom.ouquonmange.adapters.EventsSectionedAdapter;
 import fr.oqom.ouquonmange.dialogs.DatePickerDialogs;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
-import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback3;
-import retrofit2.adapter.rxjava.HttpException;
+import fr.oqom.ouquonmange.utils.DateTimeUtils;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class CalendarActivity extends BaseActivity {
     private static String LOG_TAG = "CalendarActivity";
 
-    private ProgressBar progressBar;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.progress_calendar) ProgressBar progressBar;
+    @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.coordinatorCalendarLayout) CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.events_list) RecyclerView eventsRecyclerView;
 
-    private RecyclerView eventsRecyclerView;
     private EventsSectionedAdapter eventsSectionedAdapter;
-    private RecyclerView.LayoutManager eventsLayoutManager;
 
     private OuQuOnMangeService ouQuOnMangeService;
 
     private ArrayList<Event> events = new ArrayList<>();
 
     private String communityUuid;
-    private Calendar day = Calendar.getInstance();
-    private Snackbar snackbar;
-    private CoordinatorLayout coordinatorLayout;
+    private DateTime day = DateTimeUtils.now();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
+        ButterKnife.bind(this);
         Intent intent = getIntent();
         communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
 
         Log.d(LOG_TAG, "onCreate = " + communityUuid);
 
-        progressBar = (ProgressBar) findViewById(R.id.progress_calendar);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
-
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCalendarLayout);
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarCalendar);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -83,7 +75,7 @@ public class CalendarActivity extends BaseActivity {
 
         Log.d(LOG_TAG, "Community UUID - " + communityUuid);
         initNav();
-        toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.getTime()));
+        toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.toDate()));
         checkAuth();
         initFloatingButton();
 
@@ -102,7 +94,7 @@ public class CalendarActivity extends BaseActivity {
             long dayFromIntent = intent.getLongExtra(Constants.EVENT_DATE, -1);
 
             if (dayFromIntent != -1) {
-                this.day.setTimeInMillis(dayFromIntent);
+                this.day = new DateTime(dayFromIntent);
             }
         }
 
@@ -124,32 +116,22 @@ public class CalendarActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
-        eventsRecyclerView = (RecyclerView) findViewById(R.id.events_list);
-        eventsLayoutManager = new LinearLayoutManager(getApplicationContext());
         eventsRecyclerView.setHasFixedSize(true);
-        eventsRecyclerView.setLayoutManager(eventsLayoutManager);
+        eventsRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         eventsRecyclerView.setAdapter(eventsSectionedAdapter);
     }
-
-    private View.OnClickListener closeSnackBarCalendar = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
-        }
-    };
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
-        day = Calendar.getInstance();
-        day.setTimeInMillis(savedInstanceState.getLong(Constants.EVENT_DATE));
+        day = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE));
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putString(Constants.COMMUNITY_UUID, communityUuid);
-        outState.putLong(Constants.EVENT_DATE, day.getTimeInMillis());
+        outState.putLong(Constants.EVENT_DATE, day.getMillis());
         outState.putParcelableArrayList(Constants.EVENTS_LIST, this.events);
         super.onSaveInstanceState(outState);
     }
@@ -176,13 +158,12 @@ public class CalendarActivity extends BaseActivity {
         pickerDialogs.setCallback(new Callback3<Integer, Integer, Integer>() {
             @Override
             public void apply(Integer year, Integer monthOfYear, Integer dayOfMonth) {
-                day = Calendar.getInstance();
-                day.set(year, monthOfYear, dayOfMonth);
+                day = day.withYear(year).withMonthOfYear(monthOfYear).withDayOfMonth(dayOfMonth);
                 events.clear();
                 eventsSectionedAdapter.setItemList(events);
                 eventsSectionedAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.VISIBLE);
-                toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.getTime()));
+                toolbar.setSubtitle(getString(R.string.events) + " at " + Constants.dateFormat.format(day.toDate()));
                 fetchEvents(communityUuid, day);
             }
         });
@@ -197,37 +178,24 @@ public class CalendarActivity extends BaseActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(), CreateEventActivity.class);
                 intent.putExtra(Constants.COMMUNITY_UUID, communityUuid);
-                intent.putExtra(Constants.EVENT_DATE, day.getTimeInMillis());
+                intent.putExtra(Constants.EVENT_DATE, day.getMillis());
                 startActivity(intent);
             }
         });
     }
 
-    private void showApiError(ThrowableWithJson throwableWithJson) {
-        if (throwableWithJson.getJson() != null) {
-            try {
-                String serverError = throwableWithJson.getJson().getString("error");
-                snackbar.setText(serverError).setActionTextColor(Color.parseColor("#D32F2F")).show();
-
-            } catch (JSONException e) {
-                snackbar.setText(e.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            }
-        } else {
-            snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
-        }
-    }
-
-    private void fetchEvents(final String communityUuid, final Calendar calendar) {
+    private void fetchEvents(final String communityUuid, final DateTime calendar) {
         Log.d(LOG_TAG, "fetchEvents communityUuid=" + communityUuid + " calendar" + calendar);
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            ouQuOnMangeService.getEvents(communityUuid, calendar.getTimeInMillis() + "")
+            ouQuOnMangeService.getEvents(communityUuid, calendar.getMillis() + "")
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<Event>>() {
                         @Override
                         public void call(List<Event> eventsList) {
                             events.clear();
                             events.addAll(eventsList);
-                            Log.d(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.getTime().toString() + " = " + events.size());
+                            checkDefaultEvents();
+                            Log.d(LOG_TAG, "Fetch Events of " + communityUuid + " at " + calendar.toString() + " = " + events.size());
                             progressBar.setVisibility(View.GONE);
                             swipeRefreshLayout.setRefreshing(false);
                             eventsSectionedAdapter.setItemList(events);
@@ -241,7 +209,6 @@ public class CalendarActivity extends BaseActivity {
                                 HttpException response = (HttpException) throwable;
                                 int code = response.code();
                                 Log.e(LOG_TAG, "RETROFIT ERROR code = " + code);
-
                                 progressBar.setVisibility(View.GONE);
                                 swipeRefreshLayout.setRefreshing(false);
                             }
@@ -251,6 +218,42 @@ public class CalendarActivity extends BaseActivity {
             progressBar.setVisibility(View.GONE);
             swipeRefreshLayout.setRefreshing(false);
             NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
+        }
+    }
+
+    private void checkDefaultEvents() {
+        boolean flag = false;
+        Log.d(LOG_TAG, "checkDefaultEvents " + events.size());
+        for (Event e : events) {
+
+            Log.d(LOG_TAG, "checkDefaultEvents " + e.dateStart.getHourOfDay() + " = " + 12);
+
+            if (e.dateStart.getHourOfDay() == 12) {
+                flag = true;
+            }
+        }
+        if (!flag) {
+            DateTime defaultMidiStartDate = day.withHourOfDay(12).withMinuteOfHour(0);
+            DateTime defaultMidiEndDate = day.withHourOfDay(13).withMinuteOfHour(0);
+            ouQuOnMangeService.createEvent(communityUuid, new Event(
+                    getString(R.string.default_12h_event_name),
+                    getString(R.string.default_12h_event_description),
+                    defaultMidiStartDate.getMillis(),
+                    defaultMidiEndDate.getMillis()
+            )).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Event>() {
+                @Override
+                public void call(Event event) {
+                    events.add(event);
+                    eventsSectionedAdapter.setItemList(events);
+                    eventsSectionedAdapter.notifyDataSetChanged();
+
+                }
+            }, new Action1<Throwable>() {
+                @Override
+                public void call(Throwable throwable) {
+                    Log.d(LOG_TAG, "checkDefaultEvents create default 12h event error = " + throwable.getMessage());
+                }
+            });
         }
     }
 }
