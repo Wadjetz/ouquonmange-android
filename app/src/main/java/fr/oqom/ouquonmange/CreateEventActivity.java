@@ -322,7 +322,8 @@ public class CreateEventActivity extends AppCompatActivity {
         }
 
         if (!dayStartIsEmpty && !timeStartIsEmpty) {
-            if (this.dateStart.isBefore(dateNow)) {
+            DateTime d = dateNow.minusHours(Constants.NUMBER_OF_HOURS_IN_THE_PAST_FOR_EVENT);
+            if (this.dateStart.isBefore(d)) {
                 layoutDateStart.setError(getString(R.string.error_start_date_in_the_past));
                 /*if (flag) {
                     requestFocus(layoutDateStart);
