@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -11,21 +10,21 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
 import org.joda.time.DateTime;
 import org.joda.time.Period;
-import org.json.JSONException;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fr.oqom.ouquonmange.dialogs.DatePickerDialogs;
 import fr.oqom.ouquonmange.dialogs.DateTimePickerDialog;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Event;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
-import fr.oqom.ouquonmange.services.ThrowableWithJson;
 import fr.oqom.ouquonmange.utils.Callback2;
 import fr.oqom.ouquonmange.utils.Callback3;
 import fr.oqom.ouquonmange.utils.DateTimeUtils;
@@ -38,10 +37,21 @@ public class CreateEventActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "CreateEventActivity";
 
-    private TextInputLayout titleLayout, layoutDateStart, layoutDateEnd, layoutDayStart, layoutDayEnd;
-    private EditText titleInput, descriptionInput, dateStartInput, dateEndInput, dayStartInput, dayEndInput;
-    private Button saveEventAction;
-    private CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.layout_event_title)      TextInputLayout titleLayout;
+    @BindView(R.id.layout_event_date_start) TextInputLayout layoutDateStart;
+    @BindView(R.id.layout_event_date_end)   TextInputLayout layoutDateEnd;
+    @BindView(R.id.layout_event_day_start)  TextInputLayout layoutDayStart;
+    @BindView(R.id.layout_event_day_end)    TextInputLayout layoutDayEnd;
+
+    @BindView(R.id.input_event_title)          EditText titleInput;
+    @BindView(R.id.input_event_description)    EditText descriptionInput;
+    @BindView(R.id.input_event_date_start)     EditText dateStartInput;
+    @BindView(R.id.input_event_date_end)       EditText dateEndInput;
+    @BindView(R.id.input_event_day_date_start) EditText dayStartInput;
+    @BindView(R.id.input_event_day_date_end)   EditText dayEndInput;
+
+    @BindView(R.id.coordinatorLayout) CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.progress)          ProgressBar progressBar;
 
     private DateTime day = DateTimeUtils.now();
     private DateTime dateStart = DateTimeUtils.now();
@@ -51,28 +61,12 @@ public class CreateEventActivity extends AppCompatActivity {
 
     private String communityUuid;
 
-    private ProgressBar progressBar;
-    private Snackbar snackbar;
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putLong(Constants.EVENT_DATE, day.getMillis());
-        outState.putString(Constants.COMMUNITY_UUID, communityUuid);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        day = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE));
-        communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
-        initView();
+        ButterKnife.bind(this);
+
         Intent intent = getIntent();
         communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
         day = DateTimeUtils.getDateTime(intent.getLongExtra(Constants.EVENT_DATE, DateTimeUtils.now().getMillis()));
@@ -84,9 +78,6 @@ public class CreateEventActivity extends AppCompatActivity {
 
         this.dayStartInput.setText(DateTimeUtils.printDate(day, getApplicationContext()));
         this.dayEndInput.setText(DateTimeUtils.printDate(day, getApplicationContext()));
-
-        snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
 
         progressBar.setVisibility(View.GONE);
 
@@ -157,11 +148,6 @@ public class CreateEventActivity extends AppCompatActivity {
         });
 
         showDialogWhenHasFocus(dayEndInput);
-
-        snackbar = Snackbar.make(coordinatorLayout, R.string.no_internet, Snackbar.LENGTH_LONG);
-
-        snackbar.setAction(getText(R.string.close), closeSnackBarEvent);
-
     }
 
     private void showDialogWhenHasFocus(final EditText input) {
@@ -175,43 +161,8 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-    private void initView() {
-        titleLayout = (TextInputLayout) findViewById(R.id.layout_event_title);
-        layoutDateStart = (TextInputLayout) findViewById(R.id.layout_event_date_start);
-        layoutDateEnd = (TextInputLayout) findViewById(R.id.layout_event_date_end);
-
-        layoutDayEnd = (TextInputLayout) findViewById(R.id.layout_event_day_end);
-        layoutDayStart = (TextInputLayout) findViewById(R.id.layout_event_day_start);
-
-        titleInput = (EditText) findViewById(R.id.input_event_title);
-        descriptionInput = (EditText) findViewById(R.id.input_event_description);
-        dateStartInput = (EditText) findViewById(R.id.input_event_date_start);
-        dateEndInput = (EditText) findViewById(R.id.input_event_date_end);
-
-        dayStartInput = (EditText) findViewById(R.id.input_event_day_date_start);
-        dayEndInput = (EditText) findViewById(R.id.input_event_day_date_end);
-
-        saveEventAction = (Button) findViewById(R.id.action_create_event);
-
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-
-        saveEventAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                submitEvent();
-            }
-        });
-    }
-
-    private View.OnClickListener closeSnackBarEvent = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            snackbar.dismiss();
-        }
-    };
-
-    private void submitEvent() {
+    @OnClick(R.id.action_create_event)
+    public void submit() {
         final String name = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
         hiddenVirtualKeyboard();
@@ -247,7 +198,7 @@ public class CreateEventActivity extends AppCompatActivity {
             }
 
         } else {
-            snackbar.setText(getText(R.string.create_event_error_validation)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            showErrorSnackBar(getText(R.string.create_event_error_validation));
         }
     }
 
@@ -393,21 +344,21 @@ public class CreateEventActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
 
-    private void showApiError(ThrowableWithJson throwableWithJson) {
-        if (throwableWithJson.getJson() != null) {
-            try {
-                String serverError = throwableWithJson.getJson().getString("error");
-                snackbar.setText(serverError).setActionTextColor(Color.parseColor("#D32F2F")).show();
-
-            } catch (JSONException e) {
-                snackbar.setText(e.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
-            }
-        } else {
-            snackbar.setText(throwableWithJson.getThrowable().getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
-        }
-    }
-
     private void showErrorSnackBar(CharSequence message) {
         Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(Constants.EVENT_DATE, day.getMillis());
+        outState.putString(Constants.COMMUNITY_UUID, communityUuid);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        day = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE));
+        communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
     }
 }

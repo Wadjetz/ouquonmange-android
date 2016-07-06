@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -18,6 +17,8 @@ import android.widget.ProgressBar;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import fr.oqom.ouquonmange.adapters.SearchCommunitiesAdapter;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
@@ -31,20 +32,17 @@ public class SearchCommunityActivity extends BaseActivity {
 
     private static final String LOG_TAG = "SearchActivity";
 
+    @BindView(R.id.progress_community) ProgressBar progressBar;
+    @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.coordinatorSearchCommunityLayout) CoordinatorLayout coordinatorLayout;
+
     private List<Community> communitiesSearch = new ArrayList<>();
-
     private SearchCommunitiesAdapter searchCommunitiesAdapter;
-    private RecyclerView communitiesRecyclerView;
-    private RecyclerView.LayoutManager communitiesLayoutManager;
-    private ProgressBar progressBar;
-    private Snackbar snackbar;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private CoordinatorLayout coordinatorLayout;
-
     private String query;
 
     private SearchView searchView = null;
     private SearchView.OnQueryTextListener queryTextListener = new SearchView.OnQueryTextListener() {
+
         @Override
         public boolean onQueryTextSubmit(String query) {
             searchView.clearFocus();
@@ -67,21 +65,7 @@ public class SearchCommunityActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_community);
-        initView();
-        initNav();
-        toolbar.setSubtitle(R.string.search_communities);
-        initCommunitySearchList();
-        checkAuth();
-        searchAllCommunities();
-
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarSearchCommunity);
-    }
-
-    private void initView() {
-        progressBar = (ProgressBar) findViewById(R.id.progress_community);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSearchCommunityLayout);
+        ButterKnife.bind(this);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -94,43 +78,13 @@ public class SearchCommunityActivity extends BaseActivity {
                 }
             }
         });
+
+        initNav();
+        toolbar.setSubtitle(R.string.search_communities);
+        initCommunitySearchList();
+        checkAuth();
+        searchAllCommunities();
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_search_communities_menu, menu);
-
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-
-        if (searchItem != null) {
-            searchView = (SearchView) searchItem.getActionView();
-        }
-
-        if (searchView != null) {
-            searchView.setOnQueryTextListener(queryTextListener);
-        }
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_search:
-                Log.d(LOG_TAG, "action_search");
-                return false;
-            default:
-                break;
-        }
-        searchView.setOnQueryTextListener(queryTextListener);
-        return super.onOptionsItemSelected(item);
-    }
-
-    private View.OnClickListener closeSnackBarSearchCommunity = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
-        }
-    };
 
     private void searchCommunitiesByQuery(String query) {
         ouQuOnMangeService.searchCommunities(query)
@@ -190,7 +144,7 @@ public class SearchCommunityActivity extends BaseActivity {
                             @Override
                             public void call(User user) {
                                 Log.i(LOG_TAG, "Community Join ok : " + user);
-                                snackbar.setText(R.string.member_join_community).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                showErrorSnackBar(getText(R.string.member_join_community));
                                 for (Community c : communitiesSearch) {
                                     if (c.uuid.equals(community.uuid)) {
                                         communitiesSearch.remove(c);
@@ -207,15 +161,14 @@ public class SearchCommunityActivity extends BaseActivity {
                                     switch (response.code()) {
                                         case 400:
                                             Log.e(LOG_TAG, "Join Community 400 Bad Request");
-                                            snackbar.setText(R.string.error_invalid_fields).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            showErrorSnackBar(getText(R.string.error_invalid_fields));
                                             break;
                                         case 409:
                                             Log.e(LOG_TAG, "Join Community 409 Conflict Community Already Join");
-                                            snackbar.setText(R.string.error_already_join).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            showErrorSnackBar(getText(R.string.error_already_join));
                                     }
-                                    //progressBar.setVisibility(View.GONE);
                                 } else {
-                                    snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                    showErrorSnackBar(throwable.getMessage());
                                 }
                             }
                         });
@@ -228,10 +181,42 @@ public class SearchCommunityActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
-        communitiesRecyclerView = (RecyclerView) findViewById(R.id.community_searched_list);
-        communitiesLayoutManager = new LinearLayoutManager(this);
+        RecyclerView communitiesRecyclerView = (RecyclerView) findViewById(R.id.community_searched_list);
         communitiesRecyclerView.setHasFixedSize(true);
-        communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
+        communitiesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         communitiesRecyclerView.setAdapter(searchCommunitiesAdapter);
+    }
+
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_search_communities_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+
+        if (searchItem != null) {
+            searchView = (SearchView) searchItem.getActionView();
+        }
+
+        if (searchView != null) {
+            searchView.setOnQueryTextListener(queryTextListener);
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                Log.d(LOG_TAG, "action_search");
+                return false;
+            default:
+                break;
+        }
+        searchView.setOnQueryTextListener(queryTextListener);
+        return super.onOptionsItemSelected(item);
     }
 }

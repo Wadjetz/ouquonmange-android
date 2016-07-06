@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -14,14 +13,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Login;
 import fr.oqom.ouquonmange.models.Token;
@@ -36,20 +33,21 @@ import rx.functions.Action1;
 public class LoginActivity extends AppCompatActivity {
     private static final String LOG_TAG = "LoginActivity";
 
-    private TextInputLayout emailLayout, passwordLayout;
-    private EditText emailInput, passwordInput;
-    private Button loginButton;
-    private Snackbar snackbar;
-    private ProgressBar progressBar;
+    @BindView(R.id.login_layout_email)     TextInputLayout emailLayout;
+    @BindView(R.id.login_layout_password)  TextInputLayout passwordLayout;
+    @BindView(R.id.login_input_email)      EditText emailInput;
+    @BindView(R.id.login_input_password)   EditText passwordInput;
+    @BindView(R.id.progress)               ProgressBar progressBar;
+    @BindView(R.id.coordinatorLoginLayout) CoordinatorLayout coordinatorLayout;
+
     private OuQuOnMangeService ouQuOnMangeService;
     private AuthRepository authRepository;
-    private CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        initView();
+        ButterKnife.bind(this);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setSubtitle(R.string.login_action);
@@ -57,65 +55,14 @@ public class LoginActivity extends AppCompatActivity {
 
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
         authRepository = new AuthRepository(getApplicationContext());
-
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close),closeSnackBarLogin);
     }
 
-    private void initView() {
-        emailInput = (EditText) findViewById(R.id.login_input_email);
-        emailLayout = (TextInputLayout) findViewById(R.id.login_layout_email);
-        passwordInput = (EditText) findViewById(R.id.login_input_password);
-        passwordLayout = (TextInputLayout) findViewById(R.id.login_layout_password);
-        loginButton = (Button) findViewById(R.id.login_button);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
-
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLoginLayout);
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarLogin);
-
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                submitForm();
-            }
-        });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_login_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_action_signup:
-                startActivity(new Intent(getApplicationContext(), SignUpActivity.class));
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private View.OnClickListener closeSnackBarLogin = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
-        }
-    };
-
-    private void submitForm() {
-
+    @OnClick(R.id.login_button)
+    public void submit() {
         hiddenVirtualKeyboard();
         if (validateEmail() && validatePassword()) {
-
-
             if (NetConnectionUtils.isConnected(getApplicationContext())) {
                 progressBar.setVisibility(View.VISIBLE);
-
                 String email = emailInput.getText().toString().trim().toLowerCase();
                 String password = passwordInput.getText().toString().trim();
 
@@ -134,7 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                                     @Override
                                     public void apply(Throwable error) {
                                         Log.e(LOG_TAG, error.getMessage());
-                                        snackbar.setText(R.string.error_login).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                        showErrorSnackBar(getText(R.string.error_login));
                                     }
                                 });
                             }
@@ -147,12 +94,12 @@ public class LoginActivity extends AppCompatActivity {
                                     switch (response.code()) {
                                         case 400:
                                             Log.e(LOG_TAG, "Login 400 Bad Request");
-                                            snackbar.setText(R.string.login_error).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            showErrorSnackBar(getText(R.string.login_error));
                                             break;
                                     }
                                     progressBar.setVisibility(View.INVISIBLE);
                                 } else {
-                                    snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                    showErrorSnackBar(throwable.getMessage());
                                 }
                             }
                         });
@@ -160,7 +107,7 @@ public class LoginActivity extends AppCompatActivity {
                 NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             }
         } else {
-            snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            showErrorSnackBar(getText(R.string.error_invalid_fields));
         }
     }
 
@@ -200,6 +147,26 @@ public class LoginActivity extends AppCompatActivity {
     protected void hiddenVirtualKeyboard(){
         InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+    }
 
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_login_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_action_signup:
+                startActivity(new Intent(getApplicationContext(), SignUpActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

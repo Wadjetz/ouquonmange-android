@@ -23,6 +23,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
@@ -40,9 +42,9 @@ public class MainActivity extends BaseActivity {
 
     private static final String LOG_TAG = "MainActivity";
 
-    private ProgressBar progressBar;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.progress)              ProgressBar progressBar;
+    @BindView(R.id.swipeRefreshLayout)    SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.coordinatorMainLayout) CoordinatorLayout coordinatorLayout;
 
     private RecyclerView communitiesRecyclerView;
     private RecyclerView.Adapter communitiesAdapter;
@@ -56,7 +58,7 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initView();
+        ButterKnife.bind(this);
 
         Intent intent = getIntent();
         String fromMenu = intent.getStringExtra(Constants.FROM_MENU);
@@ -105,13 +107,6 @@ public class MainActivity extends BaseActivity {
         initCommunityList();
 
     }
-
-    private void initView() {
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorMainLayout);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-    }
-
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

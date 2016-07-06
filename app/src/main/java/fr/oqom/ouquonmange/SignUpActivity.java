@@ -1,7 +1,6 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -11,11 +10,13 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ProgressBar;
 
 import java.util.regex.Pattern;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fr.oqom.ouquonmange.models.AuthRepository;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.SignUpUser;
@@ -29,59 +30,32 @@ import rx.functions.Action1;
 public class SignUpActivity extends BaseActivity {
     private static final String LOG_TAG = "SignUnActivity";
 
-    private TextInputLayout usernameLayoutSignup, emailLayoutSignup, passwordLayoutSignup, passwordConfirmLayoutSignup;
-    private TextInputEditText usernameInputSignup, emailInputSignup, passwordInputSignup, passwordCofirmInputSignup;
-    private Button signUpButton;
+    @BindView(R.id.signup_layout_username)         TextInputLayout usernameLayoutSignup;
+    @BindView(R.id.signup_layout_email)            TextInputLayout emailLayoutSignup;
+    @BindView(R.id.signup_layout_password)         TextInputLayout passwordLayoutSignup;
+    @BindView(R.id.signup_layout_confirm_password) TextInputLayout passwordConfirmLayoutSignup;
 
-    private String regexPassword = Constants.REGEX_PASSWORD;
+    @BindView(R.id.signup_input_username)         TextInputEditText usernameInputSignup;
+    @BindView(R.id.signup_input_email)            TextInputEditText emailInputSignup;
+    @BindView(R.id.signup_input_password)         TextInputEditText passwordInputSignup;
+    @BindView(R.id.signup_input_confirm_password) TextInputEditText passwordCofirmInputSignup;
+
+    @BindView(R.id.progress)                ProgressBar progressBar;
+    @BindView(R.id.coordinatorSigninLayout) CoordinatorLayout coordinatorLayout;
+
     private AuthRepository authRepository;
-    private Snackbar snackbar;
-    private ProgressBar progressBar;
-    private CoordinatorLayout coordinatorLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-        initView();
+        ButterKnife.bind(this);
 
         authRepository = new AuthRepository(getApplicationContext());
-
-        snackbar = Snackbar.make(coordinatorLayout,"Error !",Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarSignin);
     }
 
-    private void initView() {
-        usernameInputSignup = (TextInputEditText) findViewById(R.id.signup_input_username);
-        usernameLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_username);
-        emailInputSignup = (TextInputEditText) findViewById(R.id.signup_input_email);
-        emailLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_email);
-        passwordInputSignup = (TextInputEditText) findViewById(R.id.signup_input_password);
-        passwordLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_password);
-        passwordCofirmInputSignup = (TextInputEditText) findViewById(R.id.signup_input_confirm_password);
-        passwordConfirmLayoutSignup = (TextInputLayout) findViewById(R.id.signup_layout_confirm_password);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorSigninLayout);
-        signUpButton = (Button) findViewById(R.id.signup_button);
-
-        signUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                signUp();
-            }
-
-
-        });
-    }
-
-    private View.OnClickListener closeSnackBarSignin = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
-        }
-    };
-
-    private void signUp() {
+    @OnClick(R.id.signup_button)
+    public void signUp() {
         hiddenVirtualKeyboard();
         if (validateFormCreateAccount()) {
             progressBar.setVisibility(View.VISIBLE);
@@ -105,7 +79,7 @@ public class SignUpActivity extends BaseActivity {
                                     @Override
                                     public void apply(Throwable error) {
                                         Log.e(LOG_TAG, error.getMessage());
-                                        snackbar.setText(R.string.error_signin);
+                                        showErrorSnackBar(getText(R.string.error_signin));
                                     }
                                 });
                             }
@@ -118,14 +92,14 @@ public class SignUpActivity extends BaseActivity {
                                     switch (response.code()) {
                                         case 400:
                                             Log.e(LOG_TAG, "signUp 400 Bad Request");
-                                            snackbar.setText(R.string.error_signin).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            showErrorSnackBar(getText(R.string.error_signin));
                                             break;
                                         case 409:
                                             Log.e(LOG_TAG, "signUp 409 Conflict Community Already Exist");
-                                            snackbar.setText(R.string.signup_error_already_exist).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                            showErrorSnackBar(getText(R.string.signup_error_already_exist));
                                     }
                                 } else {
-                                    snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                    showErrorSnackBar(throwable.getMessage());
                                 }
                                 progressBar.setVisibility(View.INVISIBLE);
                             }
@@ -135,7 +109,7 @@ public class SignUpActivity extends BaseActivity {
             }
             progressBar.setVisibility(View.GONE);
         } else {
-            snackbar.setText(getText(R.string.error_invalid_fields)).setActionTextColor(Color.parseColor("#D32F2F")).show();
+            showErrorSnackBar(getText(R.string.error_invalid_fields));
         }
     }
 
@@ -215,6 +189,10 @@ public class SignUpActivity extends BaseActivity {
     }
 
     private boolean isValidPassword(String password) {
-        return Pattern.compile(regexPassword).matcher(password).matches();
+        return Pattern.compile(Constants.REGEX_PASSWORD).matcher(password).matches();
+    }
+
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
     }
 }

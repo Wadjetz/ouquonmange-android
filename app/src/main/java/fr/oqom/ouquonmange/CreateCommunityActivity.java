@@ -11,11 +11,13 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
@@ -29,35 +31,25 @@ public class CreateCommunityActivity extends AppCompatActivity {
     private static final String LOG_TAG = "CreateCommunityActivity";
 
     private OuQuOnMangeService ouQuOnMangeService;
-
-    private TextInputLayout titleLayout, descriptionLayout;
-    private EditText titleInput, descriptionInput;
-
-    private CoordinatorLayout coordinatorLayout;
-    private ProgressBar progressBar;
-
     private int communityType = 0;
+
+    @BindView(R.id.layout_community_title) TextInputLayout titleLayout;
+    @BindView(R.id.layout_community_description) TextInputLayout descriptionLayout;
+    @BindView(R.id.input_community_title) EditText titleInput;
+    @BindView(R.id.input_community_description) EditText descriptionInput;
+    @BindView(R.id.coordinatorCreateCommunityLayout) CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.progress) ProgressBar progressBar;
+    @BindView(R.id.input_community_typ) Spinner typeInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_community);
-        initView();
+        ButterKnife.bind(this);
 
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
-    }
-
-    private void initView() {
-        titleLayout = (TextInputLayout) findViewById(R.id.layout_community_title);
-        titleInput = (EditText) findViewById(R.id.input_community_title);
-        descriptionLayout = (TextInputLayout) findViewById(R.id.layout_community_description);
-        descriptionInput = (EditText) findViewById(R.id.input_community_description);
-
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorCreateCommunityLayout);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
 
         // Init Community Type Spinner
-        Spinner typeInput = (Spinner) findViewById(R.id.input_community_typ);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.community_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -72,15 +64,6 @@ public class CreateCommunityActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 communityType = 0;
-            }
-        });
-
-        // Init Save Button
-        Button saveAction = (Button) findViewById(R.id.action_create_community);
-        saveAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                submitCommunity();
             }
         });
     }
@@ -98,7 +81,8 @@ public class CreateCommunityActivity extends AppCompatActivity {
         }
     }
 
-    private void submitCommunity() {
+    @OnClick(R.id.action_create_community)
+    public void submitCommunity() {
         String name = titleInput.getText().toString().trim();
         String description = descriptionInput.getText().toString().trim();
         hiddenVirtualKeyboard();

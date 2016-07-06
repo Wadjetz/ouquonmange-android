@@ -61,7 +61,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private static final String INTEREST_POINT_ITEM_HEIGHT = "INTEREST_POINT_ITEM_HEIGHT";
     private final int REQUEST_LOCATION_ASK_PERMISSIONS = 123;
 
-    private RecyclerView interestPointsRecyclerView;
+    @BindView(R.id.interest_points_list) RecyclerView interestPointsRecyclerView;
     private RecyclerView.Adapter<InterestPointsAdapter.InterestPointViewHolder> interestPointsAdapter;
 
     private ArrayList<InterestPoint> interestPoints = new ArrayList<>();
@@ -545,13 +545,16 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     };
 
     private void initInterestPointList() {
-        interestPointsAdapter = new InterestPointsAdapter(getApplicationContext(), interestPoints, callbackGroup, callbackDetails, callbackVote, callbackCardAction);
-
-        interestPointsRecyclerView = (RecyclerView) findViewById(R.id.interest_points_list);
-        interestPointsRecyclerView.getItemAnimator().setAddDuration(2000);
-        RecyclerView.LayoutManager interestPointsLayoutManager = new LinearLayoutManager(this);
+        interestPointsAdapter = new InterestPointsAdapter(
+                getApplicationContext(),
+                interestPoints,
+                callbackGroup,
+                callbackDetails,
+                callbackVote,
+                callbackCardAction
+        );
         interestPointsRecyclerView.setHasFixedSize(true);
-        interestPointsRecyclerView.setLayoutManager(interestPointsLayoutManager);
+        interestPointsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         interestPointsRecyclerView.setAdapter(interestPointsAdapter);
     }
 
