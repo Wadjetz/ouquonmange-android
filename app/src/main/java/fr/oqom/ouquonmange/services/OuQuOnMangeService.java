@@ -102,6 +102,6 @@ public interface OuQuOnMangeService {
             @Path("eventUuid") String eventUuid,
             @Query("lat") String latitude,
             @Query("lng") String longitude,
-            @Query("address") String address
+            @Query("query") String query
     );
 }

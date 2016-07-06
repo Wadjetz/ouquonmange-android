@@ -29,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -54,7 +55,7 @@ import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
-public class InterestPointsActivity extends BaseActivity implements LocationListener, OnMapReadyCallback {
+public class InterestPointsActivity extends BaseActivity implements LocationListener, OnMapReadyCallback, GoogleMap.OnMarkerDragListener {
 
     private static final String LOG_TAG = "InterestPointsActivity";
     private static final String IS_COLLAPSED = "IS_COLLAPSED";
@@ -70,7 +71,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private String searchQuery = "";
 
     private LocationManager locationManager;
-    private Location location;
+    private LatLng targetLocation;
+    private LatLng userLocation;
     private GoogleMap map;
 
     @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout swipeRefreshLayout;
@@ -297,6 +299,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     public void onMapReady(final GoogleMap googleMap) {
         this.map = googleMap;
         this.map.getUiSettings().setZoomControlsEnabled(false);
+        this.map.setOnMarkerDragListener(this);
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -329,13 +332,14 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                targetLocation = latLng;
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
                 fetchInterestPoints(latLng.latitude, latLng.longitude);
             }
         });
 
-        if (location != null) {
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+        if (userLocation != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLocation.latitude, userLocation.longitude), 13));
         }
 
         showMarkers();
@@ -355,8 +359,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             public void onRefresh() {
                 Log.d(LOG_TAG, "onRefresh");
                 interestPoints.clear();
-                if (location != null) {
-                    fetchInterestPoints(location.getLatitude(), location.getLongitude());
+                if (targetLocation != null) {
+                    fetchInterestPoints(targetLocation.latitude, targetLocation.longitude);
                 } else {
                     fetchInterestPoints();
                 }
@@ -369,7 +373,12 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 Log.d(LOG_TAG, "onQueryTextSubmit query=" + query);
                 searchQuery = query;
                 searchView.clearFocus();
-                fetchInterestPoints(searchQuery);
+                if (targetLocation != null) {
+                    fetchInterestPoints(targetLocation, searchQuery);
+                } else {
+                    showErrorSnackBar(getString(R.string.interest_point_search_error_no_location));
+                }
+
                 return true;
             }
 
@@ -610,6 +619,10 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         fetchInterestPoints(latitude + "", longitude + "", null);
     }
 
+    private void fetchInterestPoints(LatLng location, String query) {
+        fetchInterestPoints(location.latitude + "", location.longitude + "", query);
+    }
+
     private void fetchInterestPoints(String latitude, String longitude, String address) {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
             ouQuOnMangeService._getInterestPoints(communityUuid, eventUuid, latitude, longitude, address)
@@ -683,8 +696,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(LOG_TAG, "Location Changed GPS_PROVIDER : " + " provider = " + location.getProvider() + "  " + ((this.location != null) ? location.distanceTo(this.location) : "null") + " loc = " + location.getLatitude() + " " + location.getLongitude());
-        this.location = location;
+        this.targetLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        this.userLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
         if (this.map != null) {
             this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 10));
@@ -738,6 +751,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         .position(position)
                         .title(interestPoint.name));
             }
+            if (targetLocation != null) {
+                map.addMarker(new MarkerOptions().draggable(true).position(targetLocation).icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)).title(getString(R.string.map_target)));
+            }
         } else {
             Log.e(LOG_TAG, "Map not ready");
             showErrorSnackBar(getText(R.string.map_not_ready));
@@ -753,5 +769,21 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                     }
                 })
                 .show();
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+        Log.d(LOG_TAG, "onMarkerDragStart = " + marker.getTitle());
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+        Log.d(LOG_TAG, "onMarkerDrag = " + marker.getTitle());
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+        targetLocation = marker.getPosition();
+        fetchInterestPoints(targetLocation, searchQuery.isEmpty() ? null: searchQuery);
     }
 }
