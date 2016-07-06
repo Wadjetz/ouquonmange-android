@@ -3,15 +3,11 @@ package fr.oqom.ouquonmange.dialogs;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Context;
 import android.os.Bundle;
 import android.widget.DatePicker;
-import android.widget.Toast;
 
 import java.util.Calendar;
-import java.util.Date;
 
-import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback3;
 
 public class DatePickerDialogs extends DialogFragment implements DatePickerDialog.OnDateSetListener {
