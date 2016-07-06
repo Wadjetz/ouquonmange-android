@@ -94,18 +94,35 @@
     <string name="community_type">Type</string>
     <string name="community_members">Members</string>
     <string name="accept">Accept</string>
-    <string name="groups">Groups</string>
-    <string name="votes">Votes</string>
     <string name="error_different_number_of_hours_between_dates">The period between the two dates shall not exceed 12 hours.</string>
     <string name="error_invalid_titleOfCommunity_length">This Title is invalid (between 2 and 30 characters)</string>
     <string name="default_12h_event_name">Midi</string>
     <string name="default_12h_event_description">Evrybody need eat</string>
     <string name="list_empty">This list is empty</string>
     <string name="refuse">Refuse</string>
+    <string name="interest_point_search_error_no_location">Activate Location</string>
+    <string name="map_target">Target</string>
+    <string name="conflict_error">This action has already been performed.</string>
+    <string name="error_technical">Technical error</string>
+    <string name="quit_community">Quit Community</string>
+    <string name="interest_point_photo">Interest Point Photo</string>
+    <string name="group_members">Group Members</string>
 
     <string-array name="community_types">
         <item>Public</item>
         <item>Private</item>
-        <item>Closed</item>
+        <!-- <item>Closed</item> -->
     </string-array>
+
+    <plurals name="groups">
+        <item quantity="one">%d group</item>
+        <item quantity="other">%d groups</item>
+    </plurals>
+
+    <plurals name="votes">
+        <item quantity="one">%d vote</item>
+        <item quantity="other">%d votes</item>
+    </plurals>
+
+
 </resources>

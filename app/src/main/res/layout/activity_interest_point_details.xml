@@ -1,39 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout
+<android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/coordinatorMainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:openDrawer="start">
+    tools:context="fr.oqom.ouquonmange.CommunityDetailsActivity">
 
-    <android.support.design.widget.CoordinatorLayout
-        android:id="@+id/coordinatorInterestPointsDetailsLayout"
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="256dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:fitsSystemWindows="true">
+
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            android:fitsSystemWindows="true"
+            app:contentScrim="?attr/colorPrimary"
+            app:expandedTitleMarginStart="48dp"
+            app:expandedTitleMarginEnd="64dp">
+
+            <ImageView
+                android:id="@+id/backdrop"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:fitsSystemWindows="true"
+                app:layout_collapseMode="parallax"
+                android:src="@drawable/interest_point_default"
+                android:contentDescription="@string/interest_point_photo" />
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:layout_collapseMode="pin" />
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="fr.oqom.ouquonmange.InterestPointDetailsActivity">
-
-        <include layout="@layout/toolbar_view_include" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <ProgressBar
-                android:id="@+id/progress_interest_point_detail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_centerHorizontal="true"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
             <android.support.v7.widget.CardView
-                xmlns:card_view="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/interest_point_detail_cardView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -45,80 +69,45 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"
-                    android:elevation="2dp">
+                    android:padding="16dp">
 
                     <TextView
                         android:id="@+id/interest_point_detail_name"
+                        android:text="@string/title"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:textSize="20sp" />
 
                     <TextView
                         android:id="@+id/interest_point_detail_address"
+                        android:text="@string/description"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
+
                 </LinearLayout>
-
-
             </android.support.v7.widget.CardView>
-            <android.support.v7.widget.CardView
-                xmlns:card_view="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/interest_point_members_cardView"
-                android:layout_width="match_parent"
+
+            <TextView
+                android:id="@+id/interest_point_members_numbers"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:text="@string/group_members"
                 android:layout_margin="5dp"
-                android:foreground="?android:attr/selectableItemBackground">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:padding="16dp"
-                            android:elevation="2dp">
-                            <TextView
-                                style="@style/fontStyle"
-                                android:id="@+id/interest_point_members_name"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="left|center"
-                                android:text="Members "
-                                />
+                android:layout_below="@id/interest_point_detail_cardView"
+                android:textStyle="bold"
+                android:textSize="18sp" />
 
-                            <TextView
-                                android:id="@+id/interest_point_members_numbers"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="right|center"/>
-
-                        </LinearLayout>
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="16dp"
-                            android:elevation="2dp">
-                            <android.support.v7.widget.RecyclerView
-                                android:id="@+id/members_list"
-                                android:scrollbars="vertical"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"/>
-                        </LinearLayout>
-
-
-                    </LinearLayout>
-
-            </android.support.v7.widget.CardView>
-        </LinearLayout>
-
-
+            <fr.oqom.ouquonmange.adapters.EmptyRecyclerView
+                android:id="@+id/members_list"
+                android:scrollbars="vertical"
+                android:layout_margin="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/interest_point_members_numbers"/>
 
         </RelativeLayout>
 
-    </android.support.design.widget.CoordinatorLayout>
+    </android.support.v4.widget.NestedScrollView>
 
-    <include layout="@layout/nav_view_include" />
-
-</android.support.v4.widget.DrawerLayout>
+</android.support.design.widget.CoordinatorLayout>

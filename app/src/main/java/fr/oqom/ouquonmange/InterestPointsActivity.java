@@ -3,6 +3,7 @@ package fr.oqom.ouquonmange;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -29,6 +30,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -40,7 +42,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
+import fr.oqom.ouquonmange.adapters.EmptyRecyclerView;
 import fr.oqom.ouquonmange.adapters.InterestPointsAdapter;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Group;
@@ -55,24 +57,12 @@ import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
-public class InterestPointsActivity extends BaseActivity implements LocationListener, OnMapReadyCallback {
+public class InterestPointsActivity extends BaseActivity implements LocationListener, OnMapReadyCallback, GoogleMap.OnMarkerDragListener {
 
     private static final String LOG_TAG = "InterestPointsActivity";
     private static final String IS_COLLAPSED = "IS_COLLAPSED";
     private static final String INTEREST_POINT_ITEM_HEIGHT = "INTEREST_POINT_ITEM_HEIGHT";
     private final int REQUEST_LOCATION_ASK_PERMISSIONS = 123;
-
-    @BindView(R.id.interest_points_list) RecyclerView interestPointsRecyclerView;
-    private RecyclerView.Adapter<InterestPointsAdapter.InterestPointViewHolder> interestPointsAdapter;
-    private EmptyRecyclerViewAdapter interestPointsEmptyAdapter;
-    private ArrayList<InterestPoint> interestPoints = new ArrayList<>();
-    private String eventUuid;
-    private String communityUuid;
-    private String searchQuery = "";
-
-    private LocationManager locationManager;
-    private Location location;
-    private GoogleMap map;
 
     @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout swipeRefreshLayout;
     @BindView(R.id.coordinatorInterestPointsLayout) CoordinatorLayout coordinatorLayout;
@@ -81,6 +71,19 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     @BindView(R.id.map_container) View mapContainer;
     @BindView(R.id.root_container) LinearLayout rootContainer;
     @BindView(R.id.list_container) View listContainer;
+    @BindView(R.id.interest_points_list) EmptyRecyclerView interestPointsRecyclerView;
+
+    private InterestPointsAdapter interestPointsAdapter;
+    private ArrayList<InterestPoint> interestPoints = new ArrayList<>();
+    private String eventUuid;
+    private String communityUuid;
+    private String searchQuery = "";
+
+    private LocationManager locationManager;
+    private LatLng targetLocation;
+    private LatLng userLocation;
+    private GoogleMap map;
+
 
     private SupportMapFragment mapFragment;
     int interestPointItemHeight = 0;
@@ -89,261 +92,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private SearchView searchView = null;
     private SearchView.OnQueryTextListener queryTextListener;
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        Log.d(LOG_TAG, "onWindowFocusChanged");
-
-        if (hasFocus) {
-            int height = rootContainer.getHeight();
-            interestPointItemHeight = interestPointItem.getHeight() != 0 ? interestPointItem.getHeight() : interestPointItemHeight;
-            if (!isCollapsed) {
-                collapseEnable(height);
-            } else {
-                collapseDisable(height);
-            }
-        }
-    }
-
-    private void collapseEnable(int height) {
-        interestPointsRecyclerView.setVisibility(View.VISIBLE);
-        interestPointItem.setVisibility(View.GONE);
-        containerCollapseAction.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_arrow_drop_down_black), null, null, null);
-
-        mapContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (height * 0.2)));
-        mapFragment.getView().setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (height * 0.2)));
-        listContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (height * 0.8)));
-    }
-
-    private void collapseDisable(int height) {
-        interestPointsRecyclerView.setVisibility(View.GONE);
-        interestPointItem.setVisibility(View.VISIBLE);
-        containerCollapseAction.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_arrow_drop_up_black), null, null, null);
-
-
-        mapContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height - (interestPointItemHeight + containerCollapseAction.getHeight())));
-        mapFragment.getView().setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height - (interestPointItemHeight + containerCollapseAction.getHeight())));
-        listContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (interestPointItemHeight + containerCollapseAction.getHeight())));
-    }
-
-    private void showInterestPointItem(final InterestPoint interestPoint) {
-        InterestPointsAdapter.InterestPointViewHolder holder = new InterestPointsAdapter.InterestPointViewHolder(
-                interestPointItem,
-                callbackGroup,
-                callbackDetails,
-                callbackVote,
-                callbackCardAction
-        );
-        InterestPointsAdapter.InterestPointViewHolder.setView(getApplicationContext(), holder, interestPoint);
-        interestPointsEmptyAdapter = new EmptyRecyclerViewAdapter();
-    }
-
-    private void voteGroup(final InterestPoint interestPointToVote) {
-        ouQuOnMangeService.voteGroup(communityUuid, new VoteGroup(eventUuid, interestPointToVote.apiId, interestPointToVote.type))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Vote>() {
-                    @Override
-                    public void call(Vote message) {
-                        updateListAfterVote(interestPointToVote);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                        if (throwable instanceof HttpException) {
-                            HttpException response = (HttpException) throwable;
-                            switch (response.code()) {
-                                case 400:
-                                    Log.e(LOG_TAG, "Login 400 Bad Request");
-                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
-                                    break;
-                                case 409:
-                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
-                                    showErrorSnackBar(getText(R.string.error_already_join));
-                                case 401:
-                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
-                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                            }
-                        } else {
-                            showErrorSnackBar(throwable.getMessage());
-                        }
-                    }
-                });
-    }
-
-    private void unvoteGroup(final InterestPoint interestPointToUnVote) {
-        ouQuOnMangeService.unvoteGroup(communityUuid, eventUuid, interestPointToUnVote.apiId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Message>() {
-                    @Override
-                    public void call(Message message) {
-                        updateListAfterUnvote(interestPointToUnVote);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                        if (throwable instanceof HttpException) {
-                            HttpException response = (HttpException) throwable;
-                            switch (response.code()) {
-                                case 400:
-                                    Log.e(LOG_TAG, "Login 400 Bad Request");
-                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
-                                    break;
-                                case 409:
-                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
-                                    showErrorSnackBar(getText(R.string.error_already_join));
-                                case 401:
-                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
-                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                            }
-                        } else {
-                            showErrorSnackBar(throwable.getMessage());
-                        }
-                    }
-                });
-    }
-
-    private void joinGroup(final InterestPoint interestPointToJoin) {
-        ouQuOnMangeService.joinGroup(communityUuid, new JoinGroup(eventUuid, interestPointToJoin.apiId, interestPointToJoin.type))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Group>() {
-                    @Override
-                    public void call(Group group) {
-                        updateListAfterJoinGroup(interestPointToJoin);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                        if (throwable instanceof HttpException) {
-                            HttpException response = (HttpException) throwable;
-                            switch (response.code()) {
-                                case 400:
-                                    Log.e(LOG_TAG, "Login 400 Bad Request");
-                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
-                                    break;
-                                case 409:
-                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
-                                    showErrorSnackBar(getText(R.string.error_already_join));
-                                case 401:
-                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
-                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                            }
-                        } else {
-                            showErrorSnackBar(throwable.getMessage());
-                        }
-                    }
-                });
-    }
-
-    private void quitGroup(final InterestPoint interestPointToQuit) {
-        ouQuOnMangeService.quitGroup(communityUuid, eventUuid, interestPointToQuit.apiId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Message>() {
-                    @Override
-                    public void call(Message message) {
-                        updateListAfterQuitGroup(interestPointToQuit);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                        if (throwable instanceof HttpException) {
-                            HttpException response = (HttpException) throwable;
-                            switch (response.code()) {
-                                case 400:
-                                    Log.e(LOG_TAG, "Login 400 Bad Request");
-                                    showErrorSnackBar(getText(R.string.error_invalid_fields));
-                                    break;
-                                case 409:
-                                    Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
-                                    showErrorSnackBar(getText(R.string.error_already_join));
-                                case 401:
-                                    Log.e(LOG_TAG, "Login 401 Unauthorized");
-                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                            }
-                        } else {
-                            showErrorSnackBar(throwable.getMessage());
-                        }
-                    }
-                });
-    }
-
-    @OnClick(R.id.container_collapse_action) void collapseContainer() {
-        int height = rootContainer.getHeight();
-        int interestPointItemHeight = interestPointItem.getHeight();
-
-        Log.d(LOG_TAG, "height = " + height + " ipItemHeight = " + interestPointItemHeight + " isCollapsed = " + isCollapsed);
-
-        if (isCollapsed) {
-            isCollapsed = false;
-            collapseEnable(height);
-
-        } else {
-            isCollapsed = true;
-            collapseDisable(height);
-        }
-    }
-
-    @Override
-    public void onMapReady(final GoogleMap googleMap) {
-        this.map = googleMap;
-        this.map.getUiSettings().setZoomControlsEnabled(false);
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        googleMap.setMyLocationEnabled(true);
-        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                int position = 1;
-                for (InterestPoint interestPoint : interestPoints) {
-                    if (interestPoint.name.equals(marker.getTitle())) {
-                        Log.d(LOG_TAG, marker.getTitle() + " position=" + position);
-                        interestPointsRecyclerView.scrollToPosition(position);
-                        showInterestPointItem(interestPoint);
-                    }
-                    position++;
-                }
-
-                return false;
-            }
-        });
-
-        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-                fetchInterestPoints(latLng.latitude, latLng.longitude);
-            }
-        });
-
-        if (location != null) {
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
-        }
-
-        showMarkers();
-
-        Log.d(LOG_TAG, "onMapReady interestPoints = " + interestPoints);
-    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -357,8 +105,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             public void onRefresh() {
                 Log.d(LOG_TAG, "onRefresh");
                 interestPoints.clear();
-                if (location != null) {
-                    fetchInterestPoints(location.getLatitude(), location.getLongitude());
+                if (targetLocation != null) {
+                    fetchInterestPoints(targetLocation.latitude, targetLocation.longitude);
                 } else {
                     fetchInterestPoints();
                 }
@@ -371,7 +119,12 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 Log.d(LOG_TAG, "onQueryTextSubmit query=" + query);
                 searchQuery = query;
                 searchView.clearFocus();
-                fetchInterestPoints(searchQuery);
+                if (targetLocation != null) {
+                    fetchInterestPoints(targetLocation, searchQuery);
+                } else {
+                    showErrorSnackBar(getString(R.string.interest_point_search_error_no_location));
+                }
+
                 return true;
             }
 
@@ -405,6 +158,90 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     }
 
     @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        Log.d(LOG_TAG, "onWindowFocusChanged");
+
+        if (hasFocus && !isLandscape()) {
+            int height = rootContainer.getHeight();
+            interestPointItemHeight = interestPointItem.getHeight() != 0 ? interestPointItem.getHeight() : interestPointItemHeight;
+            if (!isCollapsed) {
+                collapseEnable(height);
+            } else {
+                collapseDisable(height);
+            }
+        }
+    }
+
+    @OnClick(R.id.container_collapse_action) void collapseContainer() {
+        int height = rootContainer.getHeight();
+        int interestPointItemHeight = interestPointItem.getHeight();
+
+        Log.d(LOG_TAG, "height = " + height + " ipItemHeight = " + interestPointItemHeight + " isCollapsed = " + isCollapsed);
+
+        if (isCollapsed) {
+            isCollapsed = false;
+            collapseEnable(height);
+
+        } else {
+            isCollapsed = true;
+            collapseDisable(height);
+        }
+    }
+
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        this.map = googleMap;
+        this.map.getUiSettings().setZoomControlsEnabled(true);
+        this.map.setOnMarkerDragListener(this);
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        googleMap.setMyLocationEnabled(true);
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                int position = 1;
+                for (InterestPoint interestPoint : interestPoints) {
+                    if (interestPoint.name.equals(marker.getTitle())) {
+                        Log.d(LOG_TAG, marker.getTitle() + " position=" + position);
+                        interestPointsRecyclerView.scrollToPosition(position);
+                        showInterestPointItem(interestPoint);
+                    }
+                    position++;
+                }
+
+                return false;
+            }
+        });
+
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                targetLocation = latLng;
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+                fetchInterestPoints(latLng.latitude, latLng.longitude);
+            }
+        });
+
+        if (userLocation != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLocation.latitude, userLocation.longitude), 13));
+        }
+
+        showMarkers();
+
+        Log.d(LOG_TAG, "onMapReady interestPoints = " + interestPoints);
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.d(LOG_TAG, "onSaveInstanceState");
@@ -413,6 +250,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         outState.putParcelableArrayList(Constants.INTEREST_POINTS_LIST, this.interestPoints);
         outState.putBoolean(IS_COLLAPSED, isCollapsed);
         outState.putInt(INTEREST_POINT_ITEM_HEIGHT, interestPointItemHeight);
+        outState.putString("searchQuery", searchQuery);
     }
 
     @Override
@@ -423,6 +261,43 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
         isCollapsed = savedInstanceState.getBoolean(IS_COLLAPSED);
         interestPointItemHeight = savedInstanceState.getInt(INTEREST_POINT_ITEM_HEIGHT);
+        searchQuery = savedInstanceState.getString("searchQuery");
+    }
+
+    private boolean isLandscape() {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+    }
+
+    private void collapseEnable(int height) {
+        interestPointsRecyclerView.setVisibility(View.VISIBLE);
+        interestPointItem.setVisibility(View.GONE);
+        containerCollapseAction.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_arrow_drop_down_black), null, null, null);
+
+        mapContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (height * 0.2)));
+        mapFragment.getView().setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (height * 0.2)));
+        listContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (height * 0.8)));
+    }
+
+    private void collapseDisable(int height) {
+        interestPointsRecyclerView.setVisibility(View.GONE);
+        interestPointItem.setVisibility(View.VISIBLE);
+        containerCollapseAction.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_arrow_drop_up_black), null, null, null);
+
+
+        mapContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height - (interestPointItemHeight + containerCollapseAction.getHeight())));
+        mapFragment.getView().setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height - (interestPointItemHeight + containerCollapseAction.getHeight())));
+        listContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (interestPointItemHeight + containerCollapseAction.getHeight())));
+    }
+
+    private void showInterestPointItem(final InterestPoint interestPoint) {
+        InterestPointsAdapter.InterestPointViewHolder holder = new InterestPointsAdapter.InterestPointViewHolder(
+                interestPointItem,
+                callbackGroup,
+                callbackDetails,
+                callbackVote,
+                callbackCardAction
+        );
+        InterestPointsAdapter.InterestPointViewHolder.setView(getApplicationContext(), holder, interestPoint);
     }
 
     private void updateListAfterJoinGroup(final InterestPoint joinedInterestPoint) {
@@ -458,7 +333,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 showInterestPointItem(ip);
             }
         }
-
     }
 
     private void updateListAfterVote(final InterestPoint interestPoint) {
@@ -556,6 +430,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 callbackCardAction
         );
         interestPointsRecyclerView.setHasFixedSize(true);
+        View emptyView = findViewById(R.id.interest_points_list_empty_view);
+        interestPointsRecyclerView.setEmptyView(emptyView);
         interestPointsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         interestPointsRecyclerView.setAdapter(interestPointsAdapter);
     }
@@ -569,14 +445,14 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 HttpException response = (HttpException) throwable;
                 switch (response.code()) {
                     case 400:
-                        Log.e(LOG_TAG, "Login 400 Bad Request");
-                        showErrorSnackBar(getText(R.string.error_invalid_fields));
+                        Log.e(LOG_TAG, "400 Bad Request");
+                        showErrorSnackBar(getText(R.string.error_technical));
                         break;
                     case 409:
-                        Log.e(LOG_TAG, "Login 409 Conflict Community Already Exist");
-                        showErrorSnackBar(getText(R.string.error_already_join));
+                        Log.e(LOG_TAG, "409 Conflict Community Already Exist");
+                        showErrorSnackBar(getText(R.string.conflict_error));
                     case 401:
-                        Log.e(LOG_TAG, "Login 401 Unauthorized");
+                        Log.e(LOG_TAG, "401 Unauthorized");
                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                         startActivity(intent);
                         finish();
@@ -593,21 +469,13 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         @Override
         public void call(List<InterestPoint> ips) {
             interestPoints.clear();
-            if(ips.size() > 0) {
-                interestPoints.addAll(ips);
-                showMarkers();
-                interestPointsAdapter.notifyDataSetChanged();
-            }else{
-                interestPointsEmptyAdapter.notifyDataSetChanged();
-            }
+            interestPoints.addAll(ips);
+            showMarkers();
+            interestPointsAdapter.notifyDataSetChanged();
             Log.i(LOG_TAG, "Fetch InterestPoint = " + interestPoints.size());
             swipeRefreshLayout.setRefreshing(false);
         }
     };
-
-    private void fetchInterestPoints(String address) {
-        fetchInterestPoints(null, null, address);
-    }
 
     private void fetchInterestPoints() {
         fetchInterestPoints(null, null, null);
@@ -617,15 +485,64 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         fetchInterestPoints(latitude + "", longitude + "", null);
     }
 
+    private void fetchInterestPoints(LatLng location, String query) {
+        fetchInterestPoints(location.latitude + "", location.longitude + "", query);
+    }
+
     private void fetchInterestPoints(String latitude, String longitude, String address) {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
-            ouQuOnMangeService._getInterestPoints(communityUuid, eventUuid, latitude, longitude, address)
+            ouQuOnMangeService.getInterestPoints(communityUuid, eventUuid, latitude, longitude, address)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(apiSuccessCallback, apiErrorCallback);
         } else {
             NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
             swipeRefreshLayout.setRefreshing(false);
         }
+    }
+
+
+    private void voteGroup(final InterestPoint interestPointToVote) {
+        ouQuOnMangeService.voteGroup(communityUuid, new VoteGroup(eventUuid, interestPointToVote.apiId, interestPointToVote.type))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Vote>() {
+                    @Override
+                    public void call(Vote message) {
+                        updateListAfterVote(interestPointToVote);
+                    }
+                }, apiErrorCallback);
+    }
+
+    private void unvoteGroup(final InterestPoint interestPointToUnVote) {
+        ouQuOnMangeService.unvoteGroup(communityUuid, eventUuid, interestPointToUnVote.apiId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Message>() {
+                    @Override
+                    public void call(Message message) {
+                        updateListAfterUnvote(interestPointToUnVote);
+                    }
+                }, apiErrorCallback);
+    }
+
+    private void joinGroup(final InterestPoint interestPointToJoin) {
+        ouQuOnMangeService.joinGroup(communityUuid, new JoinGroup(eventUuid, interestPointToJoin.apiId, interestPointToJoin.type))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Group>() {
+                    @Override
+                    public void call(Group group) {
+                        updateListAfterJoinGroup(interestPointToJoin);
+                    }
+                }, apiErrorCallback);
+    }
+
+    private void quitGroup(final InterestPoint interestPointToQuit) {
+        ouQuOnMangeService.quitGroup(communityUuid, eventUuid, interestPointToQuit.apiId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Message>() {
+                    @Override
+                    public void call(Message message) {
+                        updateListAfterQuitGroup(interestPointToQuit);
+                    }
+                }, apiErrorCallback);
     }
 
     private boolean getLocation() {
@@ -690,8 +607,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(LOG_TAG, "Location Changed GPS_PROVIDER : " + " provider = " + location.getProvider() + "  " + ((this.location != null) ? location.distanceTo(this.location) : "null") + " loc = " + location.getLatitude() + " " + location.getLongitude());
-        this.location = location;
+        this.targetLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        this.userLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
         if (this.map != null) {
             this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 10));
@@ -745,6 +662,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                         .position(position)
                         .title(interestPoint.name));
             }
+            if (targetLocation != null) {
+                map.addMarker(new MarkerOptions().draggable(true).position(targetLocation).icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)).title(getString(R.string.map_target)));
+            }
         } else {
             Log.e(LOG_TAG, "Map not ready");
             showErrorSnackBar(getText(R.string.map_not_ready));
@@ -760,5 +680,21 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                     }
                 })
                 .show();
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+        Log.d(LOG_TAG, "onMarkerDragStart = " + marker.getTitle());
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+        Log.d(LOG_TAG, "onMarkerDrag = " + marker.getTitle());
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+        targetLocation = marker.getPosition();
+        fetchInterestPoints(targetLocation, searchQuery.isEmpty() ? null: searchQuery);
     }
 }

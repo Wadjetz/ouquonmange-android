@@ -22,12 +22,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/map_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <fragment
@@ -39,7 +40,7 @@
                     map:cameraTargetLng="2.34"
                     map:cameraZoom="11"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"/>
+                    android:layout_height="match_parent"/>
 
             </LinearLayout>
 
@@ -47,7 +48,8 @@
                 android:orientation="vertical"
                 android:id="@+id/list_container"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_weight="1">
 
                 <Button
                     android:id="@+id/container_collapse_action"
@@ -56,6 +58,7 @@
                     android:layout_gravity="center"
                     android:paddingLeft="30dp"
                     android:paddingRight="30dp"
+                    android:visibility="gone"
                     style="@style/Widget.AppCompat.Button.Small"
                     android:drawableStart="@drawable/ic_arrow_drop_down_black"
                     android:drawableLeft="@drawable/ic_arrow_drop_down_black" />
@@ -64,6 +67,7 @@
                     android:id="@+id/interest_point_item"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     layout="@layout/interest_point_item" />
 
                 <android.support.v4.widget.SwipeRefreshLayout
@@ -78,21 +82,6 @@
                         android:layout_height="match_parent"/>
 
                 </android.support.v4.widget.SwipeRefreshLayout>
-
-                <LinearLayout
-                    android:id="@+id/interest_points_list_empty_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:padding="16dp"
-                        android:text="@string/list_empty"/>
-
-                </LinearLayout>
 
             </LinearLayout>
 

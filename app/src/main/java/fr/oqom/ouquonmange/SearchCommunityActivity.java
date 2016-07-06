@@ -145,11 +145,8 @@ public class SearchCommunityActivity extends BaseActivity {
                             public void call(User user) {
                                 Log.i(LOG_TAG, "Community Join ok : " + user);
                                 showErrorSnackBar(getText(R.string.member_join_community));
-                                for (Community c : communitiesSearch) {
-                                    if (c.uuid.equals(community.uuid)) {
-                                        communitiesSearch.remove(c);
-                                    }
-                                }
+                                int i = communitiesSearch.indexOf(community);
+                                communitiesSearch.remove(i);
                                 searchCommunitiesAdapter.notifyDataSetChanged();
                             }
                         }, new Action1<Throwable>() {

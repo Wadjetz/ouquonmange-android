@@ -5,12 +5,26 @@ import android.os.Parcelable;
 
 import org.joda.time.DateTime;
 
-public class Profile implements Parcelable {
+import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
+
+public class Profile extends RealmObject implements Parcelable {
     public String uuid;
     public String username;
     public String email;
     public int gsmTokens;
+    @Ignore
     public DateTime created;
+
+    public Profile() {}
+
+    public Profile(String uuid, String username, String email, int gsmTokens, DateTime created) {
+        this.uuid = uuid;
+        this.username = username;
+        this.email = email;
+        this.gsmTokens = gsmTokens;
+        this.created = created;
+    }
 
     protected Profile(Parcel in) {
         uuid = in.readString();
@@ -54,5 +68,45 @@ public class Profile implements Parcelable {
                 ", gsmTokens=" + gsmTokens +
                 ", created=" + created +
                 '}';
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public int getGsmTokens() {
+        return gsmTokens;
+    }
+
+    public void setGsmTokens(int gsmTokens) {
+        this.gsmTokens = gsmTokens;
+    }
+
+    public DateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(DateTime created) {
+        this.created = created;
     }
 }

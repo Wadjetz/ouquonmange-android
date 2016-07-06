@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import fr.oqom.ouquonmange.adapters.CommunityMembersAdapter;
-import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
+import fr.oqom.ouquonmange.adapters.EmptyRecyclerView;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.CommunityDetails;
 import fr.oqom.ouquonmange.models.CommunityMember;
@@ -44,10 +43,11 @@ public class CommunityDetailsFragment extends Fragment {
     //private SwipeRefreshLayout swipeRefreshLayout;
 
     private ArrayList<CommunityMember> members = new ArrayList<>();
-    private RecyclerView.LayoutManager membersLayoutManager;
-    private RecyclerView membersRecyclerView;
-    private RecyclerView.Adapter membersAdapter;
-    private RecyclerView.Adapter membersEmptyAdapter;
+    private EmptyRecyclerView membersRecyclerView;
+    private CommunityMembersAdapter membersAdapter;
+
+    public CommunityDetailsFragment() {
+    }
 
     public static CommunityDetailsFragment newInstance(Community community) {
         CommunityDetailsFragment communityDetailsFragment = new CommunityDetailsFragment();
@@ -90,17 +90,12 @@ public class CommunityDetailsFragment extends Fragment {
 
         membersAdapter = new CommunityMembersAdapter(this.members, getContext(), callbackAcceptMember, callbackRefuseMember);
 
-        membersEmptyAdapter = new EmptyRecyclerViewAdapter();
-
-        membersRecyclerView = (RecyclerView) view.findViewById(R.id.communities_members_list);
-        membersLayoutManager = new LinearLayoutManager(getContext());
+        membersRecyclerView = (EmptyRecyclerView) view.findViewById(R.id.communities_members_list);
+        View emptyListView = view.findViewById(R.id.communities_members_list_empty_view);
         membersRecyclerView.setHasFixedSize(true);
-        membersRecyclerView.setLayoutManager(membersLayoutManager);
-        if(members.size() > 0) {
-            membersRecyclerView.setAdapter(membersAdapter);
-        }else{
-            membersRecyclerView.setAdapter(membersEmptyAdapter);
-        }
+        membersRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        membersRecyclerView.setEmptyView(emptyListView);
+        membersRecyclerView.setAdapter(membersAdapter);
     }
 
     private Callback<CommunityMember> callbackAcceptMember = new Callback<CommunityMember>() {
@@ -203,14 +198,8 @@ public class CommunityDetailsFragment extends Fragment {
                             communityDetails = details;
                             Log.d(LOG_TAG, "fetched Community Details ok " + communityDetails);
                             members.clear();
-                            if(communityDetails.members.size() > 0) {
-                                members.addAll(communityDetails.members);
-                                membersAdapter.notifyDataSetChanged();
-                                membersRecyclerView.setAdapter(membersAdapter);
-                            }else{
-                                membersEmptyAdapter.notifyDataSetChanged();
-                                membersRecyclerView.setAdapter(membersEmptyAdapter);
-                            }
+                            members.addAll(communityDetails.members);
+                            membersAdapter.notifyDataSetChanged();
                             progressBar.setVisibility(View.INVISIBLE);
                             //swipeRefreshLayout.setRefreshing(false);
                         }

@@ -94,8 +94,6 @@
     <string name="community_type">Type</string>
     <string name="community_members">Membres</string>
     <string name="accept">Accepte</string>
-    <string name="groups">Groupes</string>
-    <string name="votes">Votes</string>
     <string name="error_different_number_of_hours_between_dates">La période entre les deux dates ne doivent pas dépasser 12 heures.</string>
     <string name="error_invalid_titleOfCommunity_length">Le titre est invalide (entre 2 et 30 caractéres)</string>
     <string name="default_12h_event_name">Midi</string>
@@ -103,10 +101,27 @@
     <string name="list_empty">La liste est vide</string>
     <string name="refuse">Refuse</string>
 
+    <string name="interest_point_search_error_no_location">Activate Location</string>
+    <string name="map_target">Target</string>
+    <string name="conflict_error">Cette action a déjà été effectuée</string>
+    <string name="error_technical">Erreur Technique</string>
+    <string name="quit_community">Quit Community</string>
+    <string name="interest_point_photo">Interest Point Photo</string>
+    <string name="group_members">Group Members</string>
 
     <string-array name="community_types">
         <item>Public</item>
         <item>Privé</item>
-        <item>Fermé</item>
+        <!-- <item>Fermé</item> -->
     </string-array>
+
+    <plurals name="groups">
+        <item quantity="one">%d group</item>
+        <item quantity="other">%d groups</item>
+    </plurals>
+
+    <plurals name="votes">
+        <item quantity="one">%d vote</item>
+        <item quantity="other">%d votes</item>
+    </plurals>
 </resources>

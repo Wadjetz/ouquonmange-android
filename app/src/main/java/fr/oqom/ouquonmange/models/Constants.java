@@ -32,6 +32,7 @@ public class Constants {
     public static final String MEMBER_STATUS_ACCEPTED = "accepted";
     public static final String MEMBER_STATUS_PENDING = "pending";
     public static final String MEMBER_STATUS_REJECTED = "rejected";
+    public static final String INTEREST_POINT_DETAILS = "INTEREST_POINT_DETAILS";
     public static int NUMBER_OF_HOURS_BETWEEN_TWO_DATE = 12;
     public static long DIFFERENT_HOURS = 12 * 60 * 60 ; // difference entre le date de debut et le fin (event)
     public static int NUMBER_OF_HOURS_IN_THE_PAST_FOR_EVENT = 1;

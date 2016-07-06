@@ -5,6 +5,9 @@ import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class InterestPoint implements Parcelable, Comparable {
 
     @SerializedName("api_id")
@@ -18,6 +21,8 @@ public class InterestPoint implements Parcelable, Comparable {
     public int votes;
     public boolean isJoin;
     public boolean isVote;
+    public List<String> image = new ArrayList<>();
+    public List<String> categories = new ArrayList<>();
 
     public InterestPoint(Parcel in) {
         apiId = in.readString();
@@ -30,6 +35,10 @@ public class InterestPoint implements Parcelable, Comparable {
         votes = in.readInt();
         isJoin = (1 == in.readInt());
         isVote = (1 == in.readInt());
+        image.clear();
+        in.readStringList(image);
+        categories.clear();
+        in.readStringList(categories);
     }
 
     public static final Parcelable.Creator<InterestPoint> CREATOR = new Parcelable.Creator<InterestPoint>() {
@@ -59,6 +68,8 @@ public class InterestPoint implements Parcelable, Comparable {
         out.writeInt(votes);
         out.writeInt(isJoin ? 1 : 0);
         out.writeInt(isVote ? 1 : 0);
+        out.writeStringList(image);
+        out.writeStringList(categories);
     }
 
     @Override
@@ -74,15 +85,17 @@ public class InterestPoint implements Parcelable, Comparable {
                 ", votes=" + votes +
                 ", isJoin=" + isJoin +
                 ", isVote=" + isVote +
+                ", image=" + image +
+                ", categories=" + categories +
                 '}';
     }
 
     @Override
     public int compareTo(Object another) {
         InterestPoint ip = (InterestPoint) another;
-        if ( (ip.members + ip.votes) > (members + votes) ) {
+        if ( ( (ip.members * 2) + ip.votes) > ((members * 2) + votes) ) {
             return 1;
-        } else if ( (ip.members + ip.votes) == (members + votes) ) {
+        } else if ( ((ip.members * 2) + ip.votes) == ((members * 2) + votes) ) {
             return 0;
         } else {
             return -1;

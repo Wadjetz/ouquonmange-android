@@ -1,5 +1,6 @@
 package fr.oqom.ouquonmange;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,7 +22,7 @@ import android.widget.TextView;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import fr.oqom.ouquonmange.models.AuthRepository;
+import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Profile;
 import fr.oqom.ouquonmange.services.Config;
@@ -35,7 +36,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     private static final String LOG_TAG = "BaseActivity";
 
     protected OuQuOnMangeService ouQuOnMangeService;
-    protected AuthRepository authRepository;
+    protected Repository repository;
 
     protected NavigationView navigationView;
     protected DrawerLayout drawer;
@@ -47,7 +48,7 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        authRepository = new AuthRepository(getApplicationContext());
+        repository = new Repository(getApplicationContext());
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
     }
 
@@ -90,9 +91,10 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
                         .setPositiveButton(R.string.yes_message, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                authRepository.deleteToken(new Callback<Void>() {
+                                repository.clearData(new Callback<Boolean>() {
                                     @Override
-                                    public void apply(Void aVoid) {
+                                    public void apply(Boolean isDeleted) {
+                                        Config.setDefaultCommunity(null, getApplicationContext());
                                         startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                                         finish();
                                     }
@@ -141,25 +143,43 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void initProfile() {
-        ouQuOnMangeService.getProfile()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Profile>() {
-                    @Override
-                    public void call(Profile profile) {
-                        Log.d(LOG_TAG, "Fetch profile = " + profile);
-                        navigationViewHeaderUserName.setText(profile.username);
-                        navigationViewHeaderEmail.setText(profile.email);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Log.d(LOG_TAG, throwable.getMessage());
-                    }
-                });
+        repository.getProfile(new Callback<Profile>() {
+            @Override
+            public void apply(Profile profile) {
+                Log.d(LOG_TAG, "Get profile from repository = " + profile);
+                navigationViewHeaderUserName.setText(profile.username);
+                navigationViewHeaderEmail.setText(profile.email);
+            }
+        }, new Callback<Void>() {
+            @Override
+            public void apply(Void aVoid) {
+                ouQuOnMangeService.getProfile()
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Profile>() {
+                            @Override
+                            public void call(final Profile profile) {
+                                Log.d(LOG_TAG, "Fetch profile from API = " + profile);
+                                navigationViewHeaderUserName.setText(profile.username);
+                                navigationViewHeaderEmail.setText(profile.email);
+                                repository.saveProfile(profile, new Callback<Void>() {
+                                    @Override
+                                    public void apply(Void aVoid) {
+                                        Log.d(LOG_TAG, "Save Profile profile = " + profile);
+                                    }
+                                });
+                            }
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                Log.d(LOG_TAG, throwable.getMessage());
+                            }
+                        });
+            }
+        });
     }
 
     protected void checkAuth() {
-        if (authRepository.getToken() == null) {
+        if (repository.getToken() == null) {
             Intent intentLogin = new Intent(this, LoginActivity.class);
             startActivity(intentLogin);
             finish();

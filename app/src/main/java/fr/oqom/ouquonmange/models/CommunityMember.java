@@ -8,7 +8,6 @@ import org.joda.time.DateTime;
 public class CommunityMember implements Parcelable {
     public String uuid;
     public String username;
-    public String email;
     public DateTime created;
     public String role;
     public DateTime joined;
@@ -18,7 +17,6 @@ public class CommunityMember implements Parcelable {
     protected CommunityMember(Parcel in) {
         uuid = in.readString();
         username = in.readString();
-        email = in.readString();
         role = in.readString();
         status = in.readString();
         isAdmin = (1 == in.readInt());
@@ -41,7 +39,6 @@ public class CommunityMember implements Parcelable {
         return "CommunityMember{" +
                 "uuid='" + uuid + '\'' +
                 ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
                 ", created=" + created +
                 ", role='" + role + '\'' +
                 ", joined=" + joined +
@@ -58,7 +55,6 @@ public class CommunityMember implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(uuid);
         dest.writeString(username);
-        dest.writeString(email);
         dest.writeString(role);
         dest.writeString(status);
         dest.writeInt(isAdmin ? 1 : 0);

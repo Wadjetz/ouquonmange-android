@@ -5,7 +5,7 @@ import android.util.Log;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
-import fr.oqom.ouquonmange.models.AuthRepository;
+import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.models.GSMToken;
 import fr.oqom.ouquonmange.models.Message;
 import rx.android.schedulers.AndroidSchedulers;
@@ -24,7 +24,7 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
     private void sendRegistrationToServer(String token) {
         Log.d(TAG, "Send token to server: " + token);
         Config.saveGcmToken(token, getApplicationContext());
-        String authToken = new AuthRepository(getApplicationContext()).getToken();
+        String authToken = new Repository(getApplicationContext()).getToken();
         if (authToken != null) {
             Service.getInstance(getApplicationContext()).addGcmToken(new GSMToken(token))
                     .observeOn(AndroidSchedulers.mainThread())

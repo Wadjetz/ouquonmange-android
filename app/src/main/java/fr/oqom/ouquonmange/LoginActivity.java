@@ -19,7 +19,7 @@ import android.widget.ProgressBar;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import fr.oqom.ouquonmange.models.AuthRepository;
+import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.models.Login;
 import fr.oqom.ouquonmange.models.Token;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
     @BindView(R.id.coordinatorLoginLayout) CoordinatorLayout coordinatorLayout;
 
     private OuQuOnMangeService ouQuOnMangeService;
-    private AuthRepository authRepository;
+    private Repository repository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +54,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
-        authRepository = new AuthRepository(getApplicationContext());
+        repository = new Repository(getApplicationContext());
     }
 
     @OnClick(R.id.login_button)
@@ -71,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
                         .subscribe(new Action1<Token>() {
                             @Override
                             public void call(Token token) {
-                                authRepository.save(token.getToken(), new Callback<Void>() {
+                                repository.save(token.getToken(), new Callback<Void>() {
                                     @Override
                                     public void apply(Void value) {
                                         startActivity(new Intent(getApplicationContext(), MainActivity.class));
@@ -146,7 +146,7 @@ public class LoginActivity extends AppCompatActivity {
 
     protected void hiddenVirtualKeyboard(){
         InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-        if(getCurrentFocus().getWindowToken() != null)
+        if(getCurrentFocus() != null && getCurrentFocus().getWindowToken() != null)
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
 

@@ -10,14 +10,12 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
@@ -26,11 +24,9 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
-import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
+import fr.oqom.ouquonmange.adapters.EmptyRecyclerView;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
-import fr.oqom.ouquonmange.models.GSMToken;
-import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.services.Config;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.Callback2;
@@ -43,14 +39,13 @@ public class MainActivity extends BaseActivity {
 
     private static final String LOG_TAG = "MainActivity";
 
-    @BindView(R.id.progress)              ProgressBar progressBar;
-    @BindView(R.id.swipeRefreshLayout)    SwipeRefreshLayout swipeRefreshLayout;
-    @BindView(R.id.coordinatorMainLayout) CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.progress)                       ProgressBar progressBar;
+    @BindView(R.id.swipeRefreshLayout)             SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.coordinatorMainLayout)          CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.communities_list)               EmptyRecyclerView communitiesRecyclerView;
+    @BindView(R.id.my_communities_list_empty_view) View emptyListView;
 
-    private RecyclerView communitiesRecyclerView;
-    private RecyclerView.Adapter communitiesAdapter;
-    private RecyclerView.Adapter communitiesEmptyAdapter;
-    private RecyclerView.LayoutManager communitiesLayoutManager;
+    private CommunitiesAdapter communitiesAdapter;
 
     private ArrayList<Community> communities = new ArrayList<>();
 
@@ -84,7 +79,12 @@ public class MainActivity extends BaseActivity {
             public void onRefresh() {
                 Log.d(LOG_TAG, "onRefresh");
                 communities.clear();
-                fetchCommunities();
+                repository.deleteMyCommunities(new Callback<Boolean>() {
+                    @Override
+                    public void apply(Boolean aBoolean) {
+                        fetchCommunities();
+                    }
+                });
             }
         });
 
@@ -94,20 +94,13 @@ public class MainActivity extends BaseActivity {
 
         if (savedInstanceState == null) {
             checkAuth();
-            if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                fetchCommunities();
-                checkGcm();
-            } else {
-                Log.e(LOG_TAG, "NOT INTERNET");
-                NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
-            }
+            getMyCommunities();
+            initCommunityList();
         } else {
             this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
             progressBar.setVisibility(View.GONE);
+            initCommunityList();
         }
-
-        initCommunityList();
-
     }
 
     @Override
@@ -143,6 +136,25 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private void getMyCommunities() {
+        List<Community> communitiesFromRepository = repository.getMyCommunities();
+        if (communitiesFromRepository.size() == 0) {
+            fetchCommunities();
+        } else {
+            communities.addAll(communitiesFromRepository);
+            for (Community c : communities) {
+                String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                if (c.uuid.equals(defaultCommunityUuid)) {
+                    c.isDefault = true;
+                }
+            }
+            communitiesAdapter.notifyDataSetChanged();
+            Log.i(LOG_TAG, "Get Communities from repository = " + communitiesFromRepository.size());
+            progressBar.setVisibility(View.GONE);
+            swipeRefreshLayout.setRefreshing(false);
+        }
+    }
+
     private void fetchCommunities() {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
             fetchCommunitiesSubscription = ouQuOnMangeService.getMyCommunities()
@@ -150,21 +162,23 @@ public class MainActivity extends BaseActivity {
                     .subscribe(new Action1<List<Community>>() {
                         @Override
                         public void call(List<Community> communityList) {
-                            if (communityList.size() > 0){
-                                communities.addAll(communityList);
+                            communities.addAll(communityList);
 
-                                for (Community c : communities) {
-                                    String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
-                                    if (c.uuid.equals(defaultCommunityUuid)) {
-                                        c.isDefault = true;
-                                    }
+                            for (Community c : communities) {
+                                String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                                if (c.uuid.equals(defaultCommunityUuid)) {
+                                    c.isDefault = true;
                                 }
-                                communitiesAdapter.notifyDataSetChanged();
-                                communitiesRecyclerView.setAdapter(communitiesAdapter);
-                            }else{
-                                communitiesEmptyAdapter.notifyDataSetChanged();
-                                communitiesRecyclerView.setAdapter(communitiesEmptyAdapter);
                             }
+
+                            repository.saveMyCommunities(communities, new Callback<Void>() {
+                                @Override
+                                public void apply(Void aVoid) {
+                                    Log.d(LOG_TAG, "Save my communities in repository");
+                                }
+                            });
+
+                            communitiesAdapter.notifyDataSetChanged();
                             Log.i(LOG_TAG, "Fetch Communities = " + communityList.size());
 
                             progressBar.setVisibility(View.GONE);
@@ -242,16 +256,10 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        communitiesEmptyAdapter = new EmptyRecyclerViewAdapter();
-
-        communitiesRecyclerView = (RecyclerView) findViewById(R.id.communities_list);
-        communitiesLayoutManager = new LinearLayoutManager(this);
         communitiesRecyclerView.setHasFixedSize(true);
-        communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
-        if(communitiesIsNotEmpty())
-            communitiesRecyclerView.setAdapter(communitiesAdapter);
-        else
-            communitiesRecyclerView.setAdapter(communitiesEmptyAdapter);
+        communitiesRecyclerView.setAdapter(communitiesAdapter);
+        communitiesRecyclerView.setEmptyView(emptyListView);
+        communitiesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private void initFloatingButton() {
@@ -265,30 +273,6 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void checkGcm() {
-        String gcmToken = FirebaseInstanceId.getInstance().getToken();
-        if (gcmToken != null) {
-            if (NetConnectionUtils.isConnected(getApplicationContext())) {
-                ouQuOnMangeService.addGcmToken(new GSMToken(gcmToken))
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Action1<Message>() {
-                            @Override
-                            public void call(Message message) {
-                                Log.d(LOG_TAG, "addGcmToken ok = " +  message);
-                            }
-                        }, new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                Log.e(LOG_TAG, "addGcmToken error = " + throwable.getMessage());
-                            }
-                        });
-            } else {
-                NetConnectionUtils.showNoConnexionSnackBar(coordinatorLayout, this);
-            }
-        }
-        Log.d(LOG_TAG, "GCM Token " + gcmToken);
-    }
-
     private void showErrorSnackBar(CharSequence message) {
         Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
     }
@@ -299,10 +283,6 @@ public class MainActivity extends BaseActivity {
             fetchCommunitiesSubscription.unsubscribe();
         }
         super.onStop();
-    }
-
-    private boolean communitiesIsNotEmpty(){
-        return communities != null && communities.size() > 0;
     }
 }
 

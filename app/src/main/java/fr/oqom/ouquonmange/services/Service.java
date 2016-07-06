@@ -9,7 +9,7 @@ import org.joda.time.DateTime;
 
 import java.io.IOException;
 
-import fr.oqom.ouquonmange.models.AuthRepository;
+import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.utils.DateTimeConverter;
 import okhttp3.Interceptor;
@@ -25,8 +25,8 @@ public class Service {
 
         Gson gson = new GsonBuilder().registerTypeAdapter(DateTime.class, new DateTimeConverter()).create();
 
-        final AuthRepository authRepository = new AuthRepository(context);
-        final String token = authRepository.getToken();
+        final Repository repository = new Repository(context);
+        final String token = repository.getToken();
 
         Interceptor interceptor = new Interceptor() {
             @Override

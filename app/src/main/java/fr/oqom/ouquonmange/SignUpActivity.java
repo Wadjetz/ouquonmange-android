@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import fr.oqom.ouquonmange.models.AuthRepository;
+import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.SignUpUser;
 import fr.oqom.ouquonmange.models.Token;
@@ -43,7 +43,7 @@ public class SignUpActivity extends BaseActivity {
     @BindView(R.id.progress)                ProgressBar progressBar;
     @BindView(R.id.coordinatorSigninLayout) CoordinatorLayout coordinatorLayout;
 
-    private AuthRepository authRepository;
+    private Repository repository;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,7 +51,7 @@ public class SignUpActivity extends BaseActivity {
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
 
-        authRepository = new AuthRepository(getApplicationContext());
+        repository = new Repository(getApplicationContext());
     }
 
     @OnClick(R.id.signup_button)
@@ -69,7 +69,7 @@ public class SignUpActivity extends BaseActivity {
                         .subscribe(new Action1<Token>() {
                             @Override
                             public void call(Token token) {
-                                authRepository.save(token.getToken(), new Callback<Void>() {
+                                repository.save(token.getToken(), new Callback<Void>() {
                                     @Override
                                     public void apply(Void value) {
                                         startActivity(new Intent(getApplicationContext(), MainActivity.class));

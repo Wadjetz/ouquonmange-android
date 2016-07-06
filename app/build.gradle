@@ -28,7 +28,7 @@ android {
         applicationId "fr.oqom.ouquonmange"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 13
+        versionCode 14
         versionName "1.0"
     }
     buildTypes {
@@ -61,7 +61,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-gcm:9.2.0'
     compile 'com.google.android.gms:play-services-maps:9.2.0'
     compile 'com.google.firebase:firebase-messaging:9.2.0'
-    compile 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
+    /*compile 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'*/
     compile 'io.reactivex:rxandroid:1.2.1'
     compile 'io.reactivex:rxjava:1.1.6'
     compile 'net.danlew:android.joda:2.9.3.1'
@@ -71,7 +71,9 @@ dependencies {
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
     compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
 
-    compile 'com.github.baiiu:DropDownMenu:bd673e2900'
+    /*compile 'com.github.baiiu:DropDownMenu:bd673e2900'*/
+
+    compile 'com.github.bumptech.glide:glide:3.7.0'
 
     compile 'com.jakewharton:butterknife:8.1.0'
     apt 'com.jakewharton:butterknife-compiler:8.1.0'

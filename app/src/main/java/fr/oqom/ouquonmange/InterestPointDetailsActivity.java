@@ -1,20 +1,26 @@
 package fr.oqom.ouquonmange;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
+import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import fr.oqom.ouquonmange.adapters.MembersAdapter;
 import fr.oqom.ouquonmange.models.CommunityMember;
 import fr.oqom.ouquonmange.models.Constants;
@@ -27,34 +33,34 @@ import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
-public class InterestPointDetailsActivity extends BaseActivity {
+public class InterestPointDetailsActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "InterestPtsActivityDet";
 
-    private TextView interestPointName;
-    private TextView interestPointAddress;
-    private TextView interestPointNameMembers;
-    private RecyclerView.LayoutManager membersLayoutManager;
+    @BindView(R.id.collapsing_toolbar) CollapsingToolbarLayout collapsingToolbar;
+    @BindView(R.id.backdrop) ImageView backdropImageView;
+    @BindView(R.id.interest_point_detail_name) TextView interestPointName;
+    @BindView(R.id.interest_point_detail_address) TextView interestPointAddress;
+    @BindView(R.id.members_list) RecyclerView membersRecyclerView;
+    @BindView(R.id.coordinatorMainLayout) CoordinatorLayout coordinatorLayout;
+    @BindView(R.id.toolbar) Toolbar toolbar;
+
     private String eventUuid;
     private String communityUuid;
     private String interestPointId;
     private ArrayList<CommunityMember> members = new ArrayList<>();
-
-    private ProgressBar progressBar;
     private InterestPoint interestPoint;
-    private RecyclerView membersRecyclerView;
-    private RecyclerView.Adapter membersAdapter;
-    private Snackbar snackbar;
-    private CoordinatorLayout coordinatorLayout;
+    private InterestPointDetails interestPointDetails;
+    private MembersAdapter membersAdapter;
 
     private OuQuOnMangeService ouQuOnMangeService;
-
-    private InterestPointDetails interestPointDetails;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_interest_point_details);
+        ButterKnife.bind(this);
+
         Intent intent = getIntent();
         eventUuid = intent.getStringExtra(Constants.EVENT_UUID);
         communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
@@ -63,60 +69,45 @@ public class InterestPointDetailsActivity extends BaseActivity {
 
         Log.d(LOG_TAG, "onCreate communityUuid=" + communityUuid + " eventUuid=" + eventUuid + " interestPointId=" + interestPointId + " interestPoint=" + interestPoint);
 
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorInterestPointsDetailsLayout);
-        snackbar = Snackbar.make(coordinatorLayout, "Error !", Snackbar.LENGTH_LONG);
-        snackbar.setAction(getText(R.string.close), closeSnackBarLogin);
-
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
-        initView();
-        initNav();
-        initText();
-        checkAuth();
+        setSupportActionBar(toolbar);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         if (savedInstanceState == null) {
             fetchInterestPointDetails(communityUuid, eventUuid, interestPoint);
         } else {
-            this.members = savedInstanceState.getParcelableArrayList(Constants.MEMBERS_LIST);
-            progressBar.setVisibility(View.GONE);
+            members = savedInstanceState.getParcelableArrayList(Constants.MEMBERS_LIST);
+            interestPointDetails = savedInstanceState.getParcelable(Constants.INTEREST_POINT_DETAILS);
             Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.members.size());
         }
+
+        initData();
 
         InitMembersList();
     }
 
-    private void initText() {
-        interestPointName = (TextView) findViewById(R.id.interest_point_detail_name);
+    private void initData() {
+        collapsingToolbar.setTitle(interestPoint.name);
         interestPointName.setText(interestPoint.name);
-        interestPointAddress = (TextView) findViewById(R.id.interest_point_detail_address);
         interestPointAddress.setText(interestPoint.address);
-        interestPointNameMembers = (TextView) findViewById(R.id.interest_point_members_name);
-        interestPointNameMembers.setText(Constants.NAME_MEMBERS);
+
+        Log.d(LOG_TAG, "initData interestPointDetails=" + interestPointDetails);
+
+        if (interestPointDetails != null && interestPointDetails.interestPoint.image.size() > 0) {
+            Glide.with(getApplicationContext())
+                    .load(interestPointDetails.interestPoint.image.get(0))
+                    .into(backdropImageView);
+        }
     }
 
     private void InitMembersList() {
-
         membersAdapter = new MembersAdapter(getApplicationContext(), this.members);
-
-        membersRecyclerView = (RecyclerView) findViewById(R.id.members_list);
-        membersLayoutManager = new LinearLayoutManager(this);
         membersRecyclerView.setHasFixedSize(true);
-        membersRecyclerView.setLayoutManager(membersLayoutManager);
+        membersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         membersRecyclerView.setAdapter(membersAdapter);
-
-    }
-
-    private View.OnClickListener closeSnackBarLogin = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            snackbar.dismiss();
-        }
-    };
-
-    private void initView() {
-        progressBar = (ProgressBar) findViewById(R.id.progress_interest_point_detail);
-        interestPointName = (TextView) findViewById(R.id.interest_point_detail_name);
-        interestPointAddress = (TextView) findViewById(R.id.interest_point_detail_address);
     }
 
     private void fetchInterestPointDetails(String communityUuid, String eventUuid, InterestPoint interestPoint) {
@@ -126,12 +117,20 @@ public class InterestPointDetailsActivity extends BaseActivity {
                     .subscribe(new Action1<InterestPointDetails>() {
                         @Override
                         public void call(InterestPointDetails ipd) {
-                            Log.i(LOG_TAG, "Fetch InterestPointDetails = ipd=" + ipd);
+                            Log.i(LOG_TAG, "Fetch InterestPointDetails ipd=" + ipd);
                             interestPointDetails = ipd;
+                            Log.i(LOG_TAG, "Fetch InterestPointDetails images " + ipd.interestPoint.image);
+
+                            if (ipd.interestPoint.image.size() > 0) {
+                                Log.i(LOG_TAG, "Fetch InterestPointDetails image " + ipd.interestPoint.image.get(0));
+                                Glide.with(getApplicationContext())
+                                        .load(ipd.interestPoint.image.get(0))
+                                        .into(backdropImageView);
+                            }
+
                             members.clear();
                             members.addAll(ipd.members);
                             membersAdapter.notifyDataSetChanged();
-                            progressBar.setVisibility(View.GONE);
                         }
                     }, new Action1<Throwable>() {
                         @Override
@@ -141,13 +140,12 @@ public class InterestPointDetailsActivity extends BaseActivity {
                                 HttpException response = (HttpException) throwable;
                                 switch (response.code()) {
                                     case 400:
-                                        Log.e(LOG_TAG, "Login 400 Bad Request");
-                                        snackbar.setText(R.string.login_error).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                        Log.e(LOG_TAG, "400 Bad Request");
+                                        showErrorSnackBar(getText(R.string.error_technical));
                                         break;
                                 }
-                                progressBar.setVisibility(View.INVISIBLE);
                             } else {
-                                snackbar.setText(throwable.getMessage()).setActionTextColor(Color.parseColor("#D32F2F")).show();
+                                showErrorSnackBar(throwable.getMessage());
                             }
                         }
                     });
@@ -159,12 +157,21 @@ public class InterestPointDetailsActivity extends BaseActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        if (menuItem.getItemId() == android.R.id.home) {
+            super.onBackPressed();
+        }
+        return super.onOptionsItemSelected(menuItem);
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putString(Constants.EVENT_UUID, eventUuid);
         outState.putString(Constants.COMMUNITY_UUID, communityUuid);
         outState.putString(Constants.INTEREST_POINT_ID, interestPointId);
         outState.putParcelable(Constants.INTEREST_POINT, interestPoint);
         outState.putParcelableArrayList(Constants.MEMBERS_LIST, this.members);
+        outState.putParcelable(Constants.INTEREST_POINT_DETAILS, interestPointDetails);
         super.onSaveInstanceState(outState);
 
     }
@@ -176,5 +183,9 @@ public class InterestPointDetailsActivity extends BaseActivity {
         communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
         interestPointId = savedInstanceState.getString(Constants.INTEREST_POINT_ID);
         interestPoint = savedInstanceState.getParcelable(Constants.INTEREST_POINT);
+    }
+
+    private void showErrorSnackBar(CharSequence message) {
+        Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG).show();
     }
 }
