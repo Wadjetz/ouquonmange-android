@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 import com.cardinalsolutions.sectioned_adapter.Categorizable;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import org.joda.time.DateTime;
 
@@ -23,6 +24,8 @@ public class Event implements Parcelable, Categorizable {
     public long communityId = 0;
     @Expose(serialize = false)
     public DateTime created = null;
+    @SerializedName("nb_groups")
+    public int nbGroups = 0;
 
     public Event(String name, String description, long dateStart, long dateEnd) {
         this.name = name;
@@ -40,6 +43,7 @@ public class Event implements Parcelable, Categorizable {
         dateEnd = new DateTime(in.readLong());
         communityId = in.readLong();
         created = new DateTime(in.readLong());
+        nbGroups = in.readInt();
     }
 
     @Override
@@ -52,6 +56,7 @@ public class Event implements Parcelable, Categorizable {
         dest.writeLong(dateEnd.getMillis());
         dest.writeLong(communityId);
         dest.writeLong(created.getMillis());
+        dest.writeInt(nbGroups);
     }
 
     public static final Creator<Event> CREATOR = new Creator<Event>() {
@@ -87,6 +92,7 @@ public class Event implements Parcelable, Categorizable {
                 ", dateEnd=" + dateEnd +
                 ", communityId=" + communityId +
                 ", created=" + created +
+                ", nbGroups=" + nbGroups +
                 '}';
     }
 }

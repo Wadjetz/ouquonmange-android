@@ -44,6 +44,18 @@
                 android:background="@drawable/green_badge"
                 android:layout_height="wrap_content" />
 
+            <TextView
+                android:id="@+id/event_nb_groups"
+                android:visibility="invisible"
+                android:padding="3dp"
+                android:textColor="@color/primaryTextColor"
+                android:background="@drawable/blue_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/event_date"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true" />
+
         </RelativeLayout>
 
     </android.support.v7.widget.CardView>

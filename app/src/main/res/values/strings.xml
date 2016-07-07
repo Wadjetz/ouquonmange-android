@@ -94,8 +94,6 @@
     <string name="community_type">Type</string>
     <string name="community_members">Members</string>
     <string name="accept">Accept</string>
-    <string name="groups">Groups</string>
-    <string name="votes">Votes</string>
     <string name="error_different_number_of_hours_between_dates">The period between the two dates shall not exceed 12 hours.</string>
     <string name="error_invalid_titleOfCommunity_length">This Title is invalid (between 2 and 30 characters)</string>
     <string name="default_12h_event_name">Midi</string>
@@ -106,6 +104,18 @@
     <string-array name="community_types">
         <item>Public</item>
         <item>Private</item>
-        <item>Closed</item>
+        <!-- <item>Closed</item> -->
     </string-array>
+
+    <plurals name="groups">
+        <item quantity="one">%d group</item>
+        <item quantity="other">%d groups</item>
+    </plurals>
+
+    <plurals name="votes">
+        <item quantity="one">%d vote</item>
+        <item quantity="other">%d votes</item>
+    </plurals>
+
+
 </resources>

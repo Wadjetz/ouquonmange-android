@@ -74,8 +74,12 @@ public class InterestPointsAdapter extends RecyclerView.Adapter<InterestPointsAd
             holder.interestPointAddress.setText(interestPoint.address);
             holder.interestPoint = interestPoint;
 
-            holder.interestPointGroupsNumber.setText(interestPoint.members + " " + context.getString(R.string.groups));
-            holder.interestPointVotesNumber.setText(interestPoint.votes + " " + context.getString(R.string.votes));
+            holder.interestPointGroupsNumber.setText(
+                    context.getResources().getQuantityString(R.plurals.groups, interestPoint.members, interestPoint.members)
+            );
+            holder.interestPointVotesNumber.setText(
+                    context.getResources().getQuantityString(R.plurals.votes, interestPoint.votes, interestPoint.votes)
+            );
 
             if (interestPoint.members == 0) {
                 holder.interestPointGroupsNumber.setBackgroundColor(Color.WHITE);

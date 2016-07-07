@@ -35,6 +35,14 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
         h.eventNameTextView.setText(event.name);
         h.eventDescriptionTextView.setText(event.description);
         h.date.setText(DateTimeUtils.printTime(event.dateStart, context) + " - " + DateTimeUtils.printTime(event.dateEnd, context) );
+
+        if (event.nbGroups > 0) {
+            h.eventNbGroups.setVisibility(View.VISIBLE);
+            h.eventNbGroups.setText(
+                    context.getResources().getQuantityString(R.plurals.groups, event.nbGroups, event.nbGroups)
+            );
+        }
+
         h.event = event;
     }
 
@@ -49,6 +57,7 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
         public TextView eventNameTextView;
         public TextView eventDescriptionTextView;
         public TextView date;
+        public TextView eventNbGroups;
         public Event event;
 
         public EventsViewHolder(View v) {
@@ -56,6 +65,7 @@ public class EventsSectionedAdapter extends SectionedAdapter<Event> {
             eventCardView = (CardView) v.findViewById(R.id.event_cardView);
             eventNameTextView = (TextView) v.findViewById(R.id.event_name);
             eventDescriptionTextView = (TextView) v.findViewById(R.id.event_description);
+            eventNbGroups = (TextView) v.findViewById(R.id.event_nb_groups);
             date = (TextView) v.findViewById(R.id.event_date);
             eventCardView.setOnClickListener(new View.OnClickListener() {
                 @Override
