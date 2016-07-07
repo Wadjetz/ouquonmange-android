@@ -146,7 +146,8 @@ public class LoginActivity extends AppCompatActivity {
 
     protected void hiddenVirtualKeyboard(){
         InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        if(getCurrentFocus().getWindowToken() != null)
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
 
     private void showErrorSnackBar(CharSequence message) {

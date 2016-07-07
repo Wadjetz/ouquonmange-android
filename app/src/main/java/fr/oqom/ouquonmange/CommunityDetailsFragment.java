@@ -15,6 +15,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import fr.oqom.ouquonmange.adapters.CommunityMembersAdapter;
+import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.CommunityDetails;
 import fr.oqom.ouquonmange.models.CommunityMember;
@@ -43,6 +44,7 @@ public class CommunityDetailsFragment extends Fragment {
     private RecyclerView.LayoutManager membersLayoutManager;
     private RecyclerView membersRecyclerView;
     private RecyclerView.Adapter membersAdapter;
+    private RecyclerView.Adapter membersEmptyAdapter;
 
     public static CommunityDetailsFragment newInstance(Community community) {
         CommunityDetailsFragment communityDetailsFragment = new CommunityDetailsFragment();
@@ -88,11 +90,18 @@ public class CommunityDetailsFragment extends Fragment {
                 Log.d(LOG_TAG, "Community Member Accept " + communityMember);
             }
         });
+
+        membersEmptyAdapter = new EmptyRecyclerViewAdapter();
+
         membersRecyclerView = (RecyclerView) view.findViewById(R.id.communities_members_list);
         membersLayoutManager = new LinearLayoutManager(getContext());
         membersRecyclerView.setHasFixedSize(true);
         membersRecyclerView.setLayoutManager(membersLayoutManager);
-        membersRecyclerView.setAdapter(membersAdapter);
+        if(members.size() > 0) {
+            membersRecyclerView.setAdapter(membersAdapter);
+        }else{
+            membersRecyclerView.setAdapter(membersEmptyAdapter);
+        }
     }
 
     private void setView() {
@@ -123,8 +132,14 @@ public class CommunityDetailsFragment extends Fragment {
                             communityDetails = details;
                             Log.d(LOG_TAG, "fetched Community Details ok " + communityDetails);
                             members.clear();
-                            members.addAll(communityDetails.members);
-                            membersAdapter.notifyDataSetChanged();
+                            if(communityDetails.members.size() > 0) {
+                                members.addAll(communityDetails.members);
+                                membersAdapter.notifyDataSetChanged();
+                                membersRecyclerView.setAdapter(membersAdapter);
+                            }else{
+                                membersEmptyAdapter.notifyDataSetChanged();
+                                membersRecyclerView.setAdapter(membersEmptyAdapter);
+                            }
                             progressBar.setVisibility(View.INVISIBLE);
                             //swipeRefreshLayout.setRefreshing(false);
                         }

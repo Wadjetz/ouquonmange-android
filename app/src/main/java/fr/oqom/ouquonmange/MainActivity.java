@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -26,6 +27,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import fr.oqom.ouquonmange.adapters.CommunitiesAdapter;
+import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
 import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.GSMToken;
@@ -48,6 +50,7 @@ public class MainActivity extends BaseActivity {
 
     private RecyclerView communitiesRecyclerView;
     private RecyclerView.Adapter communitiesAdapter;
+    private RecyclerView.Adapter communitiesEmptyAdapter;
     private RecyclerView.LayoutManager communitiesLayoutManager;
 
     private ArrayList<Community> communities = new ArrayList<>();
@@ -148,17 +151,23 @@ public class MainActivity extends BaseActivity {
                     .subscribe(new Action1<List<Community>>() {
                         @Override
                         public void call(List<Community> communityList) {
-                            communities.addAll(communityList);
+                            if (communityList.size() > 0){
+                                communities.addAll(communityList);
 
-                            for (Community c : communities) {
-                                String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
-                                if (c.uuid.equals(defaultCommunityUuid)) {
-                                    c.isDefault = true;
+                                for (Community c : communities) {
+                                    String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
+                                    if (c.uuid.equals(defaultCommunityUuid)) {
+                                        c.isDefault = true;
+                                    }
                                 }
+                                communitiesAdapter.notifyDataSetChanged();
+                                communitiesRecyclerView.setAdapter(communitiesAdapter);
+                            }else{
+                                communitiesEmptyAdapter.notifyDataSetChanged();
+                                communitiesRecyclerView.setAdapter(communitiesEmptyAdapter);
                             }
-
-                            communitiesAdapter.notifyDataSetChanged();
                             Log.i(LOG_TAG, "Fetch Communities = " + communityList.size());
+
                             progressBar.setVisibility(View.GONE);
                             swipeRefreshLayout.setRefreshing(false);
                         }
@@ -166,7 +175,7 @@ public class MainActivity extends BaseActivity {
                         @Override
                         public void call(Throwable throwable) {
                             throwable.printStackTrace();
-                            Log.e(LOG_TAG, "Fetch Communities error" + throwable.getMessage());
+                            Log.e(LOG_TAG, "Fetch Communities error " + throwable.getMessage());
                             progressBar.setVisibility(View.GONE);
                             swipeRefreshLayout.setRefreshing(false);
                             showErrorSnackBar(throwable.getMessage());
@@ -233,11 +242,17 @@ public class MainActivity extends BaseActivity {
                 handler.post(r);
             }
         });
+
+        communitiesEmptyAdapter = new EmptyRecyclerViewAdapter();
+
         communitiesRecyclerView = (RecyclerView) findViewById(R.id.communities_list);
         communitiesLayoutManager = new LinearLayoutManager(this);
         communitiesRecyclerView.setHasFixedSize(true);
         communitiesRecyclerView.setLayoutManager(communitiesLayoutManager);
-        communitiesRecyclerView.setAdapter(communitiesAdapter);
+        if(communitiesIsNotEmpty())
+            communitiesRecyclerView.setAdapter(communitiesAdapter);
+        else
+            communitiesRecyclerView.setAdapter(communitiesEmptyAdapter);
     }
 
     private void initFloatingButton() {
@@ -285,6 +300,10 @@ public class MainActivity extends BaseActivity {
             fetchCommunitiesSubscription.unsubscribe();
         }
         super.onStop();
+    }
+
+    private boolean communitiesIsNotEmpty(){
+        return communities != null && communities.size() > 0;
     }
 }
 

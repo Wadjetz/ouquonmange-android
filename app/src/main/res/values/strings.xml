@@ -100,6 +100,7 @@
     <string name="error_invalid_titleOfCommunity_length">This Title is invalid (between 2 and 30 characters)</string>
     <string name="default_12h_event_name">Midi</string>
     <string name="default_12h_event_description">Evrybody need eat</string>
+    <string name="list_empty">This list is empty</string>
 
     <string-array name="community_types">
         <item>Public</item>
