@@ -40,6 +40,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
 import fr.oqom.ouquonmange.adapters.InterestPointsAdapter;
 import fr.oqom.ouquonmange.models.Constants;
 import fr.oqom.ouquonmange.models.Group;
@@ -63,7 +64,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     @BindView(R.id.interest_points_list) RecyclerView interestPointsRecyclerView;
     private RecyclerView.Adapter<InterestPointsAdapter.InterestPointViewHolder> interestPointsAdapter;
-
+    private EmptyRecyclerViewAdapter interestPointsEmptyAdapter;
     private ArrayList<InterestPoint> interestPoints = new ArrayList<>();
     private String eventUuid;
     private String communityUuid;
@@ -135,6 +136,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
                 callbackCardAction
         );
         InterestPointsAdapter.InterestPointViewHolder.setView(getApplicationContext(), holder, interestPoint);
+        interestPointsEmptyAdapter = new EmptyRecyclerViewAdapter();
     }
 
     private void voteGroup(final InterestPoint interestPointToVote) {
@@ -586,13 +588,18 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
     };
 
+
     private Action1<List<InterestPoint>> apiSuccessCallback = new Action1<List<InterestPoint>>() {
         @Override
         public void call(List<InterestPoint> ips) {
             interestPoints.clear();
-            interestPoints.addAll(ips);
-            showMarkers();
-            interestPointsAdapter.notifyDataSetChanged();
+            if(ips.size() > 0) {
+                interestPoints.addAll(ips);
+                showMarkers();
+                interestPointsAdapter.notifyDataSetChanged();
+            }else{
+                interestPointsEmptyAdapter.notifyDataSetChanged();
+            }
             Log.i(LOG_TAG, "Fetch InterestPoint = " + interestPoints.size());
             swipeRefreshLayout.setRefreshing(false);
         }
