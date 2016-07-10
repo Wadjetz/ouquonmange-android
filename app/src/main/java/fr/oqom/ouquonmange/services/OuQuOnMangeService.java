@@ -11,6 +11,7 @@ import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.models.InterestPointDetails;
 import fr.oqom.ouquonmange.models.JoinGroup;
 import fr.oqom.ouquonmange.models.Login;
+import fr.oqom.ouquonmange.models.MemberStatus;
 import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.models.Profile;
 import fr.oqom.ouquonmange.models.SignUpUser;
@@ -68,11 +69,12 @@ public interface OuQuOnMangeService {
     @DELETE("/api/community/{communityUuid}/quit")
     Observable<Message> quitCommunity(@Path("communityUuid") String communityUuid);
 
-    @PUT("/api/community/{communityUuid}/add/{userUuid}")
-    Observable<Message> addMemberToCommunity(
+    @PUT("/api/community/{communityUuid}/change/status/{userUuid}")
+    Observable<Message> changeStatusMemberToCommunity(
             @Path("communityUuid") String communityUuid,
-            @Path("userUuid") String userUuid
-    );
+            @Path("userUuid") String userUuid,
+            @Body MemberStatus memberStatus
+            );
 
     @DELETE("/api/community/{communityUuid}/delete/{userUuid}")
     Observable<Message> deleteMemberToCommunity(

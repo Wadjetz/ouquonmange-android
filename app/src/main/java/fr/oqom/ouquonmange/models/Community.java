@@ -9,10 +9,6 @@ import com.google.gson.annotations.Expose;
 import org.joda.time.DateTime;
 
 import fr.oqom.ouquonmange.R;
-import java.util.ArrayList;
-import java.util.List;
-
-import fr.oqom.ouquonmange.utils.DateTimeUtils;
 
 public class Community implements Parcelable {
 

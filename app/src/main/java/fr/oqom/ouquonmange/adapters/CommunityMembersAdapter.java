@@ -58,6 +58,9 @@ public class CommunityMembersAdapter extends RecyclerView.Adapter<CommunityMembe
         if (communityMember.status.equals("pending")) {
             holder.acceptMemberAction.setVisibility(View.VISIBLE);
             holder.refuseMemberAction.setVisibility(View.VISIBLE);
+        }else{
+            holder.acceptMemberAction.setVisibility(View.INVISIBLE);
+            holder.refuseMemberAction.setVisibility(View.INVISIBLE);
         }
     }
 

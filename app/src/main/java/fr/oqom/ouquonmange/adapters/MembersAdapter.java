@@ -7,12 +7,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import java.util.List;
 
 import fr.oqom.ouquonmange.R;
 import fr.oqom.ouquonmange.models.CommunityMember;
-import fr.oqom.ouquonmange.models.User;
-import fr.oqom.ouquonmange.utils.Callback;
 
 public class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.ViewHolder> {
 

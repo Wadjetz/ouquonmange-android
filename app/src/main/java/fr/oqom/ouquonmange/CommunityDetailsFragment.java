@@ -13,7 +13,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import fr.oqom.ouquonmange.adapters.CommunityMembersAdapter;
 import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
@@ -21,11 +20,13 @@ import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.CommunityDetails;
 import fr.oqom.ouquonmange.models.CommunityMember;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.MemberStatus;
 import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
+import retrofit2.adapter.rxjava.HttpException;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -104,15 +105,72 @@ public class CommunityDetailsFragment extends Fragment {
 
     private Callback<CommunityMember> callbackAcceptMember = new Callback<CommunityMember>() {
         @Override
-        public void apply(CommunityMember communityMember) {
-            Log.d(LOG_TAG, "Community Member Accepting " + communityMember);
+        public void apply(CommunityMember cm) {
+            Log.d(LOG_TAG, "Community Member Accepting  comm :  "+community.uuid +" - "+ cm.uuid + " - username : " + cm.username);
+            ouQuOnMangeService.changeStatusMemberToCommunity(community.uuid, cm.uuid, new MemberStatus(Constants.MEMBER_STATUS_ACCEPTED))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Message>() {
+                        @Override
+                        public void call(Message message) {
+                            Log.i(LOG_TAG, " Message : " + message.toString());
+                            fetchCommunityDetails();
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            if (throwable instanceof HttpException) {
+                                HttpException response = (HttpException) throwable;
+                                switch (response.code()) {
+                                    case 400:
+                                        Log.e(LOG_TAG, "400 Bad Request");
+                                        break;
+                                    case 409:
+                                        Log.e(LOG_TAG, "409 Conflict member Already accept");
+                                    case 401:
+                                        Log.e(LOG_TAG, "401 Unauthorized");
+                                }
+                            } else {
+                                Log.e(LOG_TAG, " Error accept member : " + throwable.toString());
+
+                            }
+                        }
+                    });
         }
     };
 
     private Callback<CommunityMember> callbackRefuseMember = new Callback<CommunityMember>() {
         @Override
-        public void apply(CommunityMember communityMember) {
-            Log.d(LOG_TAG, "Community Member Deleting " + communityMember);
+        public void apply(CommunityMember cm) {
+            Log.d(LOG_TAG, "Community Member Deleting  comm :  "+community.uuid +" - "+ cm.uuid + " - username : " + cm.username);
+            ouQuOnMangeService.deleteMemberToCommunity(community.uuid, cm.uuid)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Message>() {
+                        @Override
+                        public void call(Message message) {
+                            Log.i(LOG_TAG, " Message : " + message.toString());
+                            fetchCommunityDetails();
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            if (throwable instanceof HttpException) {
+                                HttpException response = (HttpException) throwable;
+                                switch (response.code()) {
+                                    case 400:
+                                        Log.e(LOG_TAG, "400 Bad Request");
+                                        break;
+                                    case 409:
+                                        Log.e(LOG_TAG, "409 Conflict member Already accept");
+                                    case 401:
+                                        Log.e(LOG_TAG, "401 Unauthorized");
+                                }
+                            } else {
+                                Log.e(LOG_TAG, " Error accept member : " + throwable.toString());
+
+                            }
+                        }
+                    });
+
         }
     };
 
@@ -147,9 +205,6 @@ public class CommunityDetailsFragment extends Fragment {
                             members.clear();
                             if(communityDetails.members.size() > 0) {
                                 members.addAll(communityDetails.members);
-                                for (CommunityMember cm : members) {
-                                    Log.d(LOG_TAG, "Set role member : " + cm.uuid + " username : " + cm.username);
-                                }
                                 membersAdapter.notifyDataSetChanged();
                                 membersRecyclerView.setAdapter(membersAdapter);
                             }else{
