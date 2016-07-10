@@ -17,14 +17,16 @@ import fr.oqom.ouquonmange.utils.Callback;
 
 public class CommunityMembersAdapter extends RecyclerView.Adapter<CommunityMembersAdapter.ViewHolder> {
 
+    private final Callback<CommunityMember> communityMemberRefuseCallback;
     private List<CommunityMember> communityMembers;
     private Context context;
     private Callback<CommunityMember> communityMemberAcceptCallback;
 
-    public CommunityMembersAdapter(List<CommunityMember> communityMembers, Context context, Callback<CommunityMember> communityMemberAcceptCallback) {
+    public CommunityMembersAdapter(List<CommunityMember> communityMembers, Context context, Callback<CommunityMember> communityMemberAcceptCallback, Callback<CommunityMember> communityMemberRefuseCallback) {
         this.communityMembers = communityMembers;
         this.context = context;
         this.communityMemberAcceptCallback = communityMemberAcceptCallback;
+        this.communityMemberRefuseCallback = communityMemberRefuseCallback;
     }
 
     @Override
@@ -46,8 +48,16 @@ public class CommunityMembersAdapter extends RecyclerView.Adapter<CommunityMembe
             }
         });
 
+        holder.refuseMemberAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                communityMemberRefuseCallback.apply(communityMember);
+            }
+        });
+
         if (communityMember.status.equals("pending")) {
             holder.acceptMemberAction.setVisibility(View.VISIBLE);
+            holder.refuseMemberAction.setVisibility(View.VISIBLE);
         }
     }
 
@@ -61,12 +71,14 @@ public class CommunityMembersAdapter extends RecyclerView.Adapter<CommunityMembe
         public TextView memberNameTextView;
         public Button acceptMemberAction;
         public CommunityMember communityMember;
+        public Button refuseMemberAction;
 
         public ViewHolder(View v) {
             super(v);
             memberCardView = (CardView) v.findViewById(R.id.community_member_cardview);
             memberNameTextView = (TextView) v.findViewById(R.id.member_username);
             acceptMemberAction = (Button) v.findViewById(R.id.accept_member_action);
+            refuseMemberAction = (Button) v.findViewById(R.id.refuse_member_action);
         }
     }
 }

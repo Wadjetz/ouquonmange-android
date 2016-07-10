@@ -74,6 +74,11 @@ public interface OuQuOnMangeService {
             @Path("userUuid") String userUuid
     );
 
+    @DELETE("/api/community/{communityUuid}/delete/{userUuid}")
+    Observable<Message> deleteMemberToCommunity(
+            @Path("communityUuid") String communityUuid,
+            @Path("userUuid") String userUuid
+    );
     @POST("/api/group/{communityUuid}")
     Observable<Group> joinGroup(@Path("communityUuid") String communityUuid, @Body JoinGroup joinGroup);
 

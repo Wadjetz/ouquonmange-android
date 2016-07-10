@@ -87,7 +87,7 @@ public class CommunityDetailsFragment extends Fragment {
         progressBar = (ProgressBar) view.findViewById(R.id.progress);
         //swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshLayout);
 
-        membersAdapter = new CommunityMembersAdapter(this.members, getContext(), callbackAcceptMember);
+        membersAdapter = new CommunityMembersAdapter(this.members, getContext(), callbackAcceptMember, callbackRefuseMember);
 
         membersEmptyAdapter = new EmptyRecyclerViewAdapter();
 
@@ -101,24 +101,18 @@ public class CommunityDetailsFragment extends Fragment {
             membersRecyclerView.setAdapter(membersEmptyAdapter);
         }
     }
+
     private Callback<CommunityMember> callbackAcceptMember = new Callback<CommunityMember>() {
         @Override
         public void apply(CommunityMember communityMember) {
-            Log.d(LOG_TAG, "Community Member Accept " + communityMember);
+            Log.d(LOG_TAG, "Community Member Accepting " + communityMember);
+        }
+    };
 
-            ouQuOnMangeService.addMemberToCommunity(community.uuid, communityMember.uuid)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<Message>() {
-                        @Override
-                        public void call(Message message) {
-                            Log.i(LOG_TAG, " Message : " + message.toString());
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            Log.d(LOG_TAG, "Error : " + throwable.getMessage());
-                        }
-                    });
+    private Callback<CommunityMember> callbackRefuseMember = new Callback<CommunityMember>() {
+        @Override
+        public void apply(CommunityMember communityMember) {
+            Log.d(LOG_TAG, "Community Member Deleting " + communityMember);
         }
     };
 
