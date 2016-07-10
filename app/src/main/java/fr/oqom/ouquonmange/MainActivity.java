@@ -94,8 +94,8 @@ public class MainActivity extends BaseActivity {
 
         if (savedInstanceState == null) {
             checkAuth();
-            getMyCommunities();
             initCommunityList();
+            getMyCommunities();
         } else {
             this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
             progressBar.setVisibility(View.GONE);
