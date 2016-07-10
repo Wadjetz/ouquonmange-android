@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#388E3C</color>
     <color name="colorAccent">#8BC34A</color>
     <color name="primaryTextColor">#FFFFFF</color>
+    <color name="color_red">#D32F2F</color>
 
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>

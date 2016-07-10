@@ -13,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import fr.oqom.ouquonmange.adapters.CommunityMembersAdapter;
 import fr.oqom.ouquonmange.adapters.EmptyRecyclerViewAdapter;
@@ -20,6 +21,7 @@ import fr.oqom.ouquonmange.models.Community;
 import fr.oqom.ouquonmange.models.CommunityDetails;
 import fr.oqom.ouquonmange.models.CommunityMember;
 import fr.oqom.ouquonmange.models.Constants;
+import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.utils.Callback;
@@ -57,12 +59,12 @@ public class CommunityDetailsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        community = getArguments().getParcelable(Constants.COMMUNITY);
+
         View view = inflater.inflate(R.layout.fragment_community_details, container, false);
         initView(view);
 
         Log.d(LOG_TAG, "onCreateView");
-
-        community = getArguments().getParcelable(Constants.COMMUNITY);
 
         ouQuOnMangeService = Service.getInstance(getContext());
 
@@ -74,6 +76,7 @@ public class CommunityDetailsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.d(LOG_TAG, "onActivityCreated");
         fetchCommunityDetails();
     }
 
@@ -84,12 +87,7 @@ public class CommunityDetailsFragment extends Fragment {
         progressBar = (ProgressBar) view.findViewById(R.id.progress);
         //swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshLayout);
 
-        membersAdapter = new CommunityMembersAdapter(this.members, getContext(), new Callback<CommunityMember>() {
-            @Override
-            public void apply(CommunityMember communityMember) {
-                Log.d(LOG_TAG, "Community Member Accept " + communityMember);
-            }
-        });
+        membersAdapter = new CommunityMembersAdapter(this.members, getContext(), callbackAcceptMember);
 
         membersEmptyAdapter = new EmptyRecyclerViewAdapter();
 
@@ -103,6 +101,27 @@ public class CommunityDetailsFragment extends Fragment {
             membersRecyclerView.setAdapter(membersEmptyAdapter);
         }
     }
+    private Callback<CommunityMember> callbackAcceptMember = new Callback<CommunityMember>() {
+        @Override
+        public void apply(CommunityMember communityMember) {
+            Log.d(LOG_TAG, "Community Member Accept " + communityMember);
+
+            ouQuOnMangeService.addMemberToCommunity(community.uuid, communityMember.uuid)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Message>() {
+                        @Override
+                        public void call(Message message) {
+                            Log.i(LOG_TAG, " Message : " + message.toString());
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            Log.d(LOG_TAG, "Error : " + throwable.getMessage());
+                        }
+                    });
+        }
+    };
+
 
     private void setView() {
         communityName.setText(community.name);
@@ -134,6 +153,9 @@ public class CommunityDetailsFragment extends Fragment {
                             members.clear();
                             if(communityDetails.members.size() > 0) {
                                 members.addAll(communityDetails.members);
+                                for (CommunityMember cm : members) {
+                                    Log.d(LOG_TAG, "Set role member : " + cm.uuid + " username : " + cm.username);
+                                }
                                 membersAdapter.notifyDataSetChanged();
                                 membersRecyclerView.setAdapter(membersAdapter);
                             }else{

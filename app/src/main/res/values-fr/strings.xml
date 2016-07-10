@@ -101,6 +101,7 @@
     <string name="default_12h_event_name">Midi</string>
     <string name="default_12h_event_description">Everybody need eat</string>
     <string name="list_empty">La liste est vide</string>
+    <string name="refuse">Refuse</string>
 
 
     <string-array name="community_types">

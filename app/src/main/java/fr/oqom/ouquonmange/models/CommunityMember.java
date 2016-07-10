@@ -13,6 +13,7 @@ public class CommunityMember implements Parcelable {
     public String role;
     public DateTime joined;
     public String status;
+    public boolean isAdmin;
 
     protected CommunityMember(Parcel in) {
         uuid = in.readString();
@@ -20,6 +21,7 @@ public class CommunityMember implements Parcelable {
         email = in.readString();
         role = in.readString();
         status = in.readString();
+        isAdmin = (1 == in.readInt());
     }
 
     public static final Creator<CommunityMember> CREATOR = new Creator<CommunityMember>() {
@@ -59,5 +61,6 @@ public class CommunityMember implements Parcelable {
         dest.writeString(email);
         dest.writeString(role);
         dest.writeString(status);
+        dest.writeInt(isAdmin ? 1 : 0);
     }
 }
