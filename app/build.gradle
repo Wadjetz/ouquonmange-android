@@ -28,7 +28,7 @@ android {
         applicationId "fr.oqom.ouquonmange"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 15
+        versionCode 16
         versionName "1.0"
     }
     buildTypes {
