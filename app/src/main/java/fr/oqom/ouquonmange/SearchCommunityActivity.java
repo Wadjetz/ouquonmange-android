@@ -146,6 +146,12 @@ public class SearchCommunityActivity extends BaseActivity {
                                 Log.i(LOG_TAG, "Community Join ok : " + user);
                                 showErrorSnackBar(getText(R.string.member_join_community));
                                 int i = communitiesSearch.indexOf(community);
+                                repository.deleteMyCommunities(new Callback<Boolean>() {
+                                    @Override
+                                    public void apply(Boolean aBoolean) {
+                                        Log.d(LOG_TAG, "My Communities Cache Deleted");
+                                    }
+                                });
                                 communitiesSearch.remove(i);
                                 searchCommunitiesAdapter.notifyDataSetChanged();
                             }
