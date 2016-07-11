@@ -20,7 +20,6 @@ import fr.oqom.ouquonmange.models.Message;
 import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
-import fr.oqom.ouquonmange.utils.Callback;
 import fr.oqom.ouquonmange.utils.NetConnectionUtils;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -97,15 +96,10 @@ public class CommunityDetailsActivity extends AppCompatActivity {
                     .subscribe(new Action1<Message>() {
                         @Override
                         public void call(Message message) {
-                            repository.deleteMyCommunities(new Callback<Boolean>() {
-                                @Override
-                                public void apply(Boolean aBoolean) {
-                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                    intent.putExtra(Constants.FROM_MENU, Constants.FROM_MENU);
-                                    startActivity(intent);
-                                    finish();
-                                }
-                            });
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            intent.putExtra(Constants.FROM_MENU, Constants.FROM_MENU);
+                            startActivity(intent);
+                            finish();
                         }
                     }, new Action1<Throwable>() {
                         @Override

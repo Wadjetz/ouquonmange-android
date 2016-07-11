@@ -79,27 +79,21 @@ public class MainActivity extends BaseActivity {
             public void onRefresh() {
                 Log.d(LOG_TAG, "onRefresh");
                 communities.clear();
-                repository.deleteMyCommunities(new Callback<Boolean>() {
-                    @Override
-                    public void apply(Boolean aBoolean) {
-                        fetchCommunities();
-                    }
-                });
+                fetchCommunities();
             }
         });
 
         initNav();
         toolbar.setSubtitle(R.string.my_communities);
         initFloatingButton();
+        initCommunityList();
 
         if (savedInstanceState == null) {
             checkAuth();
-            initCommunityList();
-            getMyCommunities();
+            fetchCommunities();
         } else {
             this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
             progressBar.setVisibility(View.GONE);
-            initCommunityList();
         }
     }
 
@@ -136,25 +130,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void getMyCommunities() {
-        List<Community> communitiesFromRepository = repository.getMyCommunities();
-        if (communitiesFromRepository.size() == 0) {
-            fetchCommunities();
-        } else {
-            communities.addAll(communitiesFromRepository);
-            for (Community c : communities) {
-                String defaultCommunityUuid = Config.getDefaultCommunity(getApplicationContext());
-                if (c.uuid.equals(defaultCommunityUuid)) {
-                    c.isDefault = true;
-                }
-            }
-            communitiesAdapter.notifyDataSetChanged();
-            Log.i(LOG_TAG, "Get Communities from repository = " + communitiesFromRepository.size());
-            progressBar.setVisibility(View.GONE);
-            swipeRefreshLayout.setRefreshing(false);
-        }
-    }
-
     private void fetchCommunities() {
         if (NetConnectionUtils.isConnected(getApplicationContext())) {
             fetchCommunitiesSubscription = ouQuOnMangeService.getMyCommunities()
@@ -170,13 +145,6 @@ public class MainActivity extends BaseActivity {
                                     c.isDefault = true;
                                 }
                             }
-
-                            repository.saveMyCommunities(communities, new Callback<Void>() {
-                                @Override
-                                public void apply(Void aVoid) {
-                                    Log.d(LOG_TAG, "Save my communities in repository");
-                                }
-                            });
 
                             communitiesAdapter.notifyDataSetChanged();
                             Log.i(LOG_TAG, "Fetch Communities = " + communityList.size());

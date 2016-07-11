@@ -23,6 +23,7 @@ public class Repository {
                 .Builder(context)
                 .deleteRealmIfMigrationNeeded()
                 .build();
+        Realm.setDefaultConfiguration(realmConfig);
         realm = Realm.getInstance(realmConfig);
     }
 
@@ -65,10 +66,6 @@ public class Repository {
                         .deleteAllFromRealm();
 
                 realm.where(Profile.class)
-                        .findAll()
-                        .deleteAllFromRealm();
-
-                realm.where(Community.class)
                         .findAll()
                         .deleteAllFromRealm();
 
@@ -116,28 +113,4 @@ public class Repository {
             }
         });
     }
-
-    public void saveMyCommunities(final List<Community> communities, final Callback<Void> success) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.copyToRealm(communities);
-            }
-        });
-    }
-
-    public List<Community> getMyCommunities() {
-        return realm.where(Community.class).findAll();
-    }
-
-    public void deleteMyCommunities(final Callback<Boolean> success) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                RealmResults<Community> communities = realm.where(Community.class).findAll();
-                success.apply(communities.deleteAllFromRealm());
-            }
-        });
-    }
-
 }

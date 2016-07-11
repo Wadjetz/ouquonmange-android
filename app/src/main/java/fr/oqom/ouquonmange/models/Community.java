@@ -12,7 +12,7 @@ import fr.oqom.ouquonmange.R;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 
-public class Community extends RealmObject implements Parcelable {
+public class Community implements Parcelable {
 
     @Expose(serialize = false)
     public long id = 0;
@@ -26,11 +26,9 @@ public class Community extends RealmObject implements Parcelable {
 
     public String typ;
 
-    @Ignore
     @Expose(serialize = false)
     public DateTime created = DateTime.now();
 
-    @Ignore
     @Expose(serialize = false, deserialize = false)
     public boolean isDefault = false;
 
