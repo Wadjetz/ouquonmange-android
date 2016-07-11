@@ -67,14 +67,22 @@ public class CreateEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_event);
         ButterKnife.bind(this);
 
-        Intent intent = getIntent();
-        communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
-        day = DateTimeUtils.getDateTime(intent.getLongExtra(Constants.EVENT_DATE, DateTimeUtils.now().getMillis()));
-
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
 
-        this.dateStart = day.toDateTime();
-        this.dateEnd = day.toDateTime();
+        Intent intent = getIntent();
+        communityUuid = intent.getStringExtra(Constants.COMMUNITY_UUID);
+
+        day = DateTimeUtils.getDateTime(intent.getLongExtra(Constants.EVENT_DATE, DateTimeUtils.now().getMillis()));
+        if(savedInstanceState == null){
+            this.dateStart = day.toDateTime();
+            this.dateEnd = day.toDateTime();
+        }else{
+            day = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE));
+            this.dateStart = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE_START));
+            this.dateStart = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE_END));
+
+        }
+
 
         this.dayStartInput.setText(DateTimeUtils.printDate(day, getApplicationContext()));
         this.dayEndInput.setText(DateTimeUtils.printDate(day, getApplicationContext()));
@@ -316,7 +324,7 @@ public class CreateEventActivity extends AppCompatActivity {
             if( diff <= per ){
                 layoutDateEnd.setError(getString(R.string.error_different_number_of_hours_between_dates));
             }else{
-                Log.e(LOG_TAG,diff+" - "+per);
+                Log.i(LOG_TAG,"La différence entre les 2 dates : "+per+" - et la valeur par défault est : "+diff);
             }
         }
 
@@ -352,14 +360,21 @@ public class CreateEventActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(Constants.EVENT_DATE, day.getMillis());
+        outState.putLong(Constants.EVENT_DATE, this.day.getMillis());
+        outState.putLong(Constants.EVENT_DATE_START, this.dateStart.getMillis());
+        outState.putLong(Constants.EVENT_DATE_END, this.dateEnd.getMillis());
+
         outState.putString(Constants.COMMUNITY_UUID, communityUuid);
+        Log.i(LOG_TAG, "onSaveInstanceState");
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         day = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE));
+        this.dateStart = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE_START));
+        this.dateEnd = new DateTime(savedInstanceState.getLong(Constants.EVENT_DATE_END));
         communityUuid = savedInstanceState.getString(Constants.COMMUNITY_UUID);
+        Log.i(LOG_TAG, "onRestoreInstanceState");
     }
 }
