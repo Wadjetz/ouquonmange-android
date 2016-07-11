@@ -15,7 +15,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
@@ -94,6 +93,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     int interestPointItemHeight = 0;
 
     private boolean isCollapsed = false;
+    private boolean isCollapsedInterestPointStetted = false;
 
     private SearchView searchView = null;
     private SearchView.OnQueryTextListener queryTextListener;
@@ -146,6 +146,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
         initNav();
         checkAuth();
+        initInterestPointList();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -155,11 +156,13 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         if (savedInstanceState == null) {
             fetchInterestPoints();
         } else {
-            this.interestPoints = savedInstanceState.getParcelableArrayList(Constants.INTEREST_POINTS_LIST);
+            List<InterestPoint> interestPointsFromInstance = savedInstanceState.getParcelableArrayList(Constants.INTEREST_POINTS_LIST);
+            this.interestPoints.addAll(interestPointsFromInstance);
+            interestPointsAdapter.notifyDataSetChanged();
             Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.interestPoints.size());
         }
 
-        initInterestPointList();
+        interestPointItem.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -271,6 +274,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         outState.putBoolean(IS_COLLAPSED, isCollapsed);
         outState.putInt(INTEREST_POINT_ITEM_HEIGHT, interestPointItemHeight);
         outState.putString("searchQuery", searchQuery);
+        outState.putParcelable("targetLocation", targetLocation);
+        outState.putBoolean("isCollapsedInterestPointStetted", isCollapsedInterestPointStetted);
     }
 
     @Override
@@ -282,6 +287,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         isCollapsed = savedInstanceState.getBoolean(IS_COLLAPSED);
         interestPointItemHeight = savedInstanceState.getInt(INTEREST_POINT_ITEM_HEIGHT);
         searchQuery = savedInstanceState.getString("searchQuery");
+        targetLocation = savedInstanceState.getParcelable("targetLocation");
+        isCollapsedInterestPointStetted = savedInstanceState.getBoolean("isCollapsedInterestPointStetted");
     }
 
     private boolean isLandscape() {
@@ -300,9 +307,12 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private void collapseDisable(int height) {
         interestPointsRecyclerView.setVisibility(View.GONE);
-        interestPointItem.setVisibility(View.VISIBLE);
-        containerCollapseAction.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_arrow_drop_up_black), null, null, null);
 
+        if (isCollapsedInterestPointStetted) {
+            interestPointItem.setVisibility(View.VISIBLE);
+        }
+
+        containerCollapseAction.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_arrow_drop_up_black), null, null, null);
 
         mapContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height - (interestPointItemHeight + containerCollapseAction.getHeight())));
         mapFragment.getView().setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height - (interestPointItemHeight + containerCollapseAction.getHeight())));
@@ -310,6 +320,8 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     }
 
     private void showInterestPointItem(final InterestPoint interestPoint) {
+        isCollapsedInterestPointStetted = true;
+        interestPointItem.setVisibility(View.VISIBLE);
         InterestPointsAdapter.InterestPointViewHolder holder = new InterestPointsAdapter.InterestPointViewHolder(
                 interestPointItem,
                 callbackGroup,

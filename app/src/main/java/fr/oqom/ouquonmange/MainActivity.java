@@ -19,6 +19,7 @@ import android.widget.ProgressBar;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import butterknife.BindView;
@@ -92,7 +93,9 @@ public class MainActivity extends BaseActivity {
             checkAuth();
             fetchCommunities();
         } else {
-            this.communities = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
+            List<Community> communitiesFromInstance = savedInstanceState.getParcelableArrayList(Constants.COMMUNITIES_LIST);
+            this.communities.addAll(communitiesFromInstance);
+            communitiesAdapter.notifyDataSetChanged();
             progressBar.setVisibility(View.GONE);
         }
     }
