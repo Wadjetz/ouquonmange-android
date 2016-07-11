@@ -162,7 +162,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.interestPoints.size());
         }
 
-        interestPointItem.setVisibility(View.INVISIBLE);
+        interestPointItem.setVisibility(View.GONE);
     }
 
     @Override
@@ -321,7 +321,10 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
 
     private void showInterestPointItem(final InterestPoint interestPoint) {
         isCollapsedInterestPointStetted = true;
-        interestPointItem.setVisibility(View.VISIBLE);
+
+        if (!isLandscape()) {
+            interestPointItem.setVisibility(View.VISIBLE);
+        }
         InterestPointsAdapter.InterestPointViewHolder holder = new InterestPointsAdapter.InterestPointViewHolder(
                 interestPointItem,
                 callbackGroup,
