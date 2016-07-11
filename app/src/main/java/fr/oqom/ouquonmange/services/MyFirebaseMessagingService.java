@@ -12,10 +12,31 @@ import android.util.Log;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import fr.oqom.ouquonmange.MainActivity;
+import fr.oqom.ouquonmange.models.MessageEvent;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
-    private static final String TAG = "MyFirebaseMsgService";
+    private static final String LOG_TAG = "MyFirebaseMsgService";
+
+    @Subscribe
+    public void onMessageEvent(MessageEvent event) {
+        Log.d(LOG_TAG, "onMessageEvent: " + event);
+    }
+
+    @Override
+    public void onCreate() {
+        EventBus.getDefault().register(this);
+        super.onCreate();
+    }
+
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+    }
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -23,8 +44,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // If the application is in the foreground handle both data and notification messages here.
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
-        Log.d(TAG, "From: " + remoteMessage.getFrom());
-        Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
+        Log.d(LOG_TAG, "From: " + remoteMessage.getFrom());
+
+        if (remoteMessage.getNotification() != null) {
+            Log.d(LOG_TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
+        }
+
+        EventBus.getDefault().post(new MessageEvent("Hello everyone!"));
     }
 
     private void sendNotification(String messageBody) {

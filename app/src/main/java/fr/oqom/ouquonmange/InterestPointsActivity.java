@@ -35,6 +35,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,6 +53,7 @@ import fr.oqom.ouquonmange.models.Group;
 import fr.oqom.ouquonmange.models.InterestPoint;
 import fr.oqom.ouquonmange.models.JoinGroup;
 import fr.oqom.ouquonmange.models.Message;
+import fr.oqom.ouquonmange.models.MessageEvent;
 import fr.oqom.ouquonmange.models.Vote;
 import fr.oqom.ouquonmange.models.VoteGroup;
 import fr.oqom.ouquonmange.utils.Callback;
@@ -155,6 +160,21 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         }
 
         initInterestPointList();
+    }
+
+    @Override
+    protected void onStart() {
+        EventBus.getDefault().register(this);
+        super.onStart();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        if (this.targetLocation != null) {
+            fetchInterestPoints(targetLocation, (searchQuery != null) ? searchQuery : null);
+        } else {
+            fetchInterestPoints();
+        }
     }
 
     @Override
@@ -645,6 +665,9 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         if (locationManager != null) {
             locationManager.removeUpdates(this);
         }
+
+        EventBus.getDefault().unregister(this);
+
         super.onStop();
     }
 
