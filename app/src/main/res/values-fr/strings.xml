@@ -96,8 +96,8 @@
     <string name="accept">Accepte</string>
     <string name="error_different_number_of_hours_between_dates">La période entre les deux dates ne doivent pas dépasser 12 heures.</string>
     <string name="error_invalid_titleOfCommunity_length">Le titre est invalide (entre 2 et 30 caractéres)</string>
-    <string name="default_12h_event_name">Midi</string>
-    <string name="default_12h_event_description">Everybody need eat</string>
+    <string name="default_12h_event_name">Déjeuner</string>
+    <string name="default_12h_event_description">Tout le monde a besoin de manger</string>
     <string name="list_empty">La liste est vide</string>
     <string name="refuse">Refuse</string>
 

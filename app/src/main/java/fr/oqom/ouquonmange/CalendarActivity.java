@@ -157,7 +157,7 @@ public class CalendarActivity extends BaseActivity {
         pickerDialogs.setCallback(new Callback3<Integer, Integer, Integer>() {
             @Override
             public void apply(Integer year, Integer monthOfYear, Integer dayOfMonth) {
-                day = day.withYear(year).withMonthOfYear(monthOfYear).withDayOfMonth(dayOfMonth);
+                day = day.withYear(year).withMonthOfYear(monthOfYear + 1).withDayOfMonth(dayOfMonth);
                 events.clear();
                 eventsSectionedAdapter.setItemList(events);
                 eventsSectionedAdapter.notifyDataSetChanged();
