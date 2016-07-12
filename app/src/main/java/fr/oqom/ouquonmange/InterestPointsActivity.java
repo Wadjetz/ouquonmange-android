@@ -161,8 +161,6 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
             interestPointsAdapter.notifyDataSetChanged();
             Log.d(LOG_TAG, "onCreate savedInstanceState = " + this.interestPoints.size());
         }
-
-        interestPointItem.setVisibility(View.GONE);
     }
 
     @Override
@@ -188,6 +186,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
         if (hasFocus && !isLandscape()) {
             int height = rootContainer.getHeight();
             interestPointItemHeight = interestPointItem.getHeight() != 0 ? interestPointItem.getHeight() : interestPointItemHeight;
+            interestPointItem.setVisibility(View.GONE);
             if (!isCollapsed) {
                 collapseEnable(height);
             } else {
@@ -322,7 +321,7 @@ public class InterestPointsActivity extends BaseActivity implements LocationList
     private void showInterestPointItem(final InterestPoint interestPoint) {
         isCollapsedInterestPointStetted = true;
 
-        if (!isLandscape()) {
+        if (!isLandscape() && isCollapsed) {
             interestPointItem.setVisibility(View.VISIBLE);
         }
         InterestPointsAdapter.InterestPointViewHolder holder = new InterestPointsAdapter.InterestPointViewHolder(
