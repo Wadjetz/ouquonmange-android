@@ -16,12 +16,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import com.google.android.gms.common.SignInButton;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.models.Login;
 import fr.oqom.ouquonmange.models.Token;
+import fr.oqom.ouquonmange.repositories.Repository;
 import fr.oqom.ouquonmange.services.OuQuOnMangeService;
 import fr.oqom.ouquonmange.services.Service;
 import fr.oqom.ouquonmange.utils.Callback;
@@ -42,6 +43,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private OuQuOnMangeService ouQuOnMangeService;
     private Repository repository;
+    private SignInButton gSignInButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,10 @@ public class LoginActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setSubtitle(R.string.login_action);
         }
+
+        gSignInButton = (SignInButton) findViewById(R.id.btn_sign_in_google_plus);
+        gSignInButton.setSize(SignInButton.SIZE_ICON_ONLY);
+        gSignInButton.setColorScheme(SignInButton.COLOR_DARK);
 
         ouQuOnMangeService = Service.getInstance(getApplicationContext());
         repository = new Repository(getApplicationContext());

@@ -108,6 +108,7 @@
     <string name="quit_community">Quit Community</string>
     <string name="interest_point_photo">Interest Point Photo</string>
     <string name="group_members">Group Members</string>
+    <string name="title_signin_google_plus">Se connecter avec :</string>
 
     <string-array name="community_types">
         <item>Public</item>
